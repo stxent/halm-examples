@@ -96,6 +96,7 @@ static void processInput(struct Interface *interface, const char *input,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  char buffer[64];
   bool event = false;
   struct Pin led;
 
@@ -133,8 +134,6 @@ int main(void)
 
     if (ifGet(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
     {
-      char buffer[16];
-
       pinSet(led);
 
       while (available)

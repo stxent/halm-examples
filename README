@@ -1,9 +1,9 @@
 Examples require GCC ARM compiler with Redlib libraries from LPCXpresso bundle.
 
 How to build examples:
-  https://github.com/stxent/halm-examples.git
-  git submodule update --init --recursive
+  git clone https://github.com/stxent/halm-examples.git
   cd halm-examples
+  git submodule update --init --recursive
   make CROSS_COMPILE=arm-none-eabi-
 
 All executables will be placed in the halm-examples/build subdirectories.

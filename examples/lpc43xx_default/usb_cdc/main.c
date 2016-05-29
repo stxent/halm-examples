@@ -13,7 +13,7 @@
 #include <platform/nxp/usb_device.h>
 #include <usb/cdc_acm.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(6, 6)
+#define LED_PIN PIN(PORT_6, 6)
 /*----------------------------------------------------------------------------*/
 static struct Entity *usb = 0;
 static struct Interface *serial = 0;
@@ -98,6 +98,7 @@ static void processInput(struct Interface *interface, const char *input,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  char buffer[512];
   bool event = false;
   struct Pin led;
 
@@ -135,8 +136,6 @@ int main(void)
 
     if (ifGet(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
     {
-      char buffer[16];
-
       pinSet(led);
 
       while (available)
