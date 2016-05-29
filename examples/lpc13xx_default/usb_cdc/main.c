@@ -13,10 +13,8 @@
 #include <platform/nxp/usb_device.h>
 #include <usb/cdc_acm.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(3, 0)
-/*----------------------------------------------------------------------------*/
-static struct Entity *usb = 0;
-static struct Interface *serial = 0;
+#define BUFFER_SIZE 64
+#define LED_PIN     PIN(3, 0)
 /*----------------------------------------------------------------------------*/
 static const struct UsbDeviceConfig usbConfig = {
     .dm = PIN(PORT_USB, PIN_USB_DM),
@@ -28,7 +26,8 @@ static const struct UsbDeviceConfig usbConfig = {
 };
 
 static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
+    .frequency = 12000000,
+    .bypass = false
 };
 
 static const struct PllConfig sysPllConfig = {
@@ -43,15 +42,15 @@ static const struct PllConfig usbPllConfig = {
     .source = CLOCK_EXTERNAL
 };
 
-static const struct CommonClockConfig mainClkConfig = {
+static const struct CommonClockConfig mainClockConfig = {
     .source = CLOCK_PLL
 };
 
-static const struct CommonClockConfig usbClkConfig = {
+static const struct CommonClockConfig usbClockConfig = {
     .source = CLOCK_USB_PLL
 };
 /*----------------------------------------------------------------------------*/
-static void enableClock(void)
+static void setupClock(void)
 {
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -62,23 +61,24 @@ static void enableClock(void)
   clockEnable(UsbPll, &usbPllConfig);
   while (!clockReady(UsbPll));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
+  while (!clockReady(MainClock));
 
-  clockEnable(UsbClock, &usbClkConfig);
+  clockEnable(UsbClock, &usbClockConfig);
   while (!clockReady(UsbClock));
 }
 /*----------------------------------------------------------------------------*/
 static void serialEventCallback(void *argument)
 {
-  bool * const eventPointer = argument;
+  bool * const event = argument;
 
-  *eventPointer = true;
+  *event = true;
 }
 /*----------------------------------------------------------------------------*/
 static void processInput(struct Interface *interface, const char *input,
     size_t length)
 {
-  char buffer[8];
+  char buffer[16];
 
   while (length)
   {
@@ -88,7 +88,17 @@ static void processInput(struct Interface *interface, const char *input,
     for (size_t index = 0; index < chunkLength; ++index)
       buffer[index] = input[index] + 1;
 
-    ifWrite(interface, buffer, chunkLength);
+    size_t pending = chunkLength;
+    const char *bufferPointer = buffer;
+
+    while (pending)
+    {
+      const size_t bytesWritten = ifWrite(interface, buffer, chunkLength);
+
+      pending -= bytesWritten;
+      bufferPointer += bytesWritten;
+    }
+
     length -= chunkLength;
     input += chunkLength;
   }
@@ -96,14 +106,15 @@ static void processInput(struct Interface *interface, const char *input,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  char buffer[64];
-  bool event = false;
+  struct Entity *usb;
+  struct Interface *serial;
   struct Pin led;
+  bool event = false;
 
   led = pinInit(LED_PIN);
   pinOutput(led, 0);
 
-  enableClock();
+  setupClock();
 
   usb = init(UsbDevice, &usbConfig);
   assert(usb);
@@ -114,35 +125,34 @@ int main(void)
       .txBuffers = 4,
 
       .endpoint = {
-          .interrupt = 0x82,
-          .rx = 0x03,
-          .tx = 0x83
+          .interrupt = 0x81,
+          .rx = 0x02,
+          .tx = 0x82
       }
   };
 
   serial = init(CdcAcm, &config);
+  assert(serial);
   ifCallback(serial, serialEventCallback, &event);
+
+  char buffer[BUFFER_SIZE];
 
   while (1)
   {
     while (!event)
       barrier();
-
     event = false;
 
     size_t available;
 
     if (ifGet(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
     {
+      size_t bytesRead;
+
       pinSet(led);
 
-      while (available)
-      {
-        const size_t bytesRead = ifRead(serial, buffer, sizeof(buffer));
-
+      while ((bytesRead = ifRead(serial, buffer, sizeof(buffer))))
         processInput(serial, buffer, bytesRead);
-        available -= bytesRead;
-      }
 
       pinReset(led);
     }

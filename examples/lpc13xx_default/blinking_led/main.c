@@ -13,8 +13,6 @@
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(3, 0)
 /*----------------------------------------------------------------------------*/
-static struct Timer *timer;
-/*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
     .channel = GPTIMER_CT32B0
@@ -22,16 +20,16 @@ static const struct GpTimerConfig timerConfig = {
 /*----------------------------------------------------------------------------*/
 static void ledToggle(void *argument)
 {
-  bool * const eventPointer = argument;
+  bool * const event = argument;
 
-  *eventPointer = true;
+  *event = true;
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  bool event = false;
-  uint8_t ledValue = 0;
+  struct Timer *timer;
   struct Pin led;
+  bool event = false;
 
   led = pinInit(LED_PIN);
   pinOutput(led, 0);
@@ -42,6 +40,8 @@ int main(void)
   timerSetOverflow(timer, 500);
   timerCallback(timer, ledToggle, &event);
   timerSetEnabled(timer, true);
+
+  uint8_t ledValue = 0;
 
   while (1)
   {
