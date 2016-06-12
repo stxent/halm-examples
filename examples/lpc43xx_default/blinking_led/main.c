@@ -7,10 +7,9 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include <memory.h>
-#include <pin.h>
-#include <platform/nxp/gptimer.h>
-#include <platform/nxp/lpc43xx/clocking.h>
+#include <halm/pin.h>
+#include <halm/platform/nxp/gptimer.h>
+#include <halm/platform/nxp/lpc43xx/clocking.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(PORT_6, 6)
 /*----------------------------------------------------------------------------*/

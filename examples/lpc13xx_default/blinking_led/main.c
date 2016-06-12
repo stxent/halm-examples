@@ -7,9 +7,8 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include <memory.h>
-#include <pin.h>
-#include <platform/nxp/gptimer.h>
+#include <halm/pin.h>
+#include <halm/platform/nxp/gptimer.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(3, 0)
 /*----------------------------------------------------------------------------*/

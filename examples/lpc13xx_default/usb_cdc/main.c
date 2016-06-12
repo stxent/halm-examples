@@ -7,11 +7,10 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include <memory.h>
-#include <pin.h>
-#include <platform/nxp/lpc13xx/clocking.h>
-#include <platform/nxp/usb_device.h>
-#include <usb/cdc_acm.h>
+#include <halm/pin.h>
+#include <halm/platform/nxp/lpc13xx/clocking.h>
+#include <halm/platform/nxp/usb_device.h>
+#include <halm/usb/cdc_acm.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 64
 #define LED_PIN     PIN(3, 0)

@@ -7,9 +7,8 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include <memory.h>
-#include <pin.h>
-#include <platform/nxp/serial.h>
+#include <halm/pin.h>
+#include <halm/platform/nxp/serial.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 64
 #define LED_PIN     PIN(3, 0)
