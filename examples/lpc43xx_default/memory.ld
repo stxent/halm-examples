@@ -1,5 +1,3 @@
-GROUP(libcr_nohost.a libcr_c.a libcr_eabihelpers.a)
-
 MEMORY
 {
   Flash (rx) : ORIGIN = 0x1A000000, LENGTH = 0x40000 /* 256 KiB */
