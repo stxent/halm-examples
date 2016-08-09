@@ -17,7 +17,7 @@ static const struct GpTimerConfig timerConfig = {
     .channel = GPTIMER_CT32B0
 };
 /*----------------------------------------------------------------------------*/
-static void ledToggle(void *argument)
+static void onTimerOverflow(void *argument)
 {
   bool * const event = argument;
 
@@ -37,7 +37,7 @@ int main(void)
   assert(timer);
 
   timerSetOverflow(timer, 500);
-  timerCallback(timer, ledToggle, &event);
+  timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 
   uint8_t ledValue = 0;

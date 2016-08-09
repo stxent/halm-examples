@@ -22,7 +22,7 @@ static const struct SerialConfig serialConfig = {
     .txLength = 64
 };
 /*----------------------------------------------------------------------------*/
-static void serialEventCallback(void *argument)
+static void onSerialEvent(void *argument)
 {
   bool * const event = argument;
 
@@ -69,7 +69,7 @@ int main(void)
 
   serial = init(Serial, &serialConfig);
   assert(serial);
-  ifCallback(serial, serialEventCallback, &event);
+  ifCallback(serial, onSerialEvent, &event);
 
   char buffer[BUFFER_SIZE];
 

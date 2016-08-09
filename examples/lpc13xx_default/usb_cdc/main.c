@@ -67,7 +67,7 @@ static void setupClock(void)
   while (!clockReady(UsbClock));
 }
 /*----------------------------------------------------------------------------*/
-static void serialEventCallback(void *argument)
+static void onSerialEvent(void *argument)
 {
   bool * const event = argument;
 
@@ -132,7 +132,7 @@ int main(void)
 
   serial = init(CdcAcm, &config);
   assert(serial);
-  ifCallback(serial, serialEventCallback, &event);
+  ifCallback(serial, onSerialEvent, &event);
 
   char buffer[BUFFER_SIZE];
 
