@@ -11,6 +11,7 @@ OPT_FLAGS += -Og -g3
 #Process build flags
 AR := $(CROSS_COMPILE)ar
 CC := $(CROSS_COMPILE)gcc
+SIZE := $(CROSS_COMPILE)size
 CPU_FLAGS += -mcpu=cortex-m4 -mthumb
 CPU_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
@@ -53,6 +54,7 @@ $(OUTPUT_DIR)/$(PROJECT)/%.axf: $$(%_OBJECTS)
 	@echo "$(CC): $@"
 	@mkdir -p $(@D)
 	$(Q)$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
+	$(Q)$(SIZE) $@
 
 COBJECTS = $(CSOURCES:%.c=$(OUTPUT_DIR)/$(PROJECT)/%.o)
 
@@ -62,7 +64,7 @@ COBJECTS = $(CSOURCES:%.c=$(OUTPUT_DIR)/$(PROJECT)/%.o)
 .SUFFIXES:
 .DEFAULT_GOAL = all
 
-$(OUTPUT_DIR)/$(PROJECT)/%.o: %.c
+$(OUTPUT_DIR)/$(PROJECT)/%.o: %.c $(LIBS)
 	@echo "$(CC): $@"
 	@mkdir -p $(@D)
 	$(Q)$(CC) -c $(CFLAGS) $(INCLUDE_PATH) -MMD -MF $(@:%.o=%.d) -MT $@ $< -o $@
