@@ -20,8 +20,9 @@ static const struct UsbDeviceConfig usbConfig = {
     .dp = PIN(PORT_USB, PIN_USB_DP),
     .connect = PIN(PORT_0, 6),
     .vbus = PIN(PORT_0, 3),
-    .channel = 0,
-    .priority = 0
+    .vid = 0x15A2,
+    .pid = 0x0044,
+    .channel = 0
 };
 
 static const struct ExternalOscConfig extOscConfig = {
@@ -46,7 +47,7 @@ static const struct CommonClockConfig mainClockConfig = {
 };
 
 static const struct CommonClockConfig usbClockConfig = {
-    .source = CLOCK_USB_PLL
+    .source = CLOCK_MAIN
 };
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
@@ -63,8 +64,14 @@ static void setupClock(void)
   clockEnable(MainClock, &mainClockConfig);
   while (!clockReady(MainClock));
 
+  /*
+   * System PLL and USB PLL should be running to make both clock
+   * sources available for switching. After the switch, the USB PLL
+   * can be turned off.
+   */
   clockEnable(UsbClock, &usbClockConfig);
   while (!clockReady(UsbClock));
+  clockDisable(UsbPll);
 }
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
@@ -123,7 +130,7 @@ int main(void)
       .rxBuffers = 4,
       .txBuffers = 4,
 
-      .endpoint = {
+      .endpoints = {
           .interrupt = 0x81,
           .rx = 0x02,
           .tx = 0x82

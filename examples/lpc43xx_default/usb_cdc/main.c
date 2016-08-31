@@ -20,8 +20,9 @@ static const struct UsbDeviceConfig usbConfig = {
     .dp = PIN(PORT_USB, PIN_USB0_DP),
     .connect = 0,
     .vbus = PIN(PORT_USB, PIN_USB0_VBUS),
-    .channel = 0,
-    .priority = 0
+    .vid = 0x15A2,
+    .pid = 0x0044,
+    .channel = 0
 };
 
 static const struct ExternalOscConfig extOscConfig = {
@@ -123,7 +124,7 @@ int main(void)
       .rxBuffers = 4,
       .txBuffers = 4,
 
-      .endpoint = {
+      .endpoints = {
           .interrupt = 0x81,
           .rx = 0x02,
           .tx = 0x82
