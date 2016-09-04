@@ -1,64 +1,67 @@
+/*
+ * Copyright (C) 2016 xent
+ * Project is distributed under the terms of the GNU General Public License v3.0
+ */
+
+ENTRY(RESET_ISR)
+EXTERN(vectorTable)
+
 MEMORY
 {
-  Flash (rx) : ORIGIN = 0x1A000000, LENGTH = 0x40000 /* 256 KiB */
-  Ram (rwx) : ORIGIN = 0x10000000, LENGTH = 0x7FE0 /* 32736 bytes */
+  FLASH (rx) : ORIGIN = 0x1A000000, LENGTH = 0x40000 /* 256 KiB */
+  RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 0x07FE0 /* 32736 bytes */
 }
 
-__top_Flash = 0x0 + 0x80000;
-__top_Ram = 0x10000000 + 0x7FE0;
-
-EXTERN(vectorTable)
-ENTRY(RESET_ISR)
+stackStart = ORIGIN(RAM) + LENGTH(RAM);
 
 SECTIONS
 {
   .text : ALIGN(4)
   {
-    FILL(0xFF)
+    _stext = .;
+
     *(.vectors)
+    *(.text)
     *(.text*)
-    . = ALIGN(4);
-    *(.rodata .rodata.*)
-    . = ALIGN(4);
-  } > Flash
+    *(.rodata)
+    *(.rodata*)
 
-  _etext = .;
+    _etext = .;
 
-  .uninit_RESERVED : ALIGN(4)
+    . = ALIGN(4);
+    _sidata = .;
+  } >FLASH =0xFF
+
+  .data : AT(_sidata) ALIGN(4)
   {
-    KEEP(*(.bss.$RESERVED*))
-    . = ALIGN(4);
-    _end_uninit_RESERVED = .;
-  } > Ram
+    _sdata = .;
 
-  .data : ALIGN(4)
-  {
-    FILL(0xFF)
-    _data = .;
-    *(vtable)
+    *(.data)
     *(.data*)
-    . = ALIGN(4);
+
     _edata = .;
-  } > Ram AT>Flash
+  } >RAM
 
   .bss : ALIGN(4)
   {
-    _bss = .;
+    _sbss = .;
+
+    *(.bss)
     *(.bss*)
     *(COMMON)
-    . = ALIGN(4);
+
     _ebss = .;
-    PROVIDE(end = .);
-  } > Ram
 
-  .noinit (NOLOAD) : ALIGN(4)
-  {
-    _noinit = .;
-    *(.noinit*)
     . = ALIGN(4);
-    _end_noinit = .;
-  } > Ram
+    heapStart = .;
+  } >RAM
 
-  PROVIDE(_pvHeapStart = .);
-  PROVIDE(_stack = __top_Ram);
+  /DISCARD/ :
+  {
+    *(.init)
+    *(.fini)
+  }
+
+  PROVIDE(end = heapStart);
+  PROVIDE(_stack = stackStart);
 }
