@@ -52,13 +52,13 @@ $(foreach entry,$(EXAMPLE_GROUPS),$(eval $(call make-group,$(entry))))
 
 .SECONDEXPANSION:
 $(BUILD_TARGETS): $$($$(subst build_,,$$@)_LIBS)
-	$(Q)make --no-print-directory $($(@:build_%=%)_FLAGS)
+	$(Q)+make --no-print-directory $($(@:build_%=%)_FLAGS)
 
 $(CLEAN_TARGETS):
 	$(Q)make --no-print-directory clean $($(@:clean_%=%)_FLAGS)
 
 $(BUILD_LIBS):
-	$(Q)make --no-print-directory $($(@:build_%=%)_FLAGS)
+	$(Q)+make --no-print-directory $($(@:build_%=%)_FLAGS)
 
 all: $(BUILD_TARGETS)
 

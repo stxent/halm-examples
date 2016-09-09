@@ -12,19 +12,21 @@ OPT_FLAGS += -Og -g3
 AR := $(CROSS_COMPILE)ar
 CC := $(CROSS_COMPILE)gcc
 SIZE := $(CROSS_COMPILE)size
+OBJCOPY := $(CROSS_COMPILE)objcopy
+
+#Configure common paths and libraries
+OUTPUT_DIR ?= build_$(PROJECT)
+LDSCRIPT := memory.ld
+
+#Configure compiler flags
 CPU_FLAGS += -mcpu=cortex-m4 -mthumb
 CPU_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
-
-#Configure compiler options
 CFLAGS += -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections
 CFLAGS += -std=c11 -Wall -Wextra -Winline -pedantic -Wshadow -Wcast-qual
 CFLAGS += $(OPT_FLAGS) $(CPU_FLAGS) $(BUILD_FLAGS)
 LDFLAGS += --specs=nosys.specs --specs=nano.specs -Xlinker --gc-sections
 LDFLAGS += $(CPU_FLAGS)
-LDFLAGS += -T memory.ld
-
-#Configure common paths and libraries
-OUTPUT_DIR ?= build_$(PROJECT)
+LDFLAGS += -T $(LDSCRIPT)
 
 #External libraries
 XCORE_PATH ?= ../xcore
@@ -37,8 +39,10 @@ LIBS += $(OUTPUT_DIR)/$(PROJECT)/xcore/libxcore.a
 
 #Search for example files
 EXAMPLES := $(shell find . -mindepth 1 -maxdepth 1 -type d -printf "%f\n")
-EXAMPLE_FILES = $(EXAMPLES:%=$(OUTPUT_DIR)/$(PROJECT)/%.axf)
-TARGETS += $(EXAMPLE_FILES)
+ELF_FILES = $(EXAMPLES:%=$(OUTPUT_DIR)/$(PROJECT)/%.axf)
+TARGETS += $(ELF_FILES)
+HEX_FILES = $(EXAMPLES:%=$(OUTPUT_DIR)/$(PROJECT)/%.hex)
+TARGETS += $(HEX_FILES)
 
 define make-example
   $(1)_CSOURCES := $(wildcard $(1)/*.c)
@@ -49,12 +53,17 @@ endef
 
 $(foreach entry,$(EXAMPLES),$(eval $(call make-example,$(entry))))
 
+%.hex: %.axf
+	$(Q)$(OBJCOPY) -O ihex $< $@
+	$(Q)$(SIZE) $<
+
+$(ELF_FILES): $(LDSCRIPT)
+
 .SECONDEXPANSION:
 $(OUTPUT_DIR)/$(PROJECT)/%.axf: $$(%_OBJECTS)
 	@echo "$(CC): $@"
 	@mkdir -p $(@D)
-	$(Q)$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
-	$(Q)$(SIZE) $@
+	$(Q)$(CC) $(LDFLAGS) $(filter %.o,$^) $(LIBS) -o $@
 
 COBJECTS = $(CSOURCES:%.c=$(OUTPUT_DIR)/$(PROJECT)/%.o)
 
