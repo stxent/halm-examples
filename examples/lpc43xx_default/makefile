@@ -22,7 +22,7 @@ LDSCRIPT := memory.ld
 CPU_FLAGS += -mcpu=cortex-m4 -mthumb
 CPU_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections
-CFLAGS += -std=c11 -Wall -Wextra -Winline -pedantic -Wshadow -Wcast-qual
+CFLAGS += -std=c11 -Wall -Wextra -pedantic -Wshadow
 CFLAGS += $(OPT_FLAGS) $(CPU_FLAGS) $(BUILD_FLAGS)
 LDFLAGS += --specs=nosys.specs --specs=nano.specs -Xlinker --gc-sections
 LDFLAGS += $(CPU_FLAGS)
