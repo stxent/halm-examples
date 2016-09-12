@@ -60,6 +60,12 @@ SECTIONS
   {
     *(.init)
     *(.fini)
+
+    *(.ARM.exidx*)
+    *(.gnu.linkonce.armexidx.*)
+
+    *(.ARM.extab*)
+    *(.gnu.linkonce.armextab.*)
   }
 
   PROVIDE(end = heapStart);

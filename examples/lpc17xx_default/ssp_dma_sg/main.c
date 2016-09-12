@@ -7,6 +7,8 @@
 #include <xcore/bits.h>
 #include "ssp_pwm.h"
 /*----------------------------------------------------------------------------*/
+#define SSP_CHANNEL 1
+/*----------------------------------------------------------------------------*/
 uint32_t linearFunction(size_t length, size_t index)
 {
   const uint32_t rawMask = MASK(index * 2 + 1);
@@ -54,7 +56,7 @@ static const struct SspPwmConfig config[] = {
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  init(SspPwm, &config[1]);
+  init(SspPwm, &config[SSP_CHANNEL]);
 
   while (1);
   return 0;
