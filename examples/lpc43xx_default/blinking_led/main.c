@@ -15,7 +15,7 @@
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
-    .channel = GPTIMER_CT32B0
+    .channel = 0
 };
 
 static const struct CommonClockConfig mainClkConfig = {

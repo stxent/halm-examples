@@ -148,12 +148,7 @@ static void setupClock()
   clockEnable(MainClock, &mainClkConfig);
 }
 /*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *argument)
-{
-  *(bool *)argument = true;
-}
-/*----------------------------------------------------------------------------*/
-static void onTransferEnded(void *argument)
+static void onEvent(void *argument)
 {
   *(bool *)argument = true;
 }
@@ -167,7 +162,7 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t size,
   markBuffer(buffer, size, position / size);
 
   ifSet(card, IF_ADDRESS, &position);
-  ifCallback(card, onTransferEnded, &event);
+  ifCallback(card, onEvent, &event);
 
   const size_t bytesWritten = ifWrite(card, buffer, size);
   bool completed = false;
@@ -193,7 +188,7 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t size,
   bool event;
 
   ifSet(card, IF_ADDRESS, &position);
-  ifCallback(card, onTransferEnded, &event);
+  ifCallback(card, onEvent, &event);
 
   const size_t bytesRead = ifRead(card, buffer, size);
   bool completed = false;
@@ -262,7 +257,7 @@ int main(void)
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
   timerSetOverflow(timer, 1000000);
-  timerCallback(timer, onTimerOverflow, &event);
+  timerCallback(timer, onEvent, &event);
 
   timerSetEnabled(timer, true);
 
