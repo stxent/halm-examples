@@ -5,7 +5,6 @@
  */
 
 #include <assert.h>
-#include <stdbool.h>
 #include <string.h>
 
 #include <halm/pin.h>
@@ -16,8 +15,8 @@
 #include <halm/platform/sdcard.h>
 #include <halm/platform/sdio_spi.h>
 /*----------------------------------------------------------------------------*/
-#define BLOCK_SIZE 512
-#define LED_PIN PIN(0, 22)
+#define BLOCK_SIZE  512
+#define LED_PIN     PIN(0, 22)
 
 #define TEST_CRC
 #define TEST_DMA
