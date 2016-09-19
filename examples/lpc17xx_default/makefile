@@ -37,7 +37,7 @@ LIBS += $(OUTPUT_DIR)/$(PROJECT)/halm/libhalm.a
 LIBS += $(OUTPUT_DIR)/$(PROJECT)/xcore/libxcore.a
 
 #Search for example files
-EXAMPLES := $(shell find . -mindepth 1 -maxdepth 1 -type d -printf "%f\n")
+EXAMPLES := $(shell find . -mindepth 1 -maxdepth 1 -type d ! -iname ".*" -printf "%f\n")
 ELF_FILES = $(EXAMPLES:%=$(OUTPUT_DIR)/$(PROJECT)/%.axf)
 TARGETS += $(ELF_FILES)
 HEX_FILES = $(EXAMPLES:%=$(OUTPUT_DIR)/$(PROJECT)/%.hex)

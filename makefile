@@ -16,7 +16,7 @@ endif
 EXAMPLE_FLAGS += CROSS_COMPILE=$(CROSS_COMPILE)
 EXAMPLE_FLAGS += XCORE_PATH=../../xcore HALM_PATH=../../halm
 
-EXAMPLE_GROUPS := $(shell find $(EXAMPLES_DIR) -mindepth 1 -maxdepth 1 -type d -printf "%f\n")
+EXAMPLE_GROUPS := $(shell find $(EXAMPLES_DIR) -mindepth 1 -maxdepth 1 -type d ! -iname ".*" -printf "%f\n")
 
 LIBS = xcore halm
 

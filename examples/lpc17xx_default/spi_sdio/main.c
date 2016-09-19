@@ -9,12 +9,12 @@
 #include <string.h>
 
 #include <halm/pin.h>
-#include <halm/platform/sdcard.h>
-#include <halm/platform/sdio_spi.h>
 #include <halm/platform/nxp/gptimer.h>
+#include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <halm/platform/nxp/spi.h>
 #include <halm/platform/nxp/spi_dma.h>
-#include <halm/platform/nxp/lpc17xx/clocking.h>
+#include <halm/platform/sdcard.h>
+#include <halm/platform/sdio_spi.h>
 /*----------------------------------------------------------------------------*/
 #define BLOCK_SIZE 512
 #define LED_PIN PIN(0, 22)
@@ -161,7 +161,7 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t size,
 
   markBuffer(buffer, size, position / size);
 
-  ifSet(card, IF_ADDRESS, &position);
+  ifSet(card, IF_POSITION, &position);
   ifCallback(card, onEvent, &event);
 
   const size_t bytesWritten = ifWrite(card, buffer, size);
@@ -187,7 +187,7 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t size,
 {
   bool event;
 
-  ifSet(card, IF_ADDRESS, &position);
+  ifSet(card, IF_POSITION, &position);
   ifCallback(card, onEvent, &event);
 
   const size_t bytesRead = ifRead(card, buffer, size);
