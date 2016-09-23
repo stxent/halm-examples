@@ -7,26 +7,14 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#include <halm/core/cortex/systick.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(PORT_C, 13)
 /*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
+static const struct SysTickTimerConfig timerConfig = {
+    .frequency = 1000
 };
-
-static const struct CommonClockConfig mainClkConfig = {
-    .source = CLOCK_INTERNAL
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClkConfig);
-  while (!clockReady(MainClock));
-}
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -42,9 +30,7 @@ int main(void)
   led = pinInit(LED_PIN);
   pinOutput(led, 0);
 
-  setupClock();
-
-  timer = init(GpTimer, &timerConfig);
+  timer = init(SysTickTimer, &timerConfig);
   assert(timer);
 
   timerSetOverflow(timer, 500);

@@ -19,9 +19,7 @@ static struct GpTimerConfig timerConfig = {
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
-  bool * const event = argument;
-
-  *event = true;
+  *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

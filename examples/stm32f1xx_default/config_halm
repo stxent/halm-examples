@@ -1,0 +1,39 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# Configuration
+#
+# CONFIG_CORE_CORTEX_M0 is not set
+CONFIG_CORE_CORTEX_M3=y
+# CONFIG_CORE_CORTEX_M4 is not set
+# CONFIG_FAMILY_LPC13XX is not set
+# CONFIG_FAMILY_LPC17XX is not set
+CONFIG_FAMILY_STM32F1XX=y
+
+#
+# Core settings
+#
+CONFIG_CORE="m3"
+CONFIG_CORE_TYPE="cortex"
+CONFIG_CORE_CORTEX_SYSTICK=y
+
+#
+# Peripheral drivers
+#
+
+#
+# Upper-level drivers
+#
+CONFIG_PLATFORM_GPIO_BUS=y
+CONFIG_PLATFORM_SDIO_SPI=y
+CONFIG_PLATFORM_SDCARD=y
+CONFIG_PLATFORM="stm32f1xx"
+CONFIG_PLATFORM_TYPE="stm"
+
+#
+# Build options
+#
+# CONFIG_OPTIMIZATIONS_DISABLED is not set
+# CONFIG_OPTIMIZATIONS_SIZE is not set
+# CONFIG_OPTIMIZATIONS_FULL is not set
+CONFIG_OPTIMIZATIONS_DEBUG=y
+CONFIG_ASSERTIONS=y
