@@ -5,8 +5,6 @@
  */
 
 #include <assert.h>
-#include <stdbool.h>
-
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 /*----------------------------------------------------------------------------*/
@@ -38,7 +36,7 @@ int main(void)
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 
-  uint8_t ledValue = 0;
+  bool ledValue = 0;
 
   while (1)
   {
@@ -48,7 +46,7 @@ int main(void)
     event = false;
 
     pinWrite(led, ledValue);
-    ledValue ^= 0x01;
+    ledValue = !ledValue;
   }
 
   return 0;

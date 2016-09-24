@@ -6,8 +6,8 @@
 
 #include <assert.h>
 
+#include <halm/generic/can.h>
 #include <halm/pin.h>
-#include <halm/common/can.h>
 #include <halm/platform/nxp/can.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>

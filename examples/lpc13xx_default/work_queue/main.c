@@ -5,62 +5,49 @@
  */
 
 #include <assert.h>
+#include <halm/core/cortex/systick.h>
+#include <halm/generic/work_queue.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN         PIN(3, 0)
+#define WORK_QUEUE_SIZE 4
 /*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-
-static const struct CommonClockConfig mainClkConfig = {
-    .source = CLOCK_INTERNAL
+static const struct SysTickTimerConfig timerConfig = {
+    .frequency = 1000
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
+static void blinkTask(void *argument)
 {
-  clockEnable(MainClock, &mainClkConfig);
-  while (!clockReady(MainClock));
+  static bool value = 0;
+  const struct Pin * const pin = argument;
+
+  pinWrite(*pin, value);
+  value = !value;
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
-  *(bool *)argument = true;
+  workQueueAdd(blinkTask, argument);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Timer *timer;
-  struct Pin led;
-  bool event = false;
-
-  led = pinInit(LED_PIN);
+  /* Initialize peripherals */
+  struct Pin led = pinInit(LED_PIN);
   pinOutput(led, 0);
 
-  setupClock();
-
-  timer = init(GpTimer, &timerConfig);
+  struct Timer * const timer = init(SysTickTimer, &timerConfig);
   assert(timer);
 
   timerSetOverflow(timer, 500);
-  timerCallback(timer, onTimerOverflow, &event);
+  timerCallback(timer, onTimerOverflow, &led);
+
+  /* Initialize Work Queue */
+  workQueueInit(WORK_QUEUE_SIZE);
+
+  /* Start event generation and queue handler */
   timerSetEnabled(timer, true);
-
-  bool ledValue = 0;
-
-  while (1)
-  {
-    while (!event)
-      barrier();
-
-    event = false;
-
-    pinWrite(led, ledValue);
-    ledValue = !ledValue;
-  }
+  workQueueStart(0);
 
   return 0;
 }
