@@ -7,27 +7,20 @@
 #include <assert.h>
 #include <string.h>
 
+#include <halm/generic/sdcard.h>
+#include <halm/generic/sdio_spi.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <halm/platform/nxp/spi.h>
 #include <halm/platform/nxp/spi_dma.h>
-#include <halm/platform/sdcard.h>
-#include <halm/platform/sdio_spi.h>
 /*----------------------------------------------------------------------------*/
 #define BLOCK_SIZE  512
 #define LED_PIN     PIN(0, 22)
 
-#define TEST_CRC
 #define TEST_DMA
-#define TEST_WATCHDOG
+#define TEST_TICK_TIMER
 #define TEST_WRITE
-
-#ifdef TEST_CRC
-#define SDIO_CRC true
-#else
-#define SDIO_CRC false
-#endif
 
 #ifdef TEST_DMA
 #define SPI_CLASS SpiDma
@@ -37,13 +30,13 @@
 
 #define SPI_CHANNEL 0
 /*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
+static const struct GpTimerConfig eventTimerConfig = {
     .frequency = 1000000,
     .channel = 0
 };
 
-#ifdef TEST_WATCHDOG
-static const struct GpTimerConfig watchdogConfig = {
+#ifdef TEST_TICK_TIMER
+static const struct GpTimerConfig tickTimerConfig = {
     .frequency = 100000,
     .channel = 1
 };
@@ -212,11 +205,11 @@ int main(void)
 {
   setupClock();
 
-#ifdef TEST_WATCHDOG
-  struct Timer * const watchdog = init(GpTimer, &watchdogConfig);
-  assert(watchdog);
+#ifdef TEST_TICK_TIMER
+  struct Timer * const tickTimer = init(GpTimer, &tickTimerConfig);
+  assert(tickTimer);
 #else
-  struct Timer * const watchdog = 0;
+  struct Timer * const tickTimer = 0;
 #endif
 
   /* Initialize SPI layer */
@@ -226,8 +219,8 @@ int main(void)
   /* Initialize SDIO layer */
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
-      .timer = watchdog,
-      .blocks = sizeof(transferBuffer) / BLOCK_SIZE,
+      .timer = tickTimer,
+      .blocks = 0,
       .cs = PIN(0, 16)
   };
   struct Interface * const sdio = init(SdioSpi, &sdioConfig);
@@ -236,7 +229,7 @@ int main(void)
   /* Initialize SD Card layer */
   const struct SdCardConfig cardConfig = {
       .interface = sdio,
-      .crc = SDIO_CRC
+      .crc = false
   };
   struct Interface * const card = init(SdCard, &cardConfig);
   assert(card);
@@ -253,12 +246,12 @@ int main(void)
   bool event = false;
 
   /* Configure the timer for read/write events */
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 1000000);
-  timerCallback(timer, onEvent, &event);
+  struct Timer * const eventTimer = init(GpTimer, &eventTimerConfig);
+  assert(eventTimer);
+  timerSetOverflow(eventTimer, 1000000);
+  timerCallback(eventTimer, onEvent, &event);
 
-  timerSetEnabled(timer, true);
+  timerSetEnabled(eventTimer, true);
 
   while (1)
   {
