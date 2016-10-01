@@ -18,8 +18,8 @@
 #define BLOCK_SIZE  512
 #define LED_PIN     PIN(0, 22)
 
+#define TEST_BUSY_TIMER
 #define TEST_DMA
-#define TEST_TICK_TIMER
 #define TEST_WRITE
 
 #ifdef TEST_DMA
@@ -35,8 +35,8 @@ static const struct GpTimerConfig eventTimerConfig = {
     .channel = 0
 };
 
-#ifdef TEST_TICK_TIMER
-static const struct GpTimerConfig tickTimerConfig = {
+#ifdef TEST_BUSY_TIMER
+static const struct GpTimerConfig busyTimerConfig = {
     .frequency = 100000,
     .channel = 1
 };
@@ -50,7 +50,8 @@ static const struct SpiDmaConfig spiConfig[] = {
         .miso = PIN(0, 17),
         .mosi = PIN(0, 18),
         .dma = {0, 1},
-        .channel = 0
+        .channel = 0,
+        .mode = 3
     },
     {
         .rate = 8000000,
@@ -58,7 +59,8 @@ static const struct SpiDmaConfig spiConfig[] = {
         .miso = PIN(0, 8),
         .mosi = PIN(0, 9),
         .dma = {3, 2},
-        .channel = 1
+        .channel = 1,
+        .mode = 3
     }
 };
 #else
@@ -68,14 +70,16 @@ static const struct SpiConfig spiConfig[] = {
         .sck = PIN(0, 15),
         .miso = PIN(0, 17),
         .mosi = PIN(0, 18),
-        .channel = 0
+        .channel = 0,
+        .mode = 3
     },
     {
         .rate = 8000000,
         .sck = PIN(0, 7),
         .miso = PIN(0, 8),
         .mosi = PIN(0, 9),
-        .channel = 1
+        .channel = 1,
+        .mode = 3
     }
 };
 #endif
@@ -205,11 +209,12 @@ int main(void)
 {
   setupClock();
 
-#ifdef TEST_TICK_TIMER
-  struct Timer * const tickTimer = init(GpTimer, &tickTimerConfig);
-  assert(tickTimer);
+#ifdef TEST_BUSY_TIMER
+  struct Timer * const busyTimer = init(GpTimer, &busyTimerConfig);
+  assert(busyTimer);
+  timerSetOverflow(busyTimer, 50); /* 2 kHz event rate */
 #else
-  struct Timer * const tickTimer = 0;
+  struct Timer * const busyTimer = 0;
 #endif
 
   /* Initialize SPI layer */
@@ -219,7 +224,7 @@ int main(void)
   /* Initialize SDIO layer */
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
-      .timer = tickTimer,
+      .timer = busyTimer,
       .blocks = 0,
       .cs = PIN(0, 16)
   };

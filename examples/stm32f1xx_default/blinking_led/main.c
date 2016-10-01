@@ -35,7 +35,7 @@ int main(void)
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 
-  bool ledValue = 0;
+  bool ledState = 0;
 
   while (1)
   {
@@ -44,8 +44,8 @@ int main(void)
 
     event = false;
 
-    pinWrite(led, ledValue);
-    ledValue = !ledValue;
+    pinWrite(led, ledState);
+    ledState = !ledState;
   }
 
   return 0;
