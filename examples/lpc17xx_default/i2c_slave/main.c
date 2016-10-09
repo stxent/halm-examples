@@ -1,0 +1,57 @@
+/*
+ * main.c
+ * Copyright (C) 2013 xent
+ * Project is distributed under the terms of the GNU General Public License v3.0
+ */
+
+#include <assert.h>
+#include <halm/pin.h>
+#include <halm/platform/nxp/i2c_slave.h>
+/*----------------------------------------------------------------------------*/
+#define LED_PIN PIN(3, 0)
+/*----------------------------------------------------------------------------*/
+static const struct I2cSlaveConfig i2cConfig = {
+    .size = 16,
+    .scl = PIN(0, 11),
+    .sda = PIN(0, 10),
+    .channel = 2
+};
+/*----------------------------------------------------------------------------*/
+static void onDeviceMemoryChanged(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  static const uint32_t deviceAddress = 0x60;
+  static const uint32_t internalOffset = 0;
+  enum result res;
+
+  struct Interface * const i2c = init(I2cSlave, &i2cConfig);
+  assert(i2c);
+  ifSet(i2c, IF_ADDRESS, &deviceAddress);
+
+  (void)res; /* Suppress warning */
+
+  const struct Pin led = pinInit(LED_PIN);
+  pinOutput(led, 0);
+
+  bool event = false;
+  ifCallback(i2c, onDeviceMemoryChanged, &event);
+
+  while (1)
+  {
+    while (!event)
+      barrier();
+    event = false;
+
+    uint8_t state;
+
+    ifSet(i2c, IF_POSITION, &internalOffset);
+    ifRead(i2c, &state, sizeof(state));
+    pinWrite(led, state > 0);
+  }
+
+  return 0;
+}
