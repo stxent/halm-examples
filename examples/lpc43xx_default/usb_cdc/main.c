@@ -42,7 +42,7 @@ static const struct PllConfig usbPllConfig = {
     .source = CLOCK_EXTERNAL
 };
 
-static const struct CommonClockConfig mainClockConfig = {
+static const struct CommonClockConfig mainClkConfig = {
     .source = CLOCK_PLL
 };
 
@@ -64,7 +64,7 @@ static void setupClock(void)
   clockEnable(UsbPll, &usbPllConfig);
   while (!clockReady(UsbPll));
 
-  clockEnable(MainClock, &mainClockConfig);
+  clockEnable(MainClock, &mainClkConfig);
   while (!clockReady(MainClock));
 }
 /*----------------------------------------------------------------------------*/

@@ -42,11 +42,11 @@ static const struct PllConfig usbPllConfig = {
     .source = CLOCK_EXTERNAL
 };
 
-static const struct CommonClockConfig mainClockConfig = {
+static const struct CommonClockConfig mainClkConfig = {
     .source = CLOCK_PLL
 };
 
-static const struct CommonClockConfig usbClockConfig = {
+static const struct CommonClockConfig usbClkConfig = {
     .source = CLOCK_MAIN
 };
 /*----------------------------------------------------------------------------*/
@@ -61,7 +61,7 @@ static void setupClock(void)
   clockEnable(UsbPll, &usbPllConfig);
   while (!clockReady(UsbPll));
 
-  clockEnable(MainClock, &mainClockConfig);
+  clockEnable(MainClock, &mainClkConfig);
   while (!clockReady(MainClock));
 
   /*
@@ -69,7 +69,7 @@ static void setupClock(void)
    * sources available for switching. After the switch, the USB PLL
    * can be turned off.
    */
-  clockEnable(UsbClock, &usbClockConfig);
+  clockEnable(UsbClock, &usbClkConfig);
   while (!clockReady(UsbClock));
   clockDisable(UsbPll);
 }

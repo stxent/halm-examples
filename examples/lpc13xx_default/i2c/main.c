@@ -34,8 +34,8 @@ static const struct I2cConfig i2cConfig = {
 };
 
 static const struct GpTimerConfig timerConfig = {
-    .channel = GPTIMER_CT32B0,
-    .frequency = 1000000
+    .frequency = 1000,
+    .channel = GPTIMER_CT32B0
 };
 /*----------------------------------------------------------------------------*/
 enum deviceState
@@ -206,9 +206,9 @@ int main(void)
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
-  timerSetOverflow(timer, 1000000);
+  timerSetOverflow(timer, 1000);
 
-  bool event;
+  bool event = false;
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 

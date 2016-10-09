@@ -37,7 +37,7 @@ static const struct PllConfig sysPllConfig = {
     .source = CLOCK_EXTERNAL
 };
 
-static const struct CommonClockConfig mainClockConfig = {
+static const struct CommonClockConfig mainClkConfig = {
     .source = CLOCK_PLL
 };
 
@@ -64,10 +64,10 @@ static void setupClock(void)
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
 
-  clockEnable(MainClock, &mainClockConfig);
+  clockEnable(MainClock, &mainClkConfig);
   while (!clockReady(MainClock));
 
-  clockEnable(Apb3Clock, &mainClockConfig);
+  clockEnable(Apb3Clock, &mainClkConfig);
   while (!clockReady(Apb3Clock));
 }
 /*----------------------------------------------------------------------------*/

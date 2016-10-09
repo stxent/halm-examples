@@ -49,7 +49,7 @@ int main(void)
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 
-  bool ledState = 0;
+  bool ledState = false;
 
   while (1)
   {

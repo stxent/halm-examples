@@ -35,8 +35,8 @@ static const struct I2cConfig i2cConfig = {
 };
 
 static const struct GpTimerConfig timerConfig = {
-    .channel = 0,
-    .frequency = 1000000
+    .frequency = 1000,
+    .channel = 0
 };
 
 static const struct CommonClockConfig mainClkConfig = {
@@ -219,9 +219,9 @@ int main(void)
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
-  timerSetOverflow(timer, 1000000);
+  timerSetOverflow(timer, 1000);
 
-  bool event;
+  bool event = false;
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 
