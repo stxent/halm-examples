@@ -5,16 +5,14 @@
  */
 
 #include <assert.h>
-#include <stdbool.h>
-
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/pin_interrupt.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN     PIN(0, 22)
 
-#define EVENT_PIN   PIN(0, 28)
-#define OUTPUT_PIN  PIN(2, 13)
+#define EVENT_PIN   PIN(1, 19)
+#define OUTPUT_PIN  PIN(1, 18)
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
