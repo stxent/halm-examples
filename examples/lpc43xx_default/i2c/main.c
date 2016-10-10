@@ -46,7 +46,6 @@ static const struct CommonClockConfig mainClkConfig = {
 static void setupClock(void)
 {
   clockEnable(MainClock, &mainClkConfig);
-  while (!clockReady(MainClock));
 }
 /*----------------------------------------------------------------------------*/
 enum deviceState

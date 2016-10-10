@@ -5,8 +5,6 @@
  */
 
 #include <assert.h>
-#include <stdbool.h>
-
 #include <halm/pin.h>
 #include <halm/platform/nxp/lpc13xx/clocking.h>
 #include <halm/platform/nxp/usb_device.h>
@@ -62,7 +60,6 @@ static void setupClock(void)
   while (!clockReady(UsbPll));
 
   clockEnable(MainClock, &mainClkConfig);
-  while (!clockReady(MainClock));
 
   /*
    * System PLL and USB PLL should be running to make both clock

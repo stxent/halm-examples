@@ -59,7 +59,6 @@ static const struct UsbDeviceConfig usbConfig = {
 static void setupClock()
 {
   clockEnable(MainClock, &initialClock);
-  while (!clockReady(MainClock));
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -71,7 +70,6 @@ static void setupClock()
   while (!clockReady(UsbPll));
 
   clockEnable(MainClock, &mainClkConfig);
-  while (!clockReady(MainClock));
 }
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)

@@ -5,8 +5,6 @@
  */
 
 #include <assert.h>
-#include <stdbool.h>
-
 #include <halm/pin.h>
 #include <halm/platform/nxp/serial.h>
 /*----------------------------------------------------------------------------*/

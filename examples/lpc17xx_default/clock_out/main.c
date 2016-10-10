@@ -46,7 +46,6 @@ static void setupClock(void)
   while (!clockReady(ExternalOsc));
 
   clockEnable(MainClock, &mainClkConfig);
-  while (!clockReady(MainClock));
 
   clockEnable(ClockOutput, &outputClkConfig);
   while (!clockReady(ClockOutput));

@@ -5,8 +5,6 @@
  */
 
 #include <assert.h>
-#include <stdbool.h>
-
 #include <halm/pin.h>
 #include <halm/platform/nxp/lpc43xx/clocking.h>
 #include <halm/platform/nxp/usb_device.h>
@@ -53,7 +51,6 @@ static const struct CommonClockConfig initialClock = {
 static void setupClock(void)
 {
   clockEnable(MainClock, &initialClock);
-  while (!clockReady(MainClock));
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -65,7 +62,6 @@ static void setupClock(void)
   while (!clockReady(UsbPll));
 
   clockEnable(MainClock, &mainClkConfig);
-  while (!clockReady(MainClock));
 }
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)

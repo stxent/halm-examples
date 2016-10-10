@@ -17,6 +17,7 @@
 #include <halm/usb/msc.h>
 /*----------------------------------------------------------------------------*/
 #define BLOCK_SIZE  512
+#define CS_PIN      PIN(0, 16)
 #define LED_PIN     PIN(0, 22)
 
 #define TEST_DMA
@@ -136,7 +137,7 @@ int main(void)
       .interface = spi,
       .timer = sdioTimer,
       .blocks = 0,
-      .cs = PIN(0, 16)
+      .cs = CS_PIN
   };
   struct Interface * const sdio = init(SdioSpi, &sdioConfig);
   assert(sdio);

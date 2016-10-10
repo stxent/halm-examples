@@ -41,7 +41,6 @@ static void setupClock(void)
   while (!clockReady(ExternalOsc));
 
   clockEnable(MainClock, &mainClkConfig);
-  while (!clockReady(MainClock));
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverlow(void *arg __attribute__((unused)))
