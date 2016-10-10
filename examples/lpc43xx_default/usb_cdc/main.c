@@ -66,9 +66,7 @@ static void setupClock(void)
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
-  bool * const event = argument;
-
-  *event = true;
+  *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
 static void processInput(struct Interface *interface, const char *input,

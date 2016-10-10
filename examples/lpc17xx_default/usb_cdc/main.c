@@ -6,19 +6,49 @@
 
 #include <assert.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/serial.h>
+#include <halm/platform/nxp/lpc13xx/clocking.h>
+#include <halm/platform/nxp/usb_device.h>
+#include <halm/usb/cdc_acm.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 64
 #define LED_PIN     PIN(3, 0)
 /*----------------------------------------------------------------------------*/
-static const struct SerialConfig serialConfig = {
-    .channel = 0,
-    .rx = PIN(1, 6),
-    .tx = PIN(1, 7),
-    .rate = 19200,
-    .rxLength = 64,
-    .txLength = 64
+static const struct UsbDeviceConfig usbConfig = {
+    .dm = PIN(0, 30),
+    .dp = PIN(0, 29),
+    .connect = PIN(2, 9),
+    .vid = 0x15A2,
+    .pid = 0x0044,
+    .channel = 0
 };
+
+static const struct ExternalOscConfig extOscConfig = {
+    .frequency = 12000000
+};
+
+static const struct PllConfig sysPllConfig = {
+    .multiplier = 32,
+    .divisor = 4,
+    .source = CLOCK_EXTERNAL
+};
+
+static const struct CommonClockConfig pllClockSource = {
+    .source = CLOCK_PLL
+};
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(ExternalOsc, &extOscConfig);
+  while (!clockReady(ExternalOsc));
+
+  clockEnable(SystemPll, &sysPllConfig);
+  while (!clockReady(SystemPll));
+
+  clockEnable(MainClock, &pllClockSource);
+
+  clockEnable(UsbClock, &pllClockSource);
+  while (!clockReady(UsbClock));
+}
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
@@ -56,6 +86,7 @@ static void processInput(struct Interface *interface, const char *input,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  struct Entity *usb;
   struct Interface *serial;
   struct Pin led;
   bool event = false;
@@ -63,7 +94,24 @@ int main(void)
   led = pinInit(LED_PIN);
   pinOutput(led, 0);
 
-  serial = init(Serial, &serialConfig);
+  setupClock();
+
+  usb = init(UsbDevice, &usbConfig);
+  assert(usb);
+
+  const struct CdcAcmConfig config = {
+      .device = usb,
+      .rxBuffers = 4,
+      .txBuffers = 4,
+
+      .endpoints = {
+          .interrupt = 0x81,
+          .rx = 0x02,
+          .tx = 0x82
+      }
+  };
+
+  serial = init(CdcAcm, &config);
   assert(serial);
   ifCallback(serial, onSerialEvent, &event);
 
