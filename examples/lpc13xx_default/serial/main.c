@@ -12,12 +12,12 @@
 #define LED_PIN     PIN(3, 0)
 /*----------------------------------------------------------------------------*/
 static const struct SerialConfig serialConfig = {
-    .channel = 0,
-    .rx = PIN(1, 6),
-    .tx = PIN(1, 7),
     .rate = 19200,
     .rxLength = 64,
-    .txLength = 64
+    .txLength = 64,
+    .rx = PIN(1, 6),
+    .tx = PIN(1, 7),
+    .channel = 0
 };
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)

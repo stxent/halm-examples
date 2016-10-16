@@ -22,7 +22,7 @@ static const struct UsbDeviceConfig usbConfig = {
     .pid = 0x0044,
     .channel = 0
 };
-
+/*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000,
     .bypass = false
