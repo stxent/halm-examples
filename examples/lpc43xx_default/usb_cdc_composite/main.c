@@ -124,7 +124,7 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
     ifCallback(streams[i].interface, onSerialEvent, streams + i);
     streams[i].event = false;
     streams[i].indication = leds[i];
-    pinOutput(streams[i].indication, 0);
+    pinOutput(streams[i].indication, false);
   }
 }
 /*----------------------------------------------------------------------------*/

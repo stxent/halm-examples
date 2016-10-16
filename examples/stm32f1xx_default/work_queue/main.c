@@ -34,7 +34,7 @@ int main(void)
 {
   /* Initialize peripherals */
   struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   struct Timer * const timer = init(SysTickTimer, &timerConfig);
   assert(timer);

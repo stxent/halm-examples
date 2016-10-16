@@ -47,7 +47,7 @@ int main(void)
     buffer[i] = i;
 
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   struct Interface * const flash = init(Flash, 0);
   assert(flash);

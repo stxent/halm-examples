@@ -136,7 +136,7 @@ static enum result objectInit(void *object, const void *configPtr)
 
   setupInterface(controller);
   if (config->cs)
-    pinOutput(pinInit(config->cs), 0);
+    pinOutput(pinInit(config->cs), false);
 
   res = setupDataChannel(controller, config->dma, config->timer,
       config->length);

@@ -41,7 +41,6 @@ int main(void)
   {
     while (!event)
       barrier();
-
     event = false;
 
     pinWrite(led, ledState);

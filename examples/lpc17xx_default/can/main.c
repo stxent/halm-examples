@@ -108,7 +108,7 @@ static void onEvent(void *argument)
 int main(void)
 {
   struct Pin led = pinInit(PIN(0, 22));
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   setupClock();
 

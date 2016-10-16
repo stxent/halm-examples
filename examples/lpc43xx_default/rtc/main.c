@@ -45,7 +45,7 @@ int main(void)
   setupClock();
 
   led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   pinSet(led);
   rtc = init(Rtc, &rtcConfig);

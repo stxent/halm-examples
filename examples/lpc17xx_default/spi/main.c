@@ -87,10 +87,10 @@ static void onTimerOverflow(void *argument)
 int main(void)
 {
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   const struct Pin cs = pinInit(CS_PIN);
-  pinOutput(cs, 1);
+  pinOutput(cs, true);
 
   struct Interface * const spi = init(SPI_CLASS, &spiConfig[SPI_CHANNEL]);
   assert(spi);

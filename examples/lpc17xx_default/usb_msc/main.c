@@ -122,7 +122,7 @@ int main(void)
 
   /* Configure LED and variables for storing current state */
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   /* Helper timer */
   struct Timer * const sdioTimer = init(GpTimer, &sdioTimerConfig);

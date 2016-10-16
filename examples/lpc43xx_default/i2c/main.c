@@ -85,7 +85,7 @@ static void deviceInit(struct DeviceDriver *device, struct Interface *interface,
     device->localAddress = toBigEndian16(device->localAddress);
 
   device->led = pinInit(ledNumber);
-  pinOutput(device->led, 0);
+  pinOutput(device->led, false);
 }
 /*----------------------------------------------------------------------------*/
 #ifdef TEST_ZEROCOPY

@@ -13,8 +13,8 @@
 #define SINGLE_EDGE_PWM_A_PIN PIN(1, 1)
 #define SINGLE_EDGE_PWM_B_PIN PIN(1, 2)
 /*----------------------------------------------------------------------------*/
-struct Pwm *singleEdgeA;
-struct Pwm *singleEdgeB;
+static struct Pwm *singleEdgeA;
+static struct Pwm *singleEdgeB;
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerPwmUnitConfig pwmUnitConfig = {
     .frequency = 1000,

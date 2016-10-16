@@ -64,11 +64,11 @@ int main(void)
   setupClock();
 
   struct Pin output0 = pinInit(OUTPUT_PIN_0);
-  pinOutput(output0, 0);
+  pinOutput(output0, false);
   struct Pin output1 = pinInit(OUTPUT_PIN_1);
-  pinOutput(output1, 0);
+  pinOutput(output1, false);
   struct Pin output2 = pinInit(OUTPUT_PIN_2);
-  pinOutput(output2, 0);
+  pinOutput(output2, false);
 
   struct Timer * const tickTimer = init(GpTimer, &tickTimerConfig);
   assert(tickTimer);

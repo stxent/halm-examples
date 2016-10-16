@@ -37,7 +37,7 @@ static void onTimerAlarm(void *argument __attribute__((unused)))
 int main(void)
 {
   led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   pinSet(led);
   rtc = init(Rtc, &rtcConfig);

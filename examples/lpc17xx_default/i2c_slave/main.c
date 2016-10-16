@@ -35,7 +35,7 @@ int main(void)
   (void)res; /* Suppress warning */
 
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   bool event = false;
   ifCallback(i2c, onDeviceMemoryChanged, &event);

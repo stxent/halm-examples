@@ -54,7 +54,7 @@ int main(void)
   setupClock();
 
   struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   struct Interrupt * const externalInterrupt = init(PinInterrupt, &eventConfig);
   assert(externalInterrupt);
@@ -68,7 +68,7 @@ int main(void)
   timerCallback(timer, onTimerOverflow, &event);
 
   const struct Pin output = pinInit(OUTPUT_PIN);
-  pinOutput(output, 0);
+  pinOutput(output, false);
 
   intSetEnabled(externalInterrupt, true);
   timerSetEnabled(timer, true);

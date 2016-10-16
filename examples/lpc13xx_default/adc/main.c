@@ -29,7 +29,7 @@ static void onTimerOverflow(void *argument)
 int main(void)
 {
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   struct AdcUnit * const adcUnit = init(AdcUnit, &adcUnitConfig);
   assert(adcUnit);

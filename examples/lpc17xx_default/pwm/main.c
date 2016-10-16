@@ -15,10 +15,10 @@
 #define SINGLE_EDGE_PWM_A_PIN PIN(2, 0)
 #define SINGLE_EDGE_PWM_B_PIN PIN(2, 1)
 /*----------------------------------------------------------------------------*/
-struct Pwm *doubleEdgeA;
-struct Pwm *doubleEdgeB;
-struct Pwm *singleEdgeA;
-struct Pwm *singleEdgeB;
+static struct Pwm *doubleEdgeA;
+static struct Pwm *doubleEdgeB;
+static struct Pwm *singleEdgeA;
+static struct Pwm *singleEdgeB;
 /*----------------------------------------------------------------------------*/
 static const struct GpPwmUnitConfig pwmUnitConfig = {
     .frequency = 1000,

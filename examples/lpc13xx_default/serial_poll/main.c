@@ -21,7 +21,7 @@ static const struct SerialPollConfig serialConfig = {
 int main(void)
 {
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   struct Interface * const serial = init(SerialPoll, &serialConfig);
   assert(serial);

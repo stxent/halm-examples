@@ -58,7 +58,7 @@ int main(void)
   setupClock();
 
   struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, 0);
+  pinOutput(led, false);
 
   struct AdcUnit * const adcUnit = init(AdcUnit, &adcUnitConfig);
   assert(adcUnit);
