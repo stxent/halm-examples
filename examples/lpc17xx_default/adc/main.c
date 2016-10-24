@@ -9,8 +9,8 @@
 #include <halm/platform/nxp/adc.h>
 #include <halm/platform/nxp/gptimer.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN   PIN(0, 22)
-#define INPUT_PIN PIN(1, 30)
+#define INPUT_PIN PIN(0, 25)
+#define LED_PIN   PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct AdcUnitConfig adcUnitConfig = {
     .channel = 0

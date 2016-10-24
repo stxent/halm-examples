@@ -16,7 +16,8 @@
 #include <halm/platform/nxp/spi_dma.h>
 /*----------------------------------------------------------------------------*/
 #define BLOCK_SIZE  512
-#define LED_PIN     PIN(0, 22)
+#define CS_PIN      PIN(0, 22)
+#define LED_PIN     PIN(1, 8)
 
 #define TEST_BUSY_TIMER
 #define TEST_DMA
@@ -226,7 +227,7 @@ int main(void)
       .interface = spi,
       .timer = busyTimer,
       .blocks = 0,
-      .cs = PIN(0, 16)
+      .cs = CS_PIN
   };
   struct Interface * const sdio = init(SdioSpi, &sdioConfig);
   assert(sdio);

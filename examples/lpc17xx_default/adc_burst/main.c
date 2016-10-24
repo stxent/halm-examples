@@ -11,8 +11,8 @@
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN   PIN(0, 22)
 #define INPUT_PIN PIN(0, 25)
+#define LED_PIN   PIN(1, 8)
 
 #define TEST_ZEROCOPY
 /*----------------------------------------------------------------------------*/

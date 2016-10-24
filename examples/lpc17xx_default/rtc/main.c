@@ -14,7 +14,7 @@
 /* January 1, 2015, 00:00:00 */
 #define RTC_INITIAL_TIME  1420070400
 
-#define LED_PIN           PIN(0, 22)
+#define LED_PIN           PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static struct RtClock *rtc;
 static struct Pin led;

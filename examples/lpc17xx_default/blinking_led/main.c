@@ -8,7 +8,7 @@
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(0, 22)
+#define LED_PIN PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static struct GpTimerConfig timerConfig = {
     .frequency = 1000,

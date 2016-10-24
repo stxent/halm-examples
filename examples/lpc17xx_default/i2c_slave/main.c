@@ -8,7 +8,7 @@
 #include <halm/pin.h>
 #include <halm/platform/nxp/i2c_slave.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(3, 0)
+#define LED_PIN PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct I2cSlaveConfig i2cConfig = {
     .size = 16,

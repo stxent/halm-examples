@@ -9,7 +9,7 @@
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/pin_interrupt.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(0, 22)
+#define LED_PIN     PIN(1, 8)
 
 #define EVENT_PIN   PIN(1, 19)
 #define OUTPUT_PIN  PIN(1, 18)

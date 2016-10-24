@@ -39,6 +39,7 @@ static const struct UsbDeviceConfig usbConfig = {
     .dm = PIN(0, 30),
     .dp = PIN(0, 29),
     .connect = PIN(2, 9),
+    .vbus = PIN(1, 30),
     .vid = 0x15A2,
     .pid = 0x0044,
     .channel = 0
@@ -88,8 +89,8 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
   static_assert(ARRAY_SIZE(endpointAddressMap) == STREAM_COUNT, "Error");
 
   const struct Pin leds[] = {
-      pinInit(PIN(0, 22)),
-      pinInit(PIN(0, 22))
+      pinInit(PIN(1, 8)),
+      pinInit(PIN(1, 9))
   };
   static_assert(ARRAY_SIZE(leds) == STREAM_COUNT, "Error");
 

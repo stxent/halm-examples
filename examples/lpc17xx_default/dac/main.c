@@ -10,7 +10,7 @@
 #include <halm/platform/nxp/gptimer.h>
 /*----------------------------------------------------------------------------*/
 #define DAC_PIN PIN(0, 26)
-#define LED_PIN PIN(0, 22)
+#define LED_PIN PIN(1, 8)
 
 #define VOLTAGE_RANGE 65536
 #define VOLTAGE_STEP  4096

@@ -13,6 +13,8 @@
 #include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <xcore/bits.h>
 /*----------------------------------------------------------------------------*/
+#define LED_PIN PIN(1, 8)
+
 #define TEST_EXT_ID
 /* #define TEST_RTR */
 #define TEST_TIMESTAMPS
@@ -107,7 +109,7 @@ static void onEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Pin led = pinInit(PIN(0, 22));
+  struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
   setupClock();

@@ -11,7 +11,7 @@
 #include <halm/platform/nxp/gppwm.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(0, 22)
+#define LED_PIN     PIN(1, 8)
 
 #define EVENT_PIN   PIN(1, 19)
 #define OUTPUT_PIN  PIN(1, 18)

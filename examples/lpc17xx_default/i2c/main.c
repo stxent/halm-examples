@@ -24,13 +24,13 @@
 #endif
 
 #define DEVICE_CLOCK  100000
-#define LED_PIN       PIN(0, 22)
+#define LED_PIN       PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct I2cConfig i2cConfig = {
     .rate = 400000, /* Initial rate */
-    .scl = PIN(0, 20),
-    .sda = PIN(0, 19),
-    .channel = 1
+    .scl = PIN(0, 11),
+    .sda = PIN(0, 10),
+    .channel = 2
 };
 
 static const struct GpTimerConfig timerConfig = {

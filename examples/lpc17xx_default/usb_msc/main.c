@@ -17,8 +17,8 @@
 #include <halm/usb/msc.h>
 /*----------------------------------------------------------------------------*/
 #define BLOCK_SIZE  512
-#define CS_PIN      PIN(0, 16)
-#define LED_PIN     PIN(0, 22)
+#define CS_PIN      PIN(0, 22)
+#define LED_PIN     PIN(1, 8)
 
 #define TEST_DMA
 
@@ -39,6 +39,7 @@ static const struct UsbDeviceConfig usbConfig = {
     .dm = PIN(0, 30),
     .dp = PIN(0, 29),
     .connect = PIN(2, 9),
+    .vbus = PIN(1, 30),
     .vid = 0x15A2,
     .pid = 0x0044,
     .channel = 0

@@ -8,7 +8,7 @@
 #include <halm/pin.h>
 #include <halm/platform/nxp/flash.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(0, 22)
+#define LED_PIN     PIN(1, 8)
 #define SECTOR_SIZE 4096
 /*----------------------------------------------------------------------------*/
 extern unsigned long _sdata;

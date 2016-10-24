@@ -11,12 +11,13 @@
 #include <halm/usb/cdc_acm.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 64
-#define LED_PIN     PIN(3, 0)
+#define LED_PIN     PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct UsbDeviceConfig usbConfig = {
     .dm = PIN(0, 30),
     .dp = PIN(0, 29),
     .connect = PIN(2, 9),
+    .vbus = PIN(1, 30),
     .vid = 0x15A2,
     .pid = 0x0044,
     .channel = 0

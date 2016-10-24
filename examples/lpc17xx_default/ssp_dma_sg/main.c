@@ -7,7 +7,7 @@
 #include <xcore/bits.h>
 #include "ssp_pwm.h"
 /*----------------------------------------------------------------------------*/
-#define SSP_CHANNEL 1
+#define SSP_CHANNEL 0
 /*----------------------------------------------------------------------------*/
 uint32_t linearFunction(size_t length, size_t index)
 {

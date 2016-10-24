@@ -13,7 +13,8 @@
 #define ADC_RATE      100000
 #define BUFFER_COUNT  2
 #define BUFFER_SIZE   2048
-#define LED_PIN       PIN(0, 22)
+#define INPUT_PIN     PIN(0, 25)
+#define LED_PIN       PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct AdcUnitConfig adcUnitConfig = {
     .frequency = 4000000,
@@ -76,7 +77,7 @@ int main(void)
   const struct AdcDmaConfig adcConfig = {
       .parent = adcUnit,
       .event = ADC_TIMER1_MAT1,
-      .pin = PIN(1, 30),
+      .pin = INPUT_PIN,
       .dma = 0
   };
 

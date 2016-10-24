@@ -11,8 +11,8 @@
 #include <halm/platform/nxp/spi_dma.h>
 #include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
-#define CS_PIN  PIN(0, 6)
-#define LED_PIN PIN(0, 22)
+#define CS_PIN  PIN(0, 16)
+#define LED_PIN PIN(1, 8)
 
 #define TEST_DMA
 #define TEST_ZEROCOPY
@@ -23,7 +23,7 @@
 #define SPI_CLASS Spi
 #endif
 
-#define SPI_CHANNEL 1
+#define SPI_CHANNEL 0
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
