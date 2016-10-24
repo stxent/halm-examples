@@ -56,18 +56,15 @@ static void processInput(struct Interface *interface, const char *input,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Interface *serial;
-  struct Pin led;
-  bool event = false;
-
-  led = pinInit(LED_PIN);
-  pinOutput(led, 0);
-
-  serial = init(Serial, &serialConfig);
-  assert(serial);
-  ifCallback(serial, onSerialEvent, &event);
+  const struct Pin led = pinInit(LED_PIN);
+  pinOutput(led, false);
 
   char buffer[BUFFER_SIZE];
+  bool event = false;
+
+  struct Interface * const serial = init(Serial, &serialConfig);
+  assert(serial);
+  ifCallback(serial, onSerialEvent, &event);
 
   while (1)
   {

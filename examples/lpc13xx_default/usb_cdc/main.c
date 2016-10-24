@@ -107,17 +107,12 @@ static void processInput(struct Interface *interface, const char *input,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Entity *usb;
-  struct Interface *serial;
-  struct Pin led;
-  bool event = false;
-
-  led = pinInit(LED_PIN);
-  pinOutput(led, 0);
-
   setupClock();
 
-  usb = init(UsbDevice, &usbConfig);
+  const struct Pin led = pinInit(LED_PIN);
+  pinOutput(led, false);
+
+  struct Entity * const usb = init(UsbDevice, &usbConfig);
   assert(usb);
 
   const struct CdcAcmConfig config = {
@@ -132,11 +127,12 @@ int main(void)
       }
   };
 
-  serial = init(CdcAcm, &config);
+  char buffer[BUFFER_SIZE];
+  bool event = false;
+
+  struct Interface * const serial = init(CdcAcm, &config);
   assert(serial);
   ifCallback(serial, onSerialEvent, &event);
-
-  char buffer[BUFFER_SIZE];
 
   while (1)
   {

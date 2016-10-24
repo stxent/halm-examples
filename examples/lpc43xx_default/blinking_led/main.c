@@ -32,19 +32,16 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Timer *timer;
-  struct Pin led;
-  bool event = false;
-
-  led = pinInit(LED_PIN);
-  pinOutput(led, 0);
-
   setupClock();
 
-  timer = init(GpTimer, &timerConfig);
-  assert(timer);
+  const struct Pin led = pinInit(LED_PIN);
+  pinOutput(led, true);
 
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer);
   timerSetOverflow(timer, 500);
+
+  bool event = false;
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 

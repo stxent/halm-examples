@@ -21,17 +21,14 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Timer *timer;
-  struct Pin led;
-  bool event = false;
+  const struct Pin led = pinInit(LED_PIN);
+  pinOutput(led, true);
 
-  led = pinInit(LED_PIN);
-  pinOutput(led, 0);
-
-  timer = init(SysTickTimer, &timerConfig);
+  struct Timer * const timer = init(SysTickTimer, &timerConfig);
   assert(timer);
-
   timerSetOverflow(timer, 500);
+
+  bool event = false;
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 

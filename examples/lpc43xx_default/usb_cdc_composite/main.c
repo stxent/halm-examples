@@ -130,19 +130,17 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Entity *usb;
-  struct Entity *composite;
   struct StreamDescriptor streams[STREAM_COUNT];
 
   setupClock();
 
-  usb = init(UsbDevice, &usbConfig);
+  struct Entity * const usb = init(UsbDevice, &usbConfig);
   assert(usb);
 
   const struct CompositeDeviceConfig compositeConfig = {
       .device = usb
   };
-  composite = init(CompositeDevice, &compositeConfig);
+  struct Entity * const composite = init(CompositeDevice, &compositeConfig);
   assert(composite);
 
   initStreams(streams, composite);
