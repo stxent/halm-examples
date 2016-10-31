@@ -8,7 +8,7 @@
 #include <halm/core/cortex/systick.h>
 #include <halm/pin.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_C, 13)
+#define LED_PIN PIN(PORT_C, 14)
 /*----------------------------------------------------------------------------*/
 static const struct SysTickTimerConfig timerConfig = {
     .frequency = 1000
@@ -32,16 +32,13 @@ int main(void)
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 
-  bool ledState = false;
-
   while (1)
   {
     while (!event)
       barrier();
     event = false;
 
-    pinWrite(led, ledState);
-    ledState = !ledState;
+    pinToggle(led);
   }
 
   return 0;

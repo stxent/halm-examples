@@ -45,16 +45,13 @@ int main(void)
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 
-  bool ledState = false;
-
   while (1)
   {
     while (!event)
       barrier();
     event = false;
 
-    pinWrite(led, ledState);
-    ledState = !ledState;
+    pinToggle(led);
   }
 
   return 0;
