@@ -127,6 +127,8 @@ int main(void)
   assert(serial);
   ifCallback(serial, onSerialEvent, &event);
 
+  usbDevSetConnected(usb, true);
+
   while (1)
   {
     while (!event)

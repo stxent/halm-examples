@@ -175,14 +175,9 @@ int main(void)
   struct Msc * const msc = init(Msc, &config);
   assert(msc);
 
-  bool event = false;
+  usbDevSetConnected(usb, true);
 
-  while (1)
-  {
-    while (!event)
-      barrier();
-    event = false;
-  }
+  while (1);
 
   return 0;
 }
