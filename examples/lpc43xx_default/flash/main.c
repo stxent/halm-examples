@@ -15,24 +15,39 @@ extern unsigned long _sdata;
 extern unsigned long _edata;
 extern unsigned long _sidata;
 /*----------------------------------------------------------------------------*/
-void writeBlock(struct Interface *flash, const uint8_t *buffer, size_t length,
-    uint32_t address)
+enum result program(struct Interface *flash, const uint8_t *buffer,
+    size_t length, uint32_t address)
 {
-  size_t bytesWritten;
   enum result res;
 
-  res = ifSet(flash, IF_POSITION, &address);
-  assert(res == E_OK);
+  if ((res = ifSet(flash, IF_POSITION, &address)) != E_OK)
+    return res;
 
-  bytesWritten = ifWrite(flash, buffer, length);
-  assert(bytesWritten == length);
+  if (ifWrite(flash, buffer, length) != length)
+    return E_INTERFACE;
+
+  return E_OK;
+}
+/*----------------------------------------------------------------------------*/
+enum result verify(struct Interface *flash, const uint8_t *pattern,
+    size_t length, uint32_t address)
+{
+  uint8_t buffer[length];
+  enum result res;
+
+  if ((res = ifSet(flash, IF_POSITION, &address)) != E_OK)
+    return res;
+
+  if (ifRead(flash, buffer, length) != length)
+    return E_INTERFACE;
 
   for (size_t i = 0; i < length; ++i)
-    assert(((const uint8_t *)address)[i] == buffer[i]);
+  {
+    if (buffer[i] != pattern[i])
+      return E_VALUE;
+  }
 
-  /* Suppress warnings */
-  (void)bytesWritten;
-  (void)res;
+  return E_OK;
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -53,35 +68,48 @@ int main(void)
   struct Interface * const flash = init(Flash, 0);
   assert(flash);
 
-  uint32_t flashSize;
+  uint32_t size;
   enum result res;
 
   pinSet(led);
-  res = ifGet(flash, IF_SIZE, &flashSize);
+  if ((res = ifGet(flash, IF_SIZE, &size)) == E_OK)
+    pinReset(led);
   assert(res == E_OK);
-  assert(sectorAddress < flashSize);
-  assert(pageAddress < flashSize);
-  pinReset(led);
 
+  assert(sectorAddress < size);
+  assert(pageAddress < size);
+
+  /* Test sector erase */
   pinSet(led);
-  res = ifSet(flash, IF_FLASH_ERASE_SECTOR, &sectorAddress);
+  if ((res = ifSet(flash, IF_FLASH_ERASE_SECTOR, &sectorAddress)) == E_OK)
+    pinReset(led);
   assert(res == E_OK);
-  pinReset(led);
 
   pinSet(led);
-  writeBlock(flash, buffer, sizeof(buffer), sectorAddress);
-  pinReset(led);
-
-  pinSet(led);
-  res = ifSet(flash, IF_FLASH_ERASE_PAGE, &pageAddress);
+  if ((res = program(flash, buffer, sizeof(buffer), sectorAddress)) == E_OK)
+    pinReset(led);
   assert(res == E_OK);
-  pinReset(led);
 
   pinSet(led);
-  writeBlock(flash, buffer, sizeof(buffer), pageAddress);
-  pinReset(led);
+  if ((res = verify(flash, buffer, sizeof(buffer), sectorAddress)) == E_OK)
+    pinReset(led);
+  assert(res == E_OK);
 
-  (void)res; /* Suppress warning */
+  /* Test page erase */
+  pinSet(led);
+  if ((res = ifSet(flash, IF_FLASH_ERASE_PAGE, &pageAddress)) == E_OK)
+    pinReset(led);
+  assert(res == E_OK);
+
+  pinSet(led);
+  if ((res = program(flash, buffer, sizeof(buffer), pageAddress)) == E_OK)
+    pinReset(led);
+  assert(res == E_OK);
+
+  pinSet(led);
+  if ((res = verify(flash, buffer, sizeof(buffer), pageAddress)) == E_OK)
+    pinReset(led);
+  assert(res == E_OK);
 
   while (1);
 
