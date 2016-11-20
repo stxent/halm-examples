@@ -14,6 +14,7 @@
 extern unsigned long _sdata;
 extern unsigned long _edata;
 extern unsigned long _sidata;
+extern unsigned long _stext;
 /*----------------------------------------------------------------------------*/
 enum result program(struct Interface *flash, const uint8_t *buffer,
     size_t length, uint32_t address)
@@ -76,8 +77,8 @@ int main(void)
     pinReset(led);
   assert(res == E_OK);
 
-  assert(sectorAddress < size);
-  assert(pageAddress < size);
+  assert(sectorAddress - (uint32_t)&_stext < size);
+  assert(pageAddress - (uint32_t)&_stext < size);
 
   /* Test sector erase */
   pinSet(led);

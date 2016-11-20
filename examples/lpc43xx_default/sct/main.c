@@ -1,0 +1,108 @@
+/*
+ * main.c
+ * Copyright (C) 2016 xent
+ * Project is distributed under the terms of the GNU General Public License v3.0
+ */
+
+#include <assert.h>
+#include <halm/pin.h>
+#include <halm/platform/nxp/sct_timer.h>
+#include <halm/platform/nxp/lpc43xx/clocking.h>
+/*----------------------------------------------------------------------------*/
+struct Descriptor
+{
+  struct Pin led;
+  bool state;
+} descriptors[2];
+/*----------------------------------------------------------------------------*/
+#define LED_PIN_A PIN(PORT_6, 6)
+#define LED_PIN_B PIN(PORT_6, 7)
+
+#define TEST_UNIFIED
+/*----------------------------------------------------------------------------*/
+#ifdef TEST_UNIFIED
+static const struct SctTimerConfig timerConfig = {
+    .frequency = 100000,
+    .part = SCT_UNIFIED,
+    .channel = 0
+};
+#else
+static const struct SctTimerConfig timerConfigs[] = {
+    {
+        .frequency = 100000,
+        .part = SCT_LOW,
+        .channel = 0
+    },
+    {
+        .frequency = 400000,
+        .part = SCT_HIGH,
+        .channel = 0
+    }
+};
+#endif
+
+static const struct CommonClockConfig mainClkConfig = {
+    .source = CLOCK_INTERNAL
+};
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(MainClock, &mainClkConfig);
+}
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  struct Descriptor * const descriptor = argument;
+
+  pinWrite(descriptor->led, descriptor->state);
+  descriptor->state = !descriptor->state;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  setupClock();
+
+  descriptors[0] = (struct Descriptor){
+    pinInit(LED_PIN_A),
+    false
+  };
+  descriptors[1] = (struct Descriptor){
+    pinInit(LED_PIN_B),
+    false
+  };
+
+  pinOutput(descriptors[0].led, false);
+  pinOutput(descriptors[1].led, false);
+
+#ifdef TEST_UNIFIED
+  struct Timer * const timerA = init(SctTimer, &timerConfig);
+  assert(timerA);
+  timerSetOverflow(timerA, 50000);
+  timerCallback(timerA, onTimerOverflow, &descriptors[0]);
+  timerSetEnabled(timerA, true);
+#else
+  struct Timer * const timerA = init(SctTimer, &timerConfigs[0]);
+  assert(timerA);
+  timerSetOverflow(timerA, 50000);
+  timerCallback(timerA, onTimerOverflow, &descriptors[0]);
+  timerSetEnabled(timerA, true);
+
+  struct Timer * const timerB = init(SctTimer, &timerConfigs[1]);
+  assert(timerB);
+  timerSetOverflow(timerB, 50000);
+  timerCallback(timerB, onTimerOverflow, &descriptors[1]);
+  timerSetEnabled(timerB, true);
+#endif
+
+  while (1);
+
+  return 0;
+}
+/*----------------------------------------------------------------------------*/
+void __assert_func(const char *file __attribute__((unused)),
+    int line __attribute__((unused)),
+    const char *func __attribute__((unused)),
+    const char *expr __attribute__((unused)))
+{
+  while (1);
+}

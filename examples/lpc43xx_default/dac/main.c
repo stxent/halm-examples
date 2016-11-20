@@ -12,6 +12,9 @@
 /*----------------------------------------------------------------------------*/
 #define DAC_PIN PIN(PORT_4, 4)
 #define LED_PIN PIN(PORT_6, 6)
+
+#define VOLTAGE_RANGE 65536
+#define VOLTAGE_STEP  4096
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
@@ -20,7 +23,7 @@ static const struct GpTimerConfig timerConfig = {
 
 static const struct DacConfig dacConfig = {
     .pin = DAC_PIN,
-    .value = 32768
+    .value = VOLTAGE_RANGE / 2
 };
 
 static const struct CommonClockConfig mainClkConfig = {
@@ -55,7 +58,7 @@ int main(void)
   timerCallback(timer, onTimerOverflow, &event);
   timerSetEnabled(timer, true);
 
-  uint16_t voltage = dacConfig.value;
+  unsigned int step = 0;
 
   while (1)
   {
@@ -64,7 +67,9 @@ int main(void)
     event = false;
 
     pinSet(led);
-    voltage += 4096;
+    const uint16_t voltage =
+        step * (VOLTAGE_RANGE - 1) / (VOLTAGE_RANGE / VOLTAGE_STEP);
+    step = step < 16 ? step + 1 : 0;
     ifWrite(dac, &voltage, sizeof(voltage));
     pinReset(led);
   }

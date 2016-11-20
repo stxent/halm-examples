@@ -115,7 +115,7 @@ static void setupClock()
   while (!clockReady(UsbClock));
 }
 /*----------------------------------------------------------------------------*/
-static uint8_t transferBuffer[BLOCK_SIZE * 2];
+static uint8_t transferBuffer[BLOCK_SIZE * 4];
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
@@ -126,8 +126,9 @@ int main(void)
   pinOutput(led, false);
 
   /* Helper timer */
-  struct Timer * const sdioTimer = init(GpTimer, &sdioTimerConfig);
-  assert(sdioTimer);
+  struct Timer * const busyTimer = init(GpTimer, &busyTimerConfig);
+  assert(busyTimer);
+  timerSetOverflow(busyTimer, 50); /* 2 kHz event rate */
 
   /* Initialize SPI layer */
   struct Interface * const spi = init(SPI_CLASS, &spiConfig[SPI_CHANNEL]);
@@ -136,7 +137,7 @@ int main(void)
   /* Initialize SDIO layer */
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
-      .timer = sdioTimer,
+      .timer = busyTimer,
       .blocks = 0,
       .cs = CS_PIN
   };
