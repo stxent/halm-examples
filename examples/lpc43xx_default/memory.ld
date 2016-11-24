@@ -10,9 +10,8 @@ MEMORY
 {
   FLASH (rx) : ORIGIN = 0x1A000000, LENGTH = 0x40000 /* 256 KiB */
   RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 0x07FE0 /* 32736 bytes */
+  EEPROM (r) : ORIGIN = 0x20004000, LENGTH = 0x03F80 /* 16256 bytes */
 }
-
-stackStart = ORIGIN(RAM) + LENGTH(RAM);
 
 SECTIONS
 {
@@ -69,5 +68,8 @@ SECTIONS
   }
 
   PROVIDE(end = heapStart);
-  PROVIDE(_stack = stackStart);
+  PROVIDE(_stack = ORIGIN(RAM) + LENGTH(RAM));
+
+  PROVIDE(_seeprom = ORIGIN(EEPROM));
+  PROVIDE(_eeeprom = ORIGIN(EEPROM) + LENGTH(EEPROM));
 }
