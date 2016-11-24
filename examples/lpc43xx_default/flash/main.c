@@ -5,6 +5,7 @@
  */
 
 #include <assert.h>
+#include <string.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/flash.h>
 /*----------------------------------------------------------------------------*/
@@ -16,7 +17,7 @@ extern unsigned long _edata;
 extern unsigned long _sidata;
 extern unsigned long _stext;
 /*----------------------------------------------------------------------------*/
-enum result program(struct Interface *flash, const uint8_t *buffer,
+static enum result program(struct Interface *flash, const uint8_t *buffer,
     size_t length, uint32_t address)
 {
   enum result res;
@@ -30,11 +31,13 @@ enum result program(struct Interface *flash, const uint8_t *buffer,
   return E_OK;
 }
 /*----------------------------------------------------------------------------*/
-enum result verify(struct Interface *flash, const uint8_t *pattern,
+static enum result verify(struct Interface *flash, const uint8_t *pattern,
     size_t length, uint32_t address)
 {
   uint8_t buffer[length];
   enum result res;
+
+  memset(buffer, 0, length);
 
   if ((res = ifSet(flash, IF_POSITION, &address)) != E_OK)
     return res;

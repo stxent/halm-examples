@@ -30,7 +30,7 @@
 
 #define SPI_CHANNEL 0
 /*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig sdioTimerConfig = {
+static const struct GpTimerConfig busyTimerConfig = {
     .frequency = 100000,
     .channel = 1
 };

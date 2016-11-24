@@ -12,8 +12,6 @@ MEMORY
   RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 0x08000 /* 32 KiB */
 }
 
-stackStart = ORIGIN(RAM) + LENGTH(RAM);
-
 SECTIONS
 {
   .text : ALIGN(4)
@@ -69,5 +67,5 @@ SECTIONS
   }
 
   PROVIDE(end = heapStart);
-  PROVIDE(_stack = stackStart);
+  PROVIDE(_stack = ORIGIN(RAM) + LENGTH(RAM));
 }
