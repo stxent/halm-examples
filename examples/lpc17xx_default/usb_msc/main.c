@@ -15,12 +15,15 @@
 #include <halm/platform/nxp/spi_dma.h>
 #include <halm/platform/nxp/usb_device.h>
 #include <halm/usb/msc.h>
+#include "interface_wrapper.h"
 /*----------------------------------------------------------------------------*/
-#define BLOCK_SIZE  512
+#define BUFFER_SIZE (4 * 512)
 #define CS_PIN      PIN(0, 22)
-#define LED_PIN     PIN(1, 8)
+#define LED_R       PIN(1, 9)
+#define LED_W       PIN(1, 10)
 
 #define TEST_DMA
+#define TEST_INDICATION
 
 #ifdef TEST_DMA
 #define SPI_CLASS SpiDma
@@ -115,15 +118,11 @@ static void setupClock()
   while (!clockReady(UsbClock));
 }
 /*----------------------------------------------------------------------------*/
-static uint8_t transferBuffer[BLOCK_SIZE * 4];
+static uint8_t transferBuffer[BUFFER_SIZE];
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
   setupClock();
-
-  /* Configure LED and variables for storing current state */
-  const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
 
   /* Helper timer */
   struct Timer * const busyTimer = init(GpTimer, &busyTimerConfig);
@@ -144,9 +143,22 @@ int main(void)
   struct Interface * const sdio = init(SdioSpi, &sdioConfig);
   assert(sdio);
 
+#ifdef TEST_INDICATION
+  /* Optional wrapper for R/W operations indication */
+  const struct InterfaceWrapperConfig wrapperConfig = {
+      .pipe = sdio,
+      .rx = LED_R,
+      .tx = LED_W
+  };
+  struct Interface * const wrapper = init(InterfaceWrapper, &wrapperConfig);
+  assert(wrapper);
+#else
+  struct Interface * const wrapper = sdio;
+#endif
+
   /* Initialize SD Card layer */
   const struct SdCardConfig cardConfig = {
-      .interface = sdio,
+      .interface = wrapper,
       .crc = false
   };
   struct Interface * const card = init(SdCard, &cardConfig);

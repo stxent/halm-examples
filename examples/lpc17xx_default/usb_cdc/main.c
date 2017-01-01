@@ -6,7 +6,7 @@
 
 #include <assert.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/lpc13xx/clocking.h>
+#include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <halm/platform/nxp/usb_device.h>
 #include <halm/usb/cdc_acm.h>
 /*----------------------------------------------------------------------------*/

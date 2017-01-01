@@ -15,7 +15,7 @@
 #include <halm/platform/nxp/spi.h>
 #include <halm/platform/nxp/spi_dma.h>
 /*----------------------------------------------------------------------------*/
-#define BLOCK_SIZE  512
+#define BUFFER_SIZE (4 * 512)
 #define CS_PIN      PIN(0, 22)
 #define LED_PIN     PIN(1, 8)
 
@@ -204,7 +204,7 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t size,
   return completed;
 }
 /*----------------------------------------------------------------------------*/
-static uint8_t transferBuffer[BLOCK_SIZE * 2];
+static uint8_t transferBuffer[BUFFER_SIZE];
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
