@@ -36,8 +36,6 @@ CONFIG_PM=y
 #
 # Power settings
 #
-CONFIG_PLATFORM_STM_PM_STOP=y
-# CONFIG_PLATFORM_STM_PM_STANDBY is not set
 
 #
 # Peripherals
