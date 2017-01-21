@@ -12,7 +12,7 @@
 /* Period between wake-ups in seconds */
 #define RTC_ALARM_PERIOD  5
 /* January 1, 2015, 00:00:00 */
-#define RTC_INITIAL_TIME  1420070400
+#define RTC_INITIAL_TIME  1483228800
 
 #define LED_PIN           PIN(PORT_6, 6)
 /*----------------------------------------------------------------------------*/
