@@ -22,8 +22,8 @@ static const struct GpTimerConfig timerConfig = {
 };
 
 static const struct DacConfig dacConfig = {
-    .pin = DAC_PIN,
-    .value = VOLTAGE_RANGE / 2
+    .value = VOLTAGE_RANGE / 2,
+    .pin = DAC_PIN
 };
 
 static const struct CommonClockConfig mainClkConfig = {

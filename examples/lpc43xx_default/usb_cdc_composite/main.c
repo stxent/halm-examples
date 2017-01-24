@@ -27,15 +27,15 @@ static const struct ExternalOscConfig extOscConfig = {
 };
 
 static const struct PllConfig sysPllConfig = {
-    .multiplier = 20,
+    .source = CLOCK_EXTERNAL,
     .divisor = 4,
-    .source = CLOCK_EXTERNAL
+    .multiplier = 20
 };
 
 static const struct PllConfig usbPllConfig = {
-    .multiplier = 40,
+    .source = CLOCK_EXTERNAL,
     .divisor = 1,
-    .source = CLOCK_EXTERNAL
+    .multiplier = 40
 };
 
 static const struct CommonClockConfig mainClkConfig = {

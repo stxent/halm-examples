@@ -36,8 +36,8 @@ static const struct CommonClockConfig mainClkConfig = {
 
 static const struct ClockOutputConfig outputClkConfig = {
     .source = CLOCK_MAIN,
-    .pin = OUTPUT_PIN,
-    .divisor = 200
+    .divisor = 200,
+    .pin = OUTPUT_PIN
 };
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)

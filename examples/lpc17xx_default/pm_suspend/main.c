@@ -38,9 +38,9 @@ static const struct ExternalOscConfig extOscConfig = {
 };
 
 static const struct PllConfig sysPllConfig = {
-    .multiplier = 30,
+    .source = CLOCK_EXTERNAL,
     .divisor = 18,
-    .source = CLOCK_EXTERNAL
+    .multiplier = 30
 };
 
 static const struct CommonClockConfig intClockSource = {

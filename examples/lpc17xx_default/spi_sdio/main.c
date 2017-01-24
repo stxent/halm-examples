@@ -90,9 +90,9 @@ static struct ExternalOscConfig extOscConfig = {
 };
 
 static struct PllConfig sysPllConfig = {
-    .multiplier = 24,
+    .source = CLOCK_EXTERNAL,
     .divisor = 3,
-    .source = CLOCK_EXTERNAL
+    .multiplier = 24
 };
 
 static struct CommonClockConfig mainClkConfig = {

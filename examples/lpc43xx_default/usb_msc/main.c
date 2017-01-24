@@ -46,8 +46,8 @@ static const struct CommonClockConfig cardClock = {
 };
 
 static const struct CommonDividerConfig dividerConfig = {
-    .value = 2,
-    .source = CLOCK_PLL
+    .source = CLOCK_PLL,
+    .divisor = 2
 };
 
 static const struct ExternalOscConfig extOscConfig = {
@@ -56,15 +56,15 @@ static const struct ExternalOscConfig extOscConfig = {
 };
 
 static const struct PllConfig sysPllConfig = {
-    .multiplier = 24,
+    .source = CLOCK_EXTERNAL,
     .divisor = 3,
-    .source = CLOCK_EXTERNAL
+    .multiplier = 24
 };
 
 static const struct PllConfig usbPllConfig = {
-    .multiplier = 40,
+    .source = CLOCK_EXTERNAL,
     .divisor = 1,
-    .source = CLOCK_EXTERNAL
+    .multiplier = 40
 };
 
 static const struct CommonClockConfig mainClkConfig = {
