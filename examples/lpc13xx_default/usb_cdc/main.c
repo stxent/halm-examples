@@ -122,8 +122,8 @@ int main(void)
 
       .endpoints = {
           .interrupt = 0x81,
-          .rx = 0x02,
-          .tx = 0x82
+          .rx = 0x03,
+          .tx = 0x83
       }
   };
 
