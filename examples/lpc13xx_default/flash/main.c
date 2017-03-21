@@ -5,19 +5,32 @@
  */
 
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/flash.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(3, 0)
-#define SECTOR_SIZE 4096
+#define LED_PIN PIN(3, 0)
 /*----------------------------------------------------------------------------*/
+extern unsigned long _stext;
+extern unsigned long _sidata;
 extern unsigned long _sdata;
 extern unsigned long _edata;
-extern unsigned long _sidata;
+/*----------------------------------------------------------------------------*/
+static size_t findNearestSector(void)
+{
+  static const size_t sectorSize = 4096;
+
+  const size_t textSectionSize = (size_t)(&_sidata - &_stext);
+  const size_t roDataSectionSize = (size_t)(&_edata - &_sdata);
+  const size_t offset = (textSectionSize + roDataSectionSize)
+      * sizeof(unsigned long);
+
+  return ((offset + sectorSize - 1) / sectorSize) * sectorSize;
+}
 /*----------------------------------------------------------------------------*/
 static enum result program(struct Interface *flash, const uint8_t *buffer,
-    size_t length, uint32_t address)
+    size_t length, size_t address)
 {
   enum result res;
 
@@ -31,7 +44,7 @@ static enum result program(struct Interface *flash, const uint8_t *buffer,
 }
 /*----------------------------------------------------------------------------*/
 static enum result verify(struct Interface *flash, const uint8_t *pattern,
-    size_t length, uint32_t address)
+    size_t length, size_t address)
 {
   uint8_t buffer[length];
   enum result res;
@@ -55,30 +68,32 @@ static enum result verify(struct Interface *flash, const uint8_t *pattern,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const uint32_t offset = (uint32_t)(&_sidata + (&_edata - &_sdata));
-  const uint32_t address =
-      ((offset + SECTOR_SIZE - 1) / SECTOR_SIZE) * SECTOR_SIZE;
-
-  uint8_t buffer[256];
-
-  for (size_t i = 0; i < sizeof(buffer); ++i)
-    buffer[i] = i;
-
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
   struct Interface * const flash = init(Flash, 0);
   assert(flash);
 
-  uint32_t size;
+  size_t flashSize, pageSize;
   enum result res;
 
   pinSet(led);
-  if ((res = ifGet(flash, IF_SIZE, &size)) == E_OK)
+  if ((res = ifGet(flash, IF_SIZE, &flashSize)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
-  assert(address < size);
+  pinSet(led);
+  if ((res = ifGet(flash, IF_FLASH_PAGE_SIZE, &pageSize)) == E_OK)
+    pinReset(led);
+  assert(res == E_OK);
+
+  uint8_t * const buffer = malloc(pageSize);
+  for (size_t i = 0; i < pageSize; ++i)
+    buffer[i] = i;
+
+  /* Test sector erase */
+  const size_t address = findNearestSector();
+  assert(address < flashSize);
 
   pinSet(led);
   if ((res = ifSet(flash, IF_FLASH_ERASE_SECTOR, &address)) == E_OK)
@@ -86,12 +101,12 @@ int main(void)
   assert(res == E_OK);
 
   pinSet(led);
-  if ((res = program(flash, buffer, sizeof(buffer), address)) == E_OK)
+  if ((res = program(flash, buffer, pageSize, address)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
   pinSet(led);
-  if ((res = verify(flash, buffer, sizeof(buffer), address)) == E_OK)
+  if ((res = verify(flash, buffer, pageSize, address)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
