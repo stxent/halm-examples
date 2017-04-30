@@ -15,10 +15,10 @@ static void fillBuffer(uint16_t *, uint32_t (*)(size_t, size_t), size_t,
     size_t, int);
 static void prepareBuffers(struct SspPwm *, uint16_t *,
     uint32_t (*)(size_t, size_t), size_t, size_t);
-static enum result setupDataChannel(struct SspPwm *, uint8_t, uint8_t, size_t);
+static enum Result setupDataChannel(struct SspPwm *, uint8_t, uint8_t, size_t);
 static void setupInterface(struct SspPwm *);
 /*----------------------------------------------------------------------------*/
-static enum result objectInit(void *, const void *);
+static enum Result objectInit(void *, const void *);
 static void objectDeinit(void *);
 /*----------------------------------------------------------------------------*/
 static const struct EntityClass objectTable = {
@@ -53,7 +53,7 @@ static void prepareBuffers(struct SspPwm *controller, uint16_t *buffer,
     dmaAppend(controller->dma, target, buffer + i * resolution, resolution);
 }
 /*----------------------------------------------------------------------------*/
-static enum result setupDataChannel(struct SspPwm *controller, uint8_t channel,
+static enum Result setupDataChannel(struct SspPwm *controller, uint8_t channel,
     uint8_t timer, size_t length)
 {
   static const struct GpDmaSettings dmaSettings = {
@@ -104,7 +104,7 @@ static void setupInterface(struct SspPwm *controller)
   reg->DMACR |= DMACR_RXDMAE | DMACR_TXDMAE;
 }
 /*----------------------------------------------------------------------------*/
-static enum result objectInit(void *object, const void *configPtr)
+static enum Result objectInit(void *object, const void *configPtr)
 {
   const struct SspPwmConfig * const config = configPtr;
   const struct GpTimerConfig timerConfig = {
@@ -121,7 +121,7 @@ static enum result objectInit(void *object, const void *configPtr)
       .channel = config->channel
   };
   struct SspPwm * const controller = object;
-  enum result res;
+  enum Result res;
 
   assert(config->resolution > 0);
   assert(config->length > 0 && config->length <= 16);

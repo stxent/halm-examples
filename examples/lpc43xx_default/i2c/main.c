@@ -92,7 +92,7 @@ static void deviceInit(struct DeviceDriver *device, struct Interface *interface,
 static void deviceCallback(void *argument)
 {
   struct DeviceDriver *device = argument;
-  enum result status;
+  enum Result status;
 
   if ((status = ifGetParam(device->interface, IF_STATUS, 0)) != E_OK)
     return;
@@ -126,7 +126,7 @@ static void deviceCallback(void *argument)
 /*----------------------------------------------------------------------------*/
 static void deviceConfigIO(struct DeviceDriver *device, bool rw)
 {
-  enum result res;
+  enum Result res;
 
   res = ifSetParam(device->interface, IF_RATE, &device->desiredRate);
   assert(res == E_OK);

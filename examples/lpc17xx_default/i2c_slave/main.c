@@ -26,7 +26,7 @@ int main(void)
 {
   static const uint32_t deviceAddress = 0x60;
   static const uint32_t internalOffset = 0;
-  enum result res;
+  enum Result res;
 
   struct Interface * const i2c = init(I2cSlave, &i2cConfig);
   assert(i2c);

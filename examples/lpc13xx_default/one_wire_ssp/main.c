@@ -91,7 +91,7 @@ int main(void)
       barrier();
     timerEvent = false;
 
-    enum result res;
+    enum Result res;
 
     res = ifSetParam(ow, IF_ONE_WIRE_START_SEARCH, 0);
     assert(res == E_OK);

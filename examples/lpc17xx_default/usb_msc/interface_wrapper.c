@@ -7,11 +7,11 @@
 #include <assert.h>
 #include "interface_wrapper.h"
 /*----------------------------------------------------------------------------*/
-static enum result interfaceInit(void *, const void *);
+static enum Result interfaceInit(void *, const void *);
 static void interfaceDeinit(void *);
-static enum result interfaceSetCallback(void *, void (*)(void *), void *);
-static enum result interfaceGetParam(void *, enum IfParameter, void *);
-static enum result interfaceSetParam(void *, enum IfParameter, const void *);
+static enum Result interfaceSetCallback(void *, void (*)(void *), void *);
+static enum Result interfaceGetParam(void *, enum IfParameter, void *);
+static enum Result interfaceSetParam(void *, enum IfParameter, const void *);
 static size_t interfaceRead(void *, void *, size_t);
 static size_t interfaceWrite(void *, const void *, size_t);
 /*----------------------------------------------------------------------------*/
@@ -29,7 +29,7 @@ static const struct InterfaceClass interfaceTable = {
 /*----------------------------------------------------------------------------*/
 const struct InterfaceClass * const InterfaceWrapper = &interfaceTable;
 /*----------------------------------------------------------------------------*/
-static enum result interfaceInit(void *object, const void *configBase)
+static enum Result interfaceInit(void *object, const void *configBase)
 {
   const struct InterfaceWrapperConfig * const config = configBase;
   struct InterfaceWrapper * const interface = object;
@@ -50,21 +50,21 @@ static void interfaceDeinit(void *object __attribute__((unused)))
 
 }
 /*----------------------------------------------------------------------------*/
-static enum result interfaceSetCallback(void *object, void (*callback)(void *),
+static enum Result interfaceSetCallback(void *object, void (*callback)(void *),
     void *argument)
 {
   struct InterfaceWrapper * const interface = object;
   return ifSetCallback(interface->pipe, callback, argument);
 }
 /*----------------------------------------------------------------------------*/
-static enum result interfaceGetParam(void *object, enum IfParameter parameter,
+static enum Result interfaceGetParam(void *object, enum IfParameter parameter,
     void *data)
 {
   struct InterfaceWrapper * const interface = object;
   return ifGetParam(interface->pipe, parameter, data);
 }
 /*----------------------------------------------------------------------------*/
-static enum result interfaceSetParam(void *object, enum IfParameter parameter,
+static enum Result interfaceSetParam(void *object, enum IfParameter parameter,
     const void *data)
 {
   struct InterfaceWrapper * const interface = object;

@@ -11,10 +11,10 @@
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(0, 12)
 /*----------------------------------------------------------------------------*/
-static enum result program(struct Interface *eeprom, const uint8_t *buffer,
+static enum Result program(struct Interface *eeprom, const uint8_t *buffer,
     size_t length, uint32_t address)
 {
-  enum result res;
+  enum Result res;
 
   if ((res = ifSetParam(eeprom, IF_POSITION, &address)) != E_OK)
     return res;
@@ -25,11 +25,11 @@ static enum result program(struct Interface *eeprom, const uint8_t *buffer,
   return E_OK;
 }
 /*----------------------------------------------------------------------------*/
-static enum result verify(struct Interface *eeprom, const uint8_t *pattern,
+static enum Result verify(struct Interface *eeprom, const uint8_t *pattern,
     size_t length, uint32_t address)
 {
   uint8_t buffer[length];
-  enum result res;
+  enum Result res;
 
   memset(buffer, 0, length);
 
@@ -63,7 +63,7 @@ int main(void)
   assert(eeprom);
 
   uint32_t size;
-  enum result res;
+  enum Result res;
 
   pinSet(led);
   if ((res = ifGetParam(eeprom, IF_SIZE, &size)) == E_OK)

@@ -84,7 +84,7 @@ int main(void)
 
 #ifdef TEST_ZEROCOPY
   bool completed = false;
-  enum result res;
+  enum Result res;
 
   res = ifSetParam(adc, IF_ZEROCOPY, 0);
   assert(res == E_OK);

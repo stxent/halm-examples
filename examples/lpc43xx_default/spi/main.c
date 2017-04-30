@@ -108,7 +108,7 @@ int main(void)
   assert(spi);
 
   static const uint32_t desiredRate = 200000;
-  enum result res;
+  enum Result res;
 
   res = ifSetParam(spi, IF_RATE, &desiredRate);
   assert(res == E_OK);

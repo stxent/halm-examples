@@ -49,7 +49,7 @@ struct FlashLoader
   bool eraseQueued;
 };
 /*----------------------------------------------------------------------------*/
-static enum result flashLoaderInit(struct FlashLoader *, struct Interface *,
+static enum Result flashLoaderInit(struct FlashLoader *, struct Interface *,
     struct Dfu *);
 static void flashLoaderReset(struct FlashLoader *);
 static void flashProgramTask(void *);
@@ -101,10 +101,10 @@ static const struct CommonClockConfig pllClockSource = {
     .source = CLOCK_PLL
 };
 /*----------------------------------------------------------------------------*/
-static enum result flashLoaderInit(struct FlashLoader *loader,
+static enum Result flashLoaderInit(struct FlashLoader *loader,
     struct Interface *flash, struct Dfu *driver)
 {
-  enum result res;
+  enum Result res;
 
   loader->driver = driver;
   loader->flash = flash;
@@ -191,7 +191,7 @@ static size_t onDownloadRequest(size_t position, const void *buffer,
   {
     if (!length || loader->bufferSize == loader->pageSize)
     {
-      const enum result res = ifSetParam(loader->flash, IF_POSITION,
+      const enum Result res = ifSetParam(loader->flash, IF_POSITION,
           &loader->currentPosition);
 
       if (res != E_OK)
@@ -298,7 +298,7 @@ int main(void)
   struct Dfu * const dfu = init(Dfu, &dfuConfig);
   assert(dfu);
 
-  const enum result res = flashLoaderInit(&flashLoader, flash, dfu);
+  const enum Result res = flashLoaderInit(&flashLoader, flash, dfu);
   assert(res == E_OK);
   (void)res;
 
