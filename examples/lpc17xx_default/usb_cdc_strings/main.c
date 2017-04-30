@@ -102,7 +102,7 @@ int main(void)
 
   struct Interface * const serial = init(CdcAcm, &config);
   assert(serial);
-  ifCallback(serial, onSerialEvent, &event);
+  ifSetCallback(serial, onSerialEvent, &event);
 
   usbDevStringAppend(usb, usbStringBuild(customStringHeader, 0,
       USB_STRING_HEADER));

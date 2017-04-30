@@ -9,9 +9,9 @@
 /*----------------------------------------------------------------------------*/
 static enum result interfaceInit(void *, const void *);
 static void interfaceDeinit(void *);
-static enum result interfaceCallback(void *, void (*)(void *), void *);
-static enum result interfaceGet(void *, enum ifOption, void *);
-static enum result interfaceSet(void *, enum ifOption, const void *);
+static enum result interfaceSetCallback(void *, void (*)(void *), void *);
+static enum result interfaceGetParam(void *, enum IfParameter, void *);
+static enum result interfaceSetParam(void *, enum IfParameter, const void *);
 static size_t interfaceRead(void *, void *, size_t);
 static size_t interfaceWrite(void *, const void *, size_t);
 /*----------------------------------------------------------------------------*/
@@ -20,9 +20,9 @@ static const struct InterfaceClass interfaceTable = {
     .init = interfaceInit,
     .deinit = interfaceDeinit,
 
-    .callback = interfaceCallback,
-    .get = interfaceGet,
-    .set = interfaceSet,
+    .setCallback = interfaceSetCallback,
+    .getParam = interfaceGetParam,
+    .setParam = interfaceSetParam,
     .read = interfaceRead,
     .write = interfaceWrite
 };
@@ -50,25 +50,26 @@ static void interfaceDeinit(void *object __attribute__((unused)))
 
 }
 /*----------------------------------------------------------------------------*/
-static enum result interfaceCallback(void *object, void (*callback)(void *),
+static enum result interfaceSetCallback(void *object, void (*callback)(void *),
     void *argument)
 {
   struct InterfaceWrapper * const interface = object;
-  return ifCallback(interface->pipe, callback, argument);
+  return ifSetCallback(interface->pipe, callback, argument);
 }
 /*----------------------------------------------------------------------------*/
-static enum result interfaceGet(void *object, enum ifOption option, void *data)
+static enum result interfaceGetParam(void *object, enum IfParameter parameter,
+    void *data)
 {
   struct InterfaceWrapper * const interface = object;
-  return ifGet(interface->pipe, option, data);
+  return ifGetParam(interface->pipe, parameter, data);
 }
 /*----------------------------------------------------------------------------*/
-static enum result interfaceSet(void *object, enum ifOption option,
+static enum result interfaceSetParam(void *object, enum IfParameter parameter,
     const void *data)
 {
   struct InterfaceWrapper * const interface = object;
 
-  switch (option)
+  switch (parameter)
   {
     case IF_RELEASE:
       pinReset(interface->rx);
@@ -79,7 +80,7 @@ static enum result interfaceSet(void *object, enum ifOption option,
       break;
   }
 
-  return ifSet(interface->pipe, option, data);
+  return ifSetParam(interface->pipe, parameter, data);
 }
 /*----------------------------------------------------------------------------*/
 static size_t interfaceRead(void *object, void *buffer, size_t length)

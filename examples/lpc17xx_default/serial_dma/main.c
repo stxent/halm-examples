@@ -88,7 +88,7 @@ static void onSerialEvent(void *argument)
   struct Interface * const interface = argument;
   size_t available;
 
-  if (ifGet(interface, IF_AVAILABLE, &available) == E_OK && available)
+  if (ifGetParam(interface, IF_AVAILABLE, &available) == E_OK && available)
     event = true;
 }
 /*----------------------------------------------------------------------------*/
@@ -102,8 +102,8 @@ int main(void)
   struct Interface * const serial =
       init(SerialDma, &serialConfig[UART_CHANNEL]);
   assert(serial);
-  ifSet(serial, IF_ZEROCOPY, 0);
-  ifCallback(serial, onSerialEvent, serial);
+  ifSetParam(serial, IF_ZEROCOPY, 0);
+  ifSetCallback(serial, onSerialEvent, serial);
 
   size_t readTotal = 0;
   size_t writtenTotal = 0;

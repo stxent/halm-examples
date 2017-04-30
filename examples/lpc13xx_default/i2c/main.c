@@ -84,7 +84,7 @@ static void deviceCallback(void *argument)
   struct DeviceDriver *device = argument;
   enum result status;
 
-  if ((status = ifGet(device->interface, IF_STATUS, 0)) != E_OK)
+  if ((status = ifGetParam(device->interface, IF_STATUS, 0)) != E_OK)
     return;
 
   switch (device->state)
@@ -118,15 +118,15 @@ static void deviceConfigIO(struct DeviceDriver *device, bool rw)
 {
   enum result res;
 
-  res = ifSet(device->interface, IF_RATE, &device->desiredRate);
+  res = ifSetParam(device->interface, IF_RATE, &device->desiredRate);
   assert(res == E_OK);
-  res = ifSet(device->interface, IF_ADDRESS, &device->deviceAddress);
+  res = ifSetParam(device->interface, IF_ADDRESS, &device->deviceAddress);
   assert(res == E_OK);
 
 #ifdef TEST_ZEROCOPY
-  res = ifSet(device->interface, IF_ZEROCOPY, 0);
+  res = ifSetParam(device->interface, IF_ZEROCOPY, 0);
   assert(res == E_OK);
-  res = ifCallback(device->interface, deviceCallback, device);
+  res = ifSetCallback(device->interface, deviceCallback, device);
   assert(res == E_OK);
 #endif
 
@@ -137,7 +137,7 @@ static void deviceConfigIO(struct DeviceDriver *device, bool rw)
   (void)rw; /* Suppress warning */
 #endif
 
-  res = ifSet(device->interface, IF_I2C_SENDSTOP, &sendStop);
+  res = ifSetParam(device->interface, IF_I2C_SENDSTOP, &sendStop);
   assert(res == E_OK);
 
   (void)res; /* Suppress warning */

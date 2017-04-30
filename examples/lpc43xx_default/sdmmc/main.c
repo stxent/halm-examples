@@ -133,8 +133,8 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t size,
 
   markBuffer(buffer, size, position / size);
 
-  ifSet(card, IF_POSITION, &position);
-  ifCallback(card, onEvent, &event);
+  ifSetParam(card, IF_POSITION, &position);
+  ifSetCallback(card, onEvent, &event);
 
   const size_t bytesWritten = ifWrite(card, buffer, size);
   bool completed = false;
@@ -145,11 +145,11 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t size,
       barrier();
     event = false;
 
-    if (ifGet(card, IF_STATUS, 0) == E_OK)
+    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
       completed = true;
   }
 
-  ifCallback(card, 0, 0);
+  ifSetCallback(card, 0, 0);
   return completed;
 }
 #endif
@@ -159,8 +159,8 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t size,
 {
   bool event;
 
-  ifSet(card, IF_POSITION, &position);
-  ifCallback(card, onEvent, &event);
+  ifSetParam(card, IF_POSITION, &position);
+  ifSetCallback(card, onEvent, &event);
 
   const size_t bytesRead = ifRead(card, buffer, size);
   bool completed = false;
@@ -171,11 +171,11 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t size,
       barrier();
     event = false;
 
-    if (ifGet(card, IF_STATUS, 0) == E_OK)
+    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
       completed = true;
   }
 
-  ifCallback(card, 0, 0);
+  ifSetCallback(card, 0, 0);
   return completed;
 }
 /*----------------------------------------------------------------------------*/
@@ -196,10 +196,10 @@ int main(void)
   };
   struct Interface * const card = init(SdCard, &cardConfig);
   assert(card);
-  ifSet(card, IF_ZEROCOPY, 0);
+  ifSetParam(card, IF_ZEROCOPY, 0);
 
   uint64_t cardSize;
-  ifGet(card, IF_SIZE, &cardSize);
+  ifGetParam(card, IF_SIZE, &cardSize);
 
   /* Configure LED and variables for storing current state */
   const struct Pin led = pinInit(LED_PIN);

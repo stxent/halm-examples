@@ -79,7 +79,7 @@ int main(void)
   timerSetOverflow(timer, 2000);
 
   bool busEvent = false;
-  ifCallback(ow, onBusEvent, &busEvent);
+  ifSetCallback(ow, onBusEvent, &busEvent);
 
   bool timerEvent = false;
   timerSetCallback(timer, onTimerOverflow, &timerEvent);
@@ -93,7 +93,7 @@ int main(void)
 
     enum result res;
 
-    res = ifSet(ow, IF_ONE_WIRE_START_SEARCH, 0);
+    res = ifSetParam(ow, IF_ONE_WIRE_START_SEARCH, 0);
     assert(res == E_OK);
 
     do
@@ -102,18 +102,18 @@ int main(void)
         barrier();
       busEvent = false;
 
-      res = ifGet(ow, IF_STATUS, 0);
+      res = ifGetParam(ow, IF_STATUS, 0);
       if (res != E_OK)
         break;
 
       uint64_t address;
 
-      res = ifGet(ow, IF_ADDRESS, &address);
+      res = ifGetParam(ow, IF_ADDRESS, &address);
       assert(res == E_OK);
 
       printAddress(serial, address);
     }
-    while (ifSet(ow, IF_ONE_WIRE_FIND_NEXT, 0) == E_OK);
+    while (ifSetParam(ow, IF_ONE_WIRE_FIND_NEXT, 0) == E_OK);
 
     ifWrite(serial, separator, sizeof(separator) - 1);
   }

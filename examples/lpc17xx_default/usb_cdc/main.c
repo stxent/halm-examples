@@ -112,7 +112,7 @@ int main(void)
 
   struct Interface * const serial = init(CdcAcm, &config);
   assert(serial);
-  ifCallback(serial, onSerialEvent, &event);
+  ifSetCallback(serial, onSerialEvent, &event);
 
   usbDevSetConnected(usb, true);
 
@@ -124,7 +124,7 @@ int main(void)
 
     size_t available;
 
-    if (ifGet(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
+    if (ifGetParam(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
     {
       size_t bytesRead;
 

@@ -50,7 +50,7 @@ static unsigned int enqueue(struct Interface *dac, uint16_t *buffer,
 {
   size_t number;
 
-  while (ifGet(dac, IF_PENDING, &number) == E_OK && number < BUFFER_COUNT)
+  while (ifGetParam(dac, IF_PENDING, &number) == E_OK && number < BUFFER_COUNT)
   {
     const unsigned int index = iteration++ % BUFFER_COUNT;
     ifWrite(dac, buffer + index * BUFFER_SIZE, BUFFER_SIZE * sizeof(uint16_t));
@@ -92,7 +92,7 @@ int main(void)
   assert(dac);
 
   bool event = false;
-  ifCallback(dac, onConversionCompleted, &event);
+  ifSetCallback(dac, onConversionCompleted, &event);
 
   unsigned int iteration = 0;
 

@@ -127,10 +127,10 @@ int main(void)
   };
   struct Interface * const card = init(SdCard, &cardConfig);
   assert(card);
-  ifSet(card, IF_ZEROCOPY, 0);
+  ifSetParam(card, IF_ZEROCOPY, 0);
 
   uint64_t cardSize;
-  ifGet(card, IF_SIZE, &cardSize);
+  ifGetParam(card, IF_SIZE, &cardSize);
 
   /* Initialize USB peripheral */
   struct Entity * const usb = init(UsbDevice, &usbConfig);

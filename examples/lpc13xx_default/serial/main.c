@@ -64,7 +64,7 @@ int main(void)
 
   struct Interface * const serial = init(Serial, &serialConfig);
   assert(serial);
-  ifCallback(serial, onSerialEvent, &event);
+  ifSetCallback(serial, onSerialEvent, &event);
 
   while (1)
   {
@@ -74,7 +74,7 @@ int main(void)
 
     size_t available;
 
-    if (ifGet(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
+    if (ifGetParam(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
     {
       size_t bytesRead;
 

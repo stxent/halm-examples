@@ -34,7 +34,7 @@ static enum result program(struct Interface *flash, const uint8_t *buffer,
 {
   enum result res;
 
-  if ((res = ifSet(flash, IF_POSITION, &address)) != E_OK)
+  if ((res = ifSetParam(flash, IF_POSITION, &address)) != E_OK)
     return res;
 
   if (ifWrite(flash, buffer, length) != length)
@@ -51,7 +51,7 @@ static enum result verify(struct Interface *flash, const uint8_t *pattern,
 
   memset(buffer, 0, length);
 
-  if ((res = ifSet(flash, IF_POSITION, &address)) != E_OK)
+  if ((res = ifSetParam(flash, IF_POSITION, &address)) != E_OK)
     return res;
 
   if (ifRead(flash, buffer, length) != length)
@@ -78,12 +78,12 @@ int main(void)
   enum result res;
 
   pinSet(led);
-  if ((res = ifGet(flash, IF_SIZE, &flashSize)) == E_OK)
+  if ((res = ifGetParam(flash, IF_SIZE, &flashSize)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
   pinSet(led);
-  if ((res = ifGet(flash, IF_FLASH_PAGE_SIZE, &pageSize)) == E_OK)
+  if ((res = ifGetParam(flash, IF_FLASH_PAGE_SIZE, &pageSize)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
@@ -96,7 +96,7 @@ int main(void)
   assert(sectorAddress < flashSize);
 
   pinSet(led);
-  if ((res = ifSet(flash, IF_FLASH_ERASE_SECTOR, &sectorAddress)) == E_OK)
+  if ((res = ifSetParam(flash, IF_FLASH_ERASE_SECTOR, &sectorAddress)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
@@ -115,7 +115,7 @@ int main(void)
   assert(pageAddress < flashSize);
 
   pinSet(led);
-  if ((res = ifSet(flash, IF_FLASH_ERASE_PAGE, &pageAddress)) == E_OK)
+  if ((res = ifSetParam(flash, IF_FLASH_ERASE_PAGE, &pageAddress)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 

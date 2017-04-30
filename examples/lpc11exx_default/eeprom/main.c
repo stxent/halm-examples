@@ -16,7 +16,7 @@ static enum result program(struct Interface *eeprom, const uint8_t *buffer,
 {
   enum result res;
 
-  if ((res = ifSet(eeprom, IF_POSITION, &address)) != E_OK)
+  if ((res = ifSetParam(eeprom, IF_POSITION, &address)) != E_OK)
     return res;
 
   if (ifWrite(eeprom, buffer, length) != length)
@@ -33,7 +33,7 @@ static enum result verify(struct Interface *eeprom, const uint8_t *pattern,
 
   memset(buffer, 0, length);
 
-  if ((res = ifSet(eeprom, IF_POSITION, &address)) != E_OK)
+  if ((res = ifSetParam(eeprom, IF_POSITION, &address)) != E_OK)
     return res;
 
   if (ifRead(eeprom, buffer, length) != length)
@@ -66,7 +66,7 @@ int main(void)
   enum result res;
 
   pinSet(led);
-  if ((res = ifGet(eeprom, IF_SIZE, &size)) == E_OK)
+  if ((res = ifGetParam(eeprom, IF_SIZE, &size)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 

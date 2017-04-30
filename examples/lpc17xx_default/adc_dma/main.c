@@ -60,7 +60,7 @@ static void onConversionCompleted(void *argument)
   struct Interface * const adc = argument;
   size_t count;
 
-  if (ifGet(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
+  if (ifGetParam(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
     event = true;
 }
 /*----------------------------------------------------------------------------*/
@@ -83,7 +83,7 @@ int main(void)
 
   struct Interface * const adc = init(AdcDma, &adcConfig);
   assert(adc);
-  ifCallback(adc, onConversionCompleted, adc);
+  ifSetCallback(adc, onConversionCompleted, adc);
 
   struct Timer * const conversionTimer = init(GpTimer, &timerConfig);
   assert(conversionTimer);
@@ -97,7 +97,7 @@ int main(void)
   size_t count;
 
   /* Enqueue buffers */
-  while (ifGet(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
+  while (ifGetParam(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
   {
     const size_t index = iteration++ % BUFFER_COUNT;
     ifRead(adc, buffers[index], sizeof(buffers[index]));
@@ -113,7 +113,7 @@ int main(void)
     event = false;
 
     pinSet(led);
-    while (ifGet(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
+    while (ifGetParam(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
     {
       const size_t index = iteration++ % BUFFER_COUNT;
       ifRead(adc, buffers[index], sizeof(buffers[index]));

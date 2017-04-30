@@ -140,12 +140,12 @@ int main(void)
 
   struct Interface * const can = init(Can, &canConfig);
   assert(can);
-  ifSet(can, IF_CAN_ACTIVE, 0);
+  ifSetParam(can, IF_CAN_ACTIVE, 0);
 
   bool canEvent = false;
   bool timerEvent = false;
 
-  ifCallback(can, onEvent, &canEvent);
+  ifSetCallback(can, onEvent, &canEvent);
   timerSetCallback(eventTimer, onEvent, &timerEvent);
   timerEnable(eventTimer);
 

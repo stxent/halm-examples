@@ -86,9 +86,9 @@ int main(void)
   bool completed;
   enum result res;
 
-  res = ifSet(adc, IF_ZEROCOPY, 0);
+  res = ifSetParam(adc, IF_ZEROCOPY, 0);
   assert(res == E_OK);
-  res = ifCallback(adc, onEvent, &completed);
+  res = ifSetCallback(adc, onEvent, &completed);
   assert(res == E_OK);
 
   (void)res; /* Suppress warning */

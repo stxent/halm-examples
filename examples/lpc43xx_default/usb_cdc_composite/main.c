@@ -121,7 +121,7 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
 
     streams[i].interface = init(CdcAcm, &config);
     assert(streams[i].interface);
-    ifCallback(streams[i].interface, onSerialEvent, streams + i);
+    ifSetCallback(streams[i].interface, onSerialEvent, streams + i);
     streams[i].event = false;
     streams[i].indication = leds[i];
     pinOutput(streams[i].indication, false);

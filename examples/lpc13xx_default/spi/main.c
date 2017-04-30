@@ -55,7 +55,7 @@ int main(void)
   static const uint32_t desiredRate = 200000;
   enum result res;
 
-  res = ifSet(spi, IF_RATE, &desiredRate);
+  res = ifSetParam(spi, IF_RATE, &desiredRate);
   assert(res == E_OK);
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
@@ -66,9 +66,9 @@ int main(void)
   bool event = false;
 
 #ifdef TEST_ZEROCOPY
-  res = ifSet(spi, IF_ZEROCOPY, 0);
+  res = ifSetParam(spi, IF_ZEROCOPY, 0);
   assert(res == E_OK);
-  res = ifCallback(spi, onTransferCompleted, &value);
+  res = ifSetCallback(spi, onTransferCompleted, &value);
   assert(res == E_OK);
 #endif
 

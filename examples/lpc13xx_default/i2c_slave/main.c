@@ -30,7 +30,7 @@ int main(void)
 
   struct Interface * const i2c = init(I2cSlave, &i2cConfig);
   assert(i2c);
-  ifSet(i2c, IF_ADDRESS, &deviceAddress);
+  ifSetParam(i2c, IF_ADDRESS, &deviceAddress);
 
   (void)res; /* Suppress warning */
 
@@ -38,7 +38,7 @@ int main(void)
   pinOutput(led, false);
 
   bool event = false;
-  ifCallback(i2c, onDeviceMemoryChanged, &event);
+  ifSetCallback(i2c, onDeviceMemoryChanged, &event);
 
   while (1)
   {
@@ -48,7 +48,7 @@ int main(void)
 
     uint8_t state;
 
-    ifSet(i2c, IF_POSITION, &internalOffset);
+    ifSetParam(i2c, IF_POSITION, &internalOffset);
     ifRead(i2c, &state, sizeof(state));
     pinWrite(led, state > 0);
   }

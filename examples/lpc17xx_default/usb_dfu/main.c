@@ -109,10 +109,10 @@ static enum result flashLoaderInit(struct FlashLoader *loader,
   loader->driver = driver;
   loader->flash = flash;
 
-  res = ifGet(loader->flash, IF_SIZE, &loader->flashSize);
+  res = ifGetParam(loader->flash, IF_SIZE, &loader->flashSize);
   if (res != E_OK)
     return res;
-  res = ifGet(loader->flash, IF_FLASH_PAGE_SIZE, &loader->pageSize);
+  res = ifGetParam(loader->flash, IF_FLASH_PAGE_SIZE, &loader->pageSize);
   if (res != E_OK)
     return res;
 
@@ -144,7 +144,7 @@ static void flashProgramTask(void *argument)
   const IrqState state = irqSave();
 
   loader->eraseQueued = false;
-  ifSet(loader->flash, IF_FLASH_ERASE_SECTOR, &loader->erasingPosition);
+  ifSetParam(loader->flash, IF_FLASH_ERASE_SECTOR, &loader->erasingPosition);
   dfuOnDownloadCompleted(loader->driver, true);
 
   irqRestore(state);
@@ -191,7 +191,10 @@ static size_t onDownloadRequest(size_t position, const void *buffer,
   {
     if (!length || loader->bufferSize == loader->pageSize)
     {
-      if (ifSet(loader->flash, IF_POSITION, &loader->currentPosition) != E_OK)
+      const enum result res = ifSetParam(loader->flash, IF_POSITION,
+          &loader->currentPosition);
+
+      if (res != E_OK)
         return 0;
 
       const size_t written = ifWrite(loader->flash, loader->chunk,
@@ -236,7 +239,7 @@ static size_t onUploadRequest(size_t position, void *buffer, size_t length)
 
   if (offset + length > loader->flashSize)
     return 0;
-  if (ifSet(loader->flash, IF_POSITION, &offset) != E_OK)
+  if (ifSetParam(loader->flash, IF_POSITION, &offset) != E_OK)
     return 0;
 
   return ifRead(loader->flash, buffer, length);
