@@ -60,7 +60,7 @@ struct DeviceDriver
 };
 /*----------------------------------------------------------------------------*/
 static void deviceInit(struct DeviceDriver *device, struct Interface *interface,
-    pinNumber ledNumber, uint16_t address)
+    PinNumber ledNumber, uint16_t address)
 {
   device->interface = interface;
   device->state = DEVICE_IDLE;
@@ -209,8 +209,8 @@ int main(void)
   timerSetOverflow(timer, 1000);
 
   bool event = false;
-  timerCallback(timer, onTimerOverflow, &event);
-  timerSetEnabled(timer, true);
+  timerSetCallback(timer, onTimerOverflow, &event);
+  timerEnable(timer);
 
   while (1)
   {

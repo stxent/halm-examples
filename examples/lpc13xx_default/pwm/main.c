@@ -63,17 +63,17 @@ int main(void)
   singleEdgeA = gpTimerPwmCreate(pwmUnit, SINGLE_EDGE_PWM_A_PIN);
   assert(singleEdgeA);
   pwmSetDuration(singleEdgeA, pwmGetResolution(singleEdgeA) / 2);
-  pwmSetEnabled(singleEdgeA, true);
+  pwmEnable(singleEdgeA);
 
   singleEdgeB = gpTimerPwmCreate(pwmUnit, SINGLE_EDGE_PWM_B_PIN);
   assert(singleEdgeB);
-  pwmSetEnabled(singleEdgeB, true);
+  pwmEnable(singleEdgeB);
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
   timerSetOverflow(timer, 10);
-  timerCallback(timer, onTimerOverlow, 0);
-  timerSetEnabled(timer, true);
+  timerSetCallback(timer, onTimerOverlow, 0);
+  timerEnable(timer);
 
   while (1);
 

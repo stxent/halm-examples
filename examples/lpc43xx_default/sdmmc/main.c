@@ -212,9 +212,9 @@ int main(void)
   struct Timer * const eventTimer = init(GpTimer, &eventTimerConfig);
   assert(eventTimer);
   timerSetOverflow(eventTimer, 1000000);
-  timerCallback(eventTimer, onEvent, &event);
+  timerSetCallback(eventTimer, onEvent, &event);
 
-  timerSetEnabled(eventTimer, true);
+  timerEnable(eventTimer);
 
   while (1)
   {

@@ -141,7 +141,7 @@ static void flashProgramTask(void *argument)
   /* Process DFU_GETSTATUS request in the USB interrupt */
   mdelay(2);
 
-  const irqState state = irqSave();
+  const IrqState state = irqSave();
 
   loader->eraseQueued = false;
   ifSet(loader->flash, IF_FLASH_ERASE_SECTOR, &loader->erasingPosition);

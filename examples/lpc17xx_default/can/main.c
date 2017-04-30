@@ -99,7 +99,7 @@ static void onBlinkTimeout(void *argument)
   const struct Pin * const pin = array[1];
 
   pinReset(*pin);
-  timerSetEnabled(blinker, false);
+  timerDisable(blinker);
 }
 /*----------------------------------------------------------------------------*/
 static void onEvent(void *argument)
@@ -122,7 +122,7 @@ int main(void)
       blinker,
       &led
   };
-  timerCallback(blinker, onBlinkTimeout, &blinkTimeoutHandlerArguments);
+  timerSetCallback(blinker, onBlinkTimeout, &blinkTimeoutHandlerArguments);
 
   struct Timer * const eventTimer = init(GpTimer, &eventTimerConfig);
   assert(eventTimer);
@@ -131,7 +131,7 @@ int main(void)
 #ifdef TEST_TIMESTAMPS
   struct Timer * const chronoTimer = init(GpTimer, &chronoTimerConfig);
   assert(chronoTimer);
-  timerSetEnabled(chronoTimer, true);
+  timerEnable(chronoTimer);
 #else
   struct Timer * const chronoTimer = 0;
 #endif
@@ -146,8 +146,8 @@ int main(void)
   bool timerEvent = false;
 
   ifCallback(can, onEvent, &canEvent);
-  timerCallback(eventTimer, onEvent, &timerEvent);
-  timerSetEnabled(eventTimer, true);
+  timerSetCallback(eventTimer, onEvent, &timerEvent);
+  timerEnable(eventTimer);
 
   unsigned int iteration = 0;
 
@@ -194,7 +194,7 @@ int main(void)
       ifRead(can, &message, sizeof(message));
 
       pinSet(led);
-      timerSetEnabled(blinker, true);
+      timerEnable(blinker);
     }
   }
 

@@ -84,23 +84,23 @@ int main(void)
 
   struct Timer * const timer0 = softwareTimerCreate(timerFactory);
   assert(timer0);
-  timerCallback(timer0, onTimer0Overflow, &output0);
+  timerSetCallback(timer0, onTimer0Overflow, &output0);
   timerSetOverflow(timer0, 199);
-  timerSetEnabled(timer0, true);
+  timerEnable(timer0);
 
   struct Timer * const timer1 = softwareTimerCreate(timerFactory);
   assert(timer1);
-  timerCallback(timer1, onTimer1Overflow, &output1);
+  timerSetCallback(timer1, onTimer1Overflow, &output1);
   timerSetOverflow(timer1, 37);
-  timerSetEnabled(timer1, true);
+  timerEnable(timer1);
 
   struct Timer * const timer2 = softwareTimerCreate(timerFactory);
   assert(timer2);
-  timerCallback(timer2, onTimer2Overflow, &output2);
+  timerSetCallback(timer2, onTimer2Overflow, &output2);
   timerSetOverflow(timer2, 97);
-  timerSetEnabled(timer2, true);
+  timerEnable(timer2);
 
-  timerSetEnabled(tickTimer, true);
+  timerEnable(tickTimer);
 
   while (1);
 

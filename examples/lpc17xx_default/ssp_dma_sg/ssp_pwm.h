@@ -19,11 +19,11 @@ struct SspPwmConfig
   uint32_t (*style)(size_t, size_t);
 
   /** Optional: Chip Select output. */
-  pinNumber cs;
+  PinNumber cs;
   /** Mandatory: serial data output. */
-  pinNumber mosi;
+  PinNumber mosi;
   /** Mandatory: serial clock output. */
-  pinNumber sck;
+  PinNumber sck;
 
   /** Mandatory: peripheral identifier. */
   uint8_t channel;

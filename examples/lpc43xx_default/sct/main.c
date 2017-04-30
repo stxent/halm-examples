@@ -78,20 +78,20 @@ int main(void)
   struct Timer * const timerA = init(SctTimer, &timerConfig);
   assert(timerA);
   timerSetOverflow(timerA, 50000);
-  timerCallback(timerA, onTimerOverflow, &descriptors[0]);
-  timerSetEnabled(timerA, true);
+  timerSetCallback(timerA, onTimerOverflow, &descriptors[0]);
+  timerEnable(timerA);
 #else
   struct Timer * const timerA = init(SctTimer, &timerConfigs[0]);
   assert(timerA);
   timerSetOverflow(timerA, 50000);
-  timerCallback(timerA, onTimerOverflow, &descriptors[0]);
-  timerSetEnabled(timerA, true);
+  timerSetCallback(timerA, onTimerOverflow, &descriptors[0]);
+  timerEnable(timerA);
 
   struct Timer * const timerB = init(SctTimer, &timerConfigs[1]);
   assert(timerB);
   timerSetOverflow(timerB, 50000);
-  timerCallback(timerB, onTimerOverflow, &descriptors[1]);
-  timerSetEnabled(timerB, true);
+  timerSetCallback(timerB, onTimerOverflow, &descriptors[1]);
+  timerEnable(timerB);
 #endif
 
   while (1);

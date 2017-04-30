@@ -94,8 +94,8 @@ int main(void)
   (void)res; /* Suppress warning */
 #endif
 
-  timerCallback(timer, onEvent, &event);
-  timerSetEnabled(timer, true);
+  timerSetCallback(timer, onEvent, &event);
+  timerEnable(timer);
 
   while (1)
   {
@@ -104,7 +104,7 @@ int main(void)
     event = false;
 
     pinSet(led);
-    timerSetEnabled(eventTimer, true);
+    timerEnable(eventTimer);
 
     const size_t bytesRead = ifRead(adc, samples, sizeof(samples));
     assert(bytesRead == sizeof(samples));
@@ -116,7 +116,7 @@ int main(void)
     completed = false;
 #endif
 
-    timerSetEnabled(eventTimer, false);
+    timerDisable(eventTimer);
     pinReset(led);
   }
 

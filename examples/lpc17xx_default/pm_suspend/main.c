@@ -22,7 +22,7 @@
 #define LED_PIN_2 PIN(1, 10)
 /*----------------------------------------------------------------------------*/
 static const struct SimpleGpioBusConfig busConfig = {
-    .pins = (const pinNumber []){
+    .pins = (const PinNumber []){
         LED_PIN_0, LED_PIN_1, LED_PIN_2, 0
     },
     .initial = 0,

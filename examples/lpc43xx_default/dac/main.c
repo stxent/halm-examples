@@ -55,8 +55,8 @@ int main(void)
   timerSetOverflow(timer, 1000);
 
   bool event = false;
-  timerCallback(timer, onTimerOverflow, &event);
-  timerSetEnabled(timer, true);
+  timerSetCallback(timer, onTimerOverflow, &event);
+  timerEnable(timer);
 
   unsigned int step = 0;
 

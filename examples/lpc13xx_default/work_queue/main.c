@@ -40,13 +40,13 @@ int main(void)
   assert(timer);
 
   timerSetOverflow(timer, 500);
-  timerCallback(timer, onTimerOverflow, &led);
+  timerSetCallback(timer, onTimerOverflow, &led);
 
   /* Initialize Work Queue */
   workQueueInit(WORK_QUEUE_SIZE);
 
   /* Start event generation and queue handler */
-  timerSetEnabled(timer, true);
+  timerEnable(timer);
   workQueueStart(0);
 
   return 0;

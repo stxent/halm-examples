@@ -46,20 +46,20 @@ int main(void)
 
   struct Interrupt * const externalInterrupt = init(PinInterrupt, &eventConfig);
   assert(externalInterrupt);
-  intCallback(externalInterrupt, onExternalEvent, &led);
+  interruptSetCallback(externalInterrupt, onExternalEvent, &led);
 
   bool event = false;
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
   timerSetOverflow(timer, 100);
-  timerCallback(timer, onTimerOverflow, &event);
+  timerSetCallback(timer, onTimerOverflow, &event);
 
   const struct Pin output = pinInit(OUTPUT_PIN);
   pinOutput(output, false);
 
-  intSetEnabled(externalInterrupt, true);
-  timerSetEnabled(timer, true);
+  interruptEnable(externalInterrupt);
+  timerEnable(timer);
 
   while (1)
   {

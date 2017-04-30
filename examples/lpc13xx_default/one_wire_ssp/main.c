@@ -82,8 +82,8 @@ int main(void)
   ifCallback(ow, onBusEvent, &busEvent);
 
   bool timerEvent = false;
-  timerCallback(timer, onTimerOverflow, &timerEvent);
-  timerSetEnabled(timer, true);
+  timerSetCallback(timer, onTimerOverflow, &timerEvent);
+  timerEnable(timer);
 
   while (1)
   {

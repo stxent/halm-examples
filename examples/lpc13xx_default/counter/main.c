@@ -75,11 +75,11 @@ int main(void)
   timerSetOverflow(timer, 1000);
 
   bool event = false;
-  timerCallback(timer, onTimerOverflow, &event);
+  timerSetCallback(timer, onTimerOverflow, &event);
 
-  timerSetEnabled(counter, true);
-  pwmSetEnabled(pwmOutput, true);
-  timerSetEnabled(timer, true);
+  timerEnable(counter);
+  pwmEnable(pwmOutput);
+  timerEnable(timer);
 
   while (1)
   {

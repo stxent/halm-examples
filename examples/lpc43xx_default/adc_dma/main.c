@@ -113,7 +113,7 @@ int main(void)
   }
 
   /* Start conversion */
-  timerSetEnabled(conversionTimer, true);
+  timerEnable(conversionTimer);
 
   while (1)
   {

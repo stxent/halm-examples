@@ -153,7 +153,7 @@ static enum result objectInit(void *object, const void *configPtr)
 
   if ((res = dmaEnable(controller->dma)) != E_OK)
     return res;
-  timerSetEnabled(controller->timer, true);
+  timerEnable(controller->timer);
 
   return E_OK;
 }

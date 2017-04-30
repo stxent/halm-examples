@@ -22,7 +22,7 @@ static struct GpTimerConfig timerConfig = {
 };
 
 static const struct SimpleGpioBusConfig busConfig = {
-    .pins = (const pinNumber []){
+    .pins = (const PinNumber []){
         LED_PIN_0, LED_PIN_1, LED_PIN_2, 0
     },
     .initial = 0,
@@ -68,9 +68,9 @@ int main(void)
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
-  timerCallback(timer, onTimerOverflow, 0);
+  timerSetCallback(timer, onTimerOverflow, 0);
   timerSetOverflow(timer, 5000);
-  timerSetEnabled(timer, true);
+  timerEnable(timer);
 
   uint32_t state = 1;
 

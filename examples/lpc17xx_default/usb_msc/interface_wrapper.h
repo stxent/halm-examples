@@ -17,9 +17,9 @@ struct InterfaceWrapperConfig
   /** Mandatory: underlying interface. */
   struct Interface *pipe;
   /** Mandatory: reception indication. */
-  pinNumber rx;
+  PinNumber rx;
   /** Mandatory: transmission indication. */
-  pinNumber tx;
+  PinNumber tx;
 };
 /*----------------------------------------------------------------------------*/
 struct InterfaceWrapper

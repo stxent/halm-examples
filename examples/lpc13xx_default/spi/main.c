@@ -74,8 +74,8 @@ int main(void)
 
   (void)res; /* Suppress warning */
 
-  timerCallback(timer, onTimerOverflow, &event);
-  timerSetEnabled(timer, true);
+  timerSetCallback(timer, onTimerOverflow, &event);
+  timerEnable(timer);
   pinReset(cs);
 
   while (1)

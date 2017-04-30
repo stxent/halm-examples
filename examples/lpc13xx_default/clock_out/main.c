@@ -75,10 +75,10 @@ int main(void)
   timerSetOverflow(timer, 1000);
 
   bool event = false;
-  timerCallback(timer, onTimerOverflow, &event);
+  timerSetCallback(timer, onTimerOverflow, &event);
 
-  timerSetEnabled(counter, true);
-  timerSetEnabled(timer, true);
+  timerEnable(counter);
+  timerEnable(timer);
 
   while (1)
   {

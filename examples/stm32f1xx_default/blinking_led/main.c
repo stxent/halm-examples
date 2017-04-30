@@ -29,8 +29,8 @@ int main(void)
   timerSetOverflow(timer, 500);
 
   bool event = false;
-  timerCallback(timer, onTimerOverflow, &event);
-  timerSetEnabled(timer, true);
+  timerSetCallback(timer, onTimerOverflow, &event);
+  timerEnable(timer);
 
   while (1)
   {
