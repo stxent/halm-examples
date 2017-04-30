@@ -43,14 +43,14 @@ static const char productStringEn[] = "LPC17xx DevBoard";
 static const char serialStringEn[] = "00000001";
 /*----------------------------------------------------------------------------*/
 static void customStringHeader(void *argument __attribute__((unused)),
-    enum usbLangId langid __attribute__((unused)),
+    enum UsbLangId langid __attribute__((unused)),
     struct UsbDescriptor *header, void *payload)
 {
   usbStringHeader(header, payload, LANGID_ENGLISH_US);
 }
 /*----------------------------------------------------------------------------*/
 static void customStringWrapper(void *argument,
-    enum usbLangId langid __attribute__((unused)),
+    enum UsbLangId langid __attribute__((unused)),
     struct UsbDescriptor *header, void *payload)
 {
   usbStringWrap(header, payload, argument);

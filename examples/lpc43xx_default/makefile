@@ -61,7 +61,7 @@ $(ELF_FILES): $(LDSCRIPT)
 
 .SECONDEXPANSION:
 $(OUTPUT_DIR)/$(PROJECT)/%.axf: $$(%_OBJECTS)
-	@echo "$(CC): $@"
+	@echo "$(CC): $(@:$(OUTPUT_DIR)/%=%)"
 	@mkdir -p $(@D)
 	$(Q)$(CC) $(LDFLAGS) $(filter %.o,$^) $(LIBS) -o $@
 
@@ -74,7 +74,7 @@ COBJECTS = $(CSOURCES:%.c=$(OUTPUT_DIR)/$(PROJECT)/%.o)
 .DEFAULT_GOAL = all
 
 $(OUTPUT_DIR)/$(PROJECT)/%.o: %.c $(LIBS)
-	@echo "$(CC): $@"
+	@echo "$(CC): $(@:$(OUTPUT_DIR)/%=%)"
 	@mkdir -p $(@D)
 	$(Q)$(CC) -c $(CFLAGS) $(INCLUDE_PATH) -MMD -MF $(@:%.o=%.d) -MT $@ $< -o $@
 
