@@ -12,15 +12,27 @@
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 512
 #define LED_PIN     PIN(PORT_6, 6)
+#define USB_PORT    0
 /*----------------------------------------------------------------------------*/
-static const struct UsbDeviceConfig usbConfig = {
-    .dm = PIN(PORT_USB, PIN_USB0_DM),
-    .dp = PIN(PORT_USB, PIN_USB0_DP),
-    .connect = 0,
-    .vbus = PIN(PORT_USB, PIN_USB0_VBUS),
-    .vid = 0x15A2,
-    .pid = 0x0044,
-    .channel = 0
+static const struct UsbDeviceConfig usbConfig[] = {
+    {
+        .dm = PIN(PORT_USB, PIN_USB0_DM),
+        .dp = PIN(PORT_USB, PIN_USB0_DP),
+        .connect = 0,
+        .vbus = PIN(PORT_USB, PIN_USB0_VBUS),
+        .vid = 0x15A2,
+        .pid = 0x0044,
+        .channel = 0
+    },
+    {
+        .dm = PIN(PORT_USB, PIN_USB1_DM),
+        .dp = PIN(PORT_USB, PIN_USB1_DP),
+        .connect = 0,
+        .vbus = PIN(PORT_2, 5),
+        .vid = 0x15A2,
+        .pid = 0x0044,
+        .channel = 1
+    }
 };
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
@@ -58,10 +70,13 @@ static void setupClock(void)
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
 
+  clockEnable(MainClock, &mainClkConfig);
+
   clockEnable(UsbPll, &usbPllConfig);
   while (!clockReady(UsbPll));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(Usb1Clock, &mainClkConfig);
+  while (!clockReady(UsbPll));
 }
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
@@ -105,7 +120,7 @@ int main(void)
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  struct Entity * const usb = init(UsbDevice, &usbConfig);
+  struct Entity * const usb = init(UsbDevice, &usbConfig[USB_PORT]);
   assert(usb);
 
   const struct CdcAcmConfig config = {
