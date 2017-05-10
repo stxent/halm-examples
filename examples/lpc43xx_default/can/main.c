@@ -1,6 +1,6 @@
 /*
  * can/main.c
- * Copyright (C) 2016 xent
+ * Copyright (C) 2017 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -10,10 +10,10 @@
 #include <halm/pin.h>
 #include <halm/platform/nxp/can.h>
 #include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc17xx/clocking.h>
+#include <halm/platform/nxp/lpc43xx/clocking.h>
 #include <xcore/bits.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(1, 8)
+#define LED_PIN PIN(PORT_6, 6)
 
 #define TEST_EXT_ID
 /* #define TEST_RTR */
@@ -44,24 +44,29 @@ static struct CanConfig canConfig = {
     .rate = 1000000,
     .rxBuffers = 4,
     .txBuffers = 4,
-    .rx = PIN(0, 0),
-    .tx = PIN(0, 1),
+    .rx = PIN(3, 1),
+    .tx = PIN(3, 2),
     .priority = 0,
     .channel = 0
 };
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
+    .frequency = 12000000,
+    .bypass = false
 };
 
 static const struct PllConfig sysPllConfig = {
     .source = CLOCK_EXTERNAL,
-    .divisor = 6,
-    .multiplier = 30
+    .divisor = 4,
+    .multiplier = 20
 };
 
 static const struct CommonClockConfig mainClkConfig = {
     .source = CLOCK_PLL
+};
+
+static const struct CommonClockConfig initialClock = {
+    .source = CLOCK_INTERNAL
 };
 /*----------------------------------------------------------------------------*/
 #ifndef TEST_RTR
@@ -83,6 +88,8 @@ static void numberToHex(uint8_t *output, uint32_t value)
 /*----------------------------------------------------------------------------*/
 static void setupClock()
 {
+  clockEnable(MainClock, &initialClock);
+
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
@@ -90,6 +97,12 @@ static void setupClock()
   while (!clockReady(SystemPll));
 
   clockEnable(MainClock, &mainClkConfig);
+
+  clockEnable(Apb1Clock, &mainClkConfig);
+  while (!clockReady(Apb1Clock));
+
+  clockEnable(Apb3Clock, &mainClkConfig);
+  while (!clockReady(Apb3Clock));
 }
 /*----------------------------------------------------------------------------*/
 static void onBlinkTimeout(void *argument)
