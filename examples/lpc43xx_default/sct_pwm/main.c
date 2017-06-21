@@ -1,5 +1,5 @@
 /*
- * main.c
+ * lpc43xx_default/sct_pwm/main.c
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
@@ -73,7 +73,7 @@ static void setupClock(void)
   clockEnable(MainClock, &mainClkConfig);
 }
 /*----------------------------------------------------------------------------*/
-static void onTimerOverlow(void *arg __attribute__((unused)))
+static void onTimerOverflow(void *arg __attribute__((unused)))
 {
   static uint32_t value = 0;
   const uint32_t resolution = pwmGetResolution(singleEdgeA);
@@ -121,7 +121,7 @@ int main(void)
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
   timerSetOverflow(timer, 10);
-  timerSetCallback(timer, onTimerOverlow, 0);
+  timerSetCallback(timer, onTimerOverflow, 0);
   timerEnable(timer);
 
   while (1);

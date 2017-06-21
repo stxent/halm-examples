@@ -1,11 +1,10 @@
 /*
- * main.c
+ * lpc43xx_default/usb_msc/main.c
  * Copyright (C) 2017 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <assert.h>
-
 #include <halm/generic/sdcard.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>

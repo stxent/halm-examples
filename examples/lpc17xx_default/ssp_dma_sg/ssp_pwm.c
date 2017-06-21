@@ -1,5 +1,5 @@
 /*
- * ssp_pwm.c
+ * lpc17xx_default/ssp_dma_sg/ssp_pwm.c
  * Copyright (C) 2014 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */

@@ -1,5 +1,5 @@
 /*
- * main.c
+ * lpc17xx_default/ssp_dma_sg/main.c
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */

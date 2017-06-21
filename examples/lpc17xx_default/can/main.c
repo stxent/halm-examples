@@ -1,11 +1,10 @@
 /*
- * can/main.c
+ * lpc17xx_default/can/main.c
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <assert.h>
-
 #include <halm/generic/can.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/can.h>

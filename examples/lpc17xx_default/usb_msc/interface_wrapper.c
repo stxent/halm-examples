@@ -1,5 +1,5 @@
 /*
- * interface_wrapper.c
+ * lpc17xx_default/usb_msc/interface_wrapper.c
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */

@@ -1,11 +1,10 @@
 /*
- * main.c
+ * lpc17xx_default/usb_msc/main.c
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <assert.h>
-
 #include <halm/generic/sdcard.h>
 #include <halm/generic/sdio_spi.h>
 #include <halm/pin.h>

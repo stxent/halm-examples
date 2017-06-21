@@ -1,5 +1,5 @@
 /*
- * main.c
+ * lpc43xx_default/adc_dma/main.c
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
@@ -97,8 +97,8 @@ int main(void)
   struct Timer * const conversionTimer = init(GpTimer, &timerConfig);
   assert(conversionTimer);
   /*
-   * GpTimer uses match output toggle so the overflow rate for timer
-   * should be two times higher than frequency of the hardware events.
+   * The overflow frequency of the timer should be two times higher
+   * than that of the hardware events for ADC.
    */
   timerSetOverflow(conversionTimer, timerConfig.frequency / (ADC_RATE * 2));
 

@@ -1,11 +1,11 @@
 /*
- * interface_wrapper.h
+ * lpc43xx_default/usb_msc/interface_wrapper.h
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#ifndef INTERFACE_WRAPPER_H_
-#define INTERFACE_WRAPPER_H_
+#ifndef LPC43XX_DEFAULT_USB_MSC_INTERFACE_WRAPPER_H_
+#define LPC43XX_DEFAULT_USB_MSC_INTERFACE_WRAPPER_H_
 /*----------------------------------------------------------------------------*/
 #include <halm/pin.h>
 #include <xcore/interface.h>
@@ -30,4 +30,4 @@ struct InterfaceWrapper
   struct Pin rx, tx;
 };
 /*----------------------------------------------------------------------------*/
-#endif /* INTERFACE_WRAPPER_H_ */
+#endif /* LPC43XX_DEFAULT_USB_MSC_INTERFACE_WRAPPER_H_ */
