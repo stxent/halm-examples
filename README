@@ -1,9 +1,0 @@
-Examples require GCC ARM compiler.
-
-How to build examples:
-  git clone https://github.com/stxent/halm-examples.git
-  cd halm-examples
-  git submodule update --init --recursive
-  make CROSS_COMPILE=arm-none-eabi-
-
-All executables will be placed in the halm-examples/build subdirectories.
