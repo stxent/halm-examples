@@ -1,11 +1,11 @@
-#Copyright (C) 2017 xent
-#Project is distributed under the terms of the GNU General Public License v3.0
+# Copyright (C) 2017 xent
+# Project is distributed under the terms of the GNU General Public License v3.0
 
 project(halm-examples NONE)
 cmake_minimum_required(VERSION 3.6)
 include(ExternalProject)
 
-#Build options
+# Build options
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build: Debug Release." FORCE)
 endif()
@@ -34,7 +34,6 @@ endmacro()
 
 list_directories(BUNDLE_LIST "${PROJECT_SOURCE_DIR}/examples")
 
-#add_custom_target(clean)
 add_custom_target(size)
 
 foreach(BUNDLE_NAME ${BUNDLE_LIST})
