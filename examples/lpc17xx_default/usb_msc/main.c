@@ -50,7 +50,7 @@ static const struct UsbDeviceConfig usbConfig = {
 #ifdef TEST_DMA
 static const struct SpiDmaConfig spiConfig[] = {
     {
-        .rate = 8000000,
+        .rate = 12000000,
         .sck = PIN(0, 15),
         .miso = PIN(0, 17),
         .mosi = PIN(0, 18),
@@ -59,7 +59,7 @@ static const struct SpiDmaConfig spiConfig[] = {
         .mode = 3
     },
     {
-        .rate = 8000000,
+        .rate = 12000000,
         .sck = PIN(0, 7),
         .miso = PIN(0, 8),
         .mosi = PIN(0, 9),
@@ -71,7 +71,7 @@ static const struct SpiDmaConfig spiConfig[] = {
 #else
 static const struct SpiConfig spiConfig[] = {
     {
-        .rate = 8000000,
+        .rate = 12000000,
         .sck = PIN(0, 15),
         .miso = PIN(0, 17),
         .mosi = PIN(0, 18),
@@ -79,7 +79,7 @@ static const struct SpiConfig spiConfig[] = {
         .mode = 3
     },
     {
-        .rate = 8000000,
+        .rate = 12000000,
         .sck = PIN(0, 7),
         .miso = PIN(0, 8),
         .mosi = PIN(0, 9),
@@ -126,7 +126,8 @@ int main(void)
   /* Helper timer */
   struct Timer * const busyTimer = init(GpTimer, &busyTimerConfig);
   assert(busyTimer);
-  timerSetOverflow(busyTimer, 50); /* 2 kHz event rate */
+  /* Set 5 kHz update event rate */
+  timerSetOverflow(busyTimer, busyTimerConfig.frequency / 5000);
 
   /* Initialize SPI layer */
   struct Interface * const spi = init(SPI_CLASS, &spiConfig[SPI_CHANNEL]);
@@ -164,9 +165,6 @@ int main(void)
   assert(card);
   ifSetParam(card, IF_ZEROCOPY, 0);
 
-  uint64_t cardSize;
-  ifGetParam(card, IF_SIZE, &cardSize);
-
   /* Initialize USB peripheral */
   struct Entity * const usb = init(UsbDevice, &usbConfig);
   assert(usb);
@@ -186,6 +184,7 @@ int main(void)
   };
   struct Msc * const msc = init(Msc, &config);
   assert(msc);
+  (void)msc;
 
   usbDevSetConnected(usb, true);
 

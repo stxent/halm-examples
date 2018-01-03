@@ -6,7 +6,6 @@
 
 #include <assert.h>
 #include <string.h>
-
 #include <halm/generic/sdcard.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
@@ -17,7 +16,7 @@
 #define LED_PIN     PIN(PORT_6, 6)
 
 /* #define TEST_1BIT */
-#define TEST_WRITE
+/* #define TEST_WRITE */
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig eventTimerConfig = {
     .frequency = 1000000,

@@ -20,7 +20,7 @@
 
 #define TEST_BUSY_TIMER
 #define TEST_DMA
-#define TEST_WRITE
+/* #define TEST_WRITE */
 
 #ifdef TEST_DMA
 #define SPI_CLASS SpiDma

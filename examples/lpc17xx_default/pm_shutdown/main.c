@@ -22,7 +22,7 @@
 #define LED_PIN_1 PIN(1, 9)
 #define LED_PIN_2 PIN(1, 10)
 
-#define MAGIC_WORD 0x3A84508F
+#define MAGIC_WORD 0x3A84508FUL
 /*----------------------------------------------------------------------------*/
 static const struct SimpleGpioBusConfig busConfig = {
     .pins = (const PinNumber []){
