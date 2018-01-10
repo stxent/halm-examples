@@ -20,12 +20,12 @@ set(PATH_HALM "${PROJECT_SOURCE_DIR}/../../halm" CACHE STRING "Path to the HALM 
 
 # Default compiler flags
 set(FLAGS_DEFAULT "-fdata-sections -ffunction-sections -Wall -Wextra -Wshadow -pedantic")
-SET(FLAGS_LINKER "--specs=nosys.specs --specs=nano.specs -Xlinker --gc-sections -T ${PROJECT_SOURCE_DIR}/memory.ld")
-set(FLAGS_PLATFORM "-D${PLATFORM}")
+set(FLAGS_LINKER "--specs=nosys.specs --specs=nano.specs -Xlinker --gc-sections -T \"${PROJECT_SOURCE_DIR}/memory.ld\"")
+add_definitions(-D${PLATFORM})
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS_DEFAULT} ${FLAGS_CPU} ${FLAGS_PLATFORM}")
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 
 if(${USE_LTO})
@@ -37,9 +37,9 @@ include_directories("${PATH_HALM}/include")
 
 # Subproject settings
 set(FLAGS_SUBPROJECT "")
-list(APPEND FLAGS_SUBPROJECT "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
-list(APPEND FLAGS_SUBPROJECT "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
-list(APPEND FLAGS_SUBPROJECT "-DUSE_LTO=${USE_LTO}")
+list(APPEND FLAGS_SUBPROJECT -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+list(APPEND FLAGS_SUBPROJECT -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE})
+list(APPEND FLAGS_SUBPROJECT -DUSE_LTO=${USE_LTO})
 
 # Configure external libraries
 ExternalProject_Add(xcore

@@ -3,6 +3,7 @@
 
 project(halm-examples NONE)
 cmake_minimum_required(VERSION 3.6)
+cmake_policy(SET CMP0054 NEW)
 include(ExternalProject)
 
 # Build options
@@ -38,8 +39,8 @@ add_custom_target(size)
 
 foreach(BUNDLE_NAME ${BUNDLE_LIST})
     set(FLAGS_BUNDLE "")
-    list(APPEND FLAGS_BUNDLE "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
-    list(APPEND FLAGS_BUNDLE "-DUSE_LTO=${USE_LTO}")
+    list(APPEND FLAGS_BUNDLE -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+    list(APPEND FLAGS_BUNDLE -DUSE_LTO=${USE_LTO})
 
     set(BUNDLE_TOOLCHAIN_FILE ${PROJECT_SOURCE_DIR}/examples/${BUNDLE_NAME}/toolchain)
     if(EXISTS ${BUNDLE_TOOLCHAIN_FILE})
