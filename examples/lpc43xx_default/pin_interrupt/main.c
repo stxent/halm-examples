@@ -26,13 +26,13 @@ static const struct PinInterruptConfig eventConfig = {
     .pull = PIN_PULLDOWN
 };
 
-static const struct CommonClockConfig mainClkConfig = {
+static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_INTERNAL
 };
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onExternalEvent(void *argument)
@@ -92,12 +92,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

@@ -35,6 +35,14 @@ static const struct UsbDeviceConfig usbConfig[] = {
     }
 };
 /*----------------------------------------------------------------------------*/
+static const struct GenericClockConfig initialClockConfig = {
+    .source = CLOCK_INTERNAL
+};
+
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_PLL
+};
+
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000,
     .bypass = false
@@ -51,18 +59,10 @@ static const struct PllConfig usbPllConfig = {
     .divisor = 1,
     .multiplier = 40
 };
-
-static const struct CommonClockConfig mainClkConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct CommonClockConfig initialClock = {
-    .source = CLOCK_INTERNAL
-};
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
-  clockEnable(MainClock, &initialClock);
+  clockEnable(MainClock, &initialClockConfig);
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -70,12 +70,12 @@ static void setupClock(void)
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 
   clockEnable(UsbPll, &usbPllConfig);
   while (!clockReady(UsbPll));
 
-  clockEnable(Usb1Clock, &mainClkConfig);
+  clockEnable(Usb1Clock, &mainClockConfig);
   while (!clockReady(UsbPll));
 }
 /*----------------------------------------------------------------------------*/
@@ -166,12 +166,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

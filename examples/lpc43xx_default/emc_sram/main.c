@@ -14,20 +14,20 @@
 
 typedef uint32_t EmcWord;
 /*----------------------------------------------------------------------------*/
-static const struct CommonClockConfig initialClkConfig = {
+static const struct GenericClockConfig initialClockConfig = {
     .source = CLOCK_INTERNAL
 };
 
-static const struct ExternalOscConfig externalClock = {
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_IDIVE
+};
+
+static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000,
     .bypass = false
 };
 
-static const struct CommonClockConfig mainClkConfig = {
-    .source = CLOCK_IDIVE
-};
-
-static const struct CommonDividerConfig dividerConfig = {
+static const struct GenericDividerConfig dividerConfig = {
     .source = CLOCK_EXTERNAL,
     .divisor = 1
 };
@@ -74,15 +74,15 @@ static EmcWord patternZeros(size_t position __attribute__((unused)))
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
-  clockEnable(MainClock, &initialClkConfig);
+  clockEnable(MainClock, &initialClockConfig);
 
-  clockEnable(ExternalOsc, &externalClock);
+  clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
   clockEnable(DividerE, &dividerConfig);
   while (!clockReady(DividerE));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static bool test(void *base, size_t size, EmcWord (*pattern)(size_t))
@@ -144,12 +144,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

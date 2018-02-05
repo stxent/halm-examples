@@ -59,7 +59,7 @@ static const struct PllConfig sysPllConfig = {
     .multiplier = 30
 };
 
-static const struct CommonClockConfig mainClkConfig = {
+static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_PLL
 };
 /*----------------------------------------------------------------------------*/
@@ -67,7 +67,6 @@ static const struct CommonClockConfig mainClkConfig = {
 static char binToHex(uint8_t value)
 {
   const uint8_t nibble = value & 0x0F;
-
   return nibble < 10 ? nibble + '0' : nibble + 'A' - 10;
 }
 #endif
@@ -75,7 +74,7 @@ static char binToHex(uint8_t value)
 #ifndef TEST_RTR
 static void numberToHex(uint8_t *output, uint32_t value)
 {
-  for (unsigned int i = 0; i < sizeof(value) * 2; ++i)
+  for (size_t i = 0; i < sizeof(value) * 2; ++i)
     *output++ = binToHex((uint8_t)(value >> 4 * i));
 }
 #endif
@@ -88,7 +87,7 @@ static void setupClock()
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onBlinkTimeout(void *argument)
@@ -197,12 +196,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

@@ -37,11 +37,19 @@ static const struct SdmmcConfig sdioConfig = {
 #endif
 };
 /*----------------------------------------------------------------------------*/
-static const struct CommonClockConfig cardClock = {
+static const struct GenericClockConfig initialClockConfig = {
+    .source = CLOCK_INTERNAL
+};
+
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_PLL
+};
+
+static const struct GenericClockConfig sdClockConfig = {
     .source = CLOCK_IDIVB
 };
 
-static const struct CommonDividerConfig dividerConfig = {
+static const struct GenericDividerConfig dividerConfig = {
     .source = CLOCK_PLL,
     .divisor = 2
 };
@@ -56,20 +64,11 @@ static const struct PllConfig sysPllConfig = {
     .divisor = 3,
     .multiplier = 24
 };
-
-static const struct CommonClockConfig mainClkConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct CommonClockConfig initialClock = {
-    .source = CLOCK_INTERNAL
-};
 /*----------------------------------------------------------------------------*/
 #ifdef TEST_WRITE
 static char binToHex(uint8_t value)
 {
   const uint8_t nibble = value & 0x0F;
-
   return nibble < 10 ? nibble + '0' : nibble + 'A' - 10;
 }
 #endif
@@ -102,7 +101,7 @@ static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
 /*----------------------------------------------------------------------------*/
 static void setupClock()
 {
-  clockEnable(MainClock, &initialClock);
+  clockEnable(MainClock, &initialClockConfig);
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -113,10 +112,10 @@ static void setupClock()
   clockEnable(DividerB, &dividerConfig);
   while (!clockReady(DividerB));
 
-  clockEnable(SdioClock, &cardClock);
+  clockEnable(SdioClock, &sdClockConfig);
   while (!clockReady(SdioClock));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onEvent(void *argument)
@@ -238,12 +237,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

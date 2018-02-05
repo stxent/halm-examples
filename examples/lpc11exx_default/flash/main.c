@@ -110,17 +110,8 @@ int main(void)
     pinReset(led);
   assert(res == E_OK);
 
-  /* Page erase is not available on all parts */
+  /* Page erase is not available on some parts */
 
   while (1);
-
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

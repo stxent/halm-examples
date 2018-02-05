@@ -37,7 +37,7 @@ static const struct PllConfig sysPllConfig = {
     .multiplier = 32
 };
 
-static const struct CommonClockConfig pllClockSource = {
+static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_PLL
 };
 /*----------------------------------------------------------------------------*/
@@ -52,7 +52,7 @@ static void setupClock(void)
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
 
-  clockEnable(MainClock, &pllClockSource);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument)
@@ -122,12 +122,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

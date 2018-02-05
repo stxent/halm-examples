@@ -36,7 +36,7 @@ static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
 
-static const struct CommonClockConfig mainClkConfig = {
+static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_EXTERNAL
 };
 /*----------------------------------------------------------------------------*/
@@ -45,7 +45,7 @@ static void setupClock(void)
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onEvent(void *argument)
@@ -121,12 +121,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

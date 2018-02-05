@@ -39,13 +39,13 @@ static const struct GpTimerConfig timerConfig = {
     .channel = 0
 };
 
-static const struct CommonClockConfig mainClkConfig = {
+static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_INTERNAL
 };
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 enum deviceState

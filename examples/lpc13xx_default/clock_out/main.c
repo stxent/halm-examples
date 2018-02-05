@@ -30,11 +30,11 @@ static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
 
-static const struct CommonClockConfig mainClkConfig = {
+static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_EXTERNAL
 };
 
-static const struct ClockOutputConfig outputClkConfig = {
+static const struct ClockOutputConfig outputClockConfig = {
     .source = CLOCK_MAIN,
     .divisor = 200,
     .pin = OUTPUT_PIN
@@ -45,9 +45,9 @@ static void setupClock(void)
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 
-  clockEnable(ClockOutput, &outputClkConfig);
+  clockEnable(ClockOutput, &outputClockConfig);
   while (!clockReady(ClockOutput));
 }
 /*----------------------------------------------------------------------------*/
@@ -58,7 +58,7 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const uint32_t frequency = extOscConfig.frequency / outputClkConfig.divisor;
+  const uint32_t frequency = extOscConfig.frequency / outputClockConfig.divisor;
   const uint32_t maxPeriod = frequency + frequency / 1000;
   const uint32_t minPeriod = frequency - frequency / 1000;
 
@@ -96,12 +96,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

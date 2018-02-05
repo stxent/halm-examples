@@ -40,11 +40,19 @@ static const struct SdmmcConfig sdioConfig = {
     .dat3 = PIN(PORT_1, 12)
 };
 /*----------------------------------------------------------------------------*/
-static const struct CommonClockConfig cardClock = {
+static const struct GenericClockConfig initialClockConfig = {
+    .source = CLOCK_INTERNAL
+};
+
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_PLL
+};
+
+static const struct GenericClockConfig sdClockConfig = {
     .source = CLOCK_IDIVB
 };
 
-static const struct CommonDividerConfig dividerConfig = {
+static const struct GenericDividerConfig dividerConfig = {
     .source = CLOCK_PLL,
     .divisor = 2
 };
@@ -65,18 +73,10 @@ static const struct PllConfig usbPllConfig = {
     .divisor = 1,
     .multiplier = 40
 };
-
-static const struct CommonClockConfig mainClkConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct CommonClockConfig initialClock = {
-    .source = CLOCK_INTERNAL
-};
 /*----------------------------------------------------------------------------*/
 static void setupClock()
 {
-  clockEnable(MainClock, &initialClock);
+  clockEnable(MainClock, &initialClockConfig);
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -87,13 +87,13 @@ static void setupClock()
   clockEnable(DividerB, &dividerConfig);
   while (!clockReady(DividerB));
 
-  clockEnable(SdioClock, &cardClock);
+  clockEnable(SdioClock, &sdClockConfig);
   while (!clockReady(SdioClock));
 
   clockEnable(UsbPll, &usbPllConfig);
   while (!clockReady(UsbPll));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static uint8_t transferBuffer[BUFFER_SIZE];
@@ -150,18 +150,10 @@ int main(void)
   };
   struct Msc * const msc = init(Msc, &config);
   assert(msc);
+  (void)msc;
 
   usbDevSetConnected(usb, true);
 
   while (1);
-
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

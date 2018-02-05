@@ -27,7 +27,7 @@ static const struct WdtOscConfig wdtOscConfig = {
     .frequency = WDT_FREQ_1050
 };
 
-static const struct CommonClockConfig wdtClockConfig = {
+static const struct GenericClockConfig wdtClockConfig = {
     .source = CLOCK_WDT
 };
 /*----------------------------------------------------------------------------*/

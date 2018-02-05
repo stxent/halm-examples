@@ -21,6 +21,14 @@ struct StreamDescriptor
   bool event;
 };
 /*----------------------------------------------------------------------------*/
+static const struct GenericClockConfig initialClockConfig = {
+    .source = CLOCK_INTERNAL
+};
+
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_PLL
+};
+
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000,
     .bypass = false
@@ -37,14 +45,6 @@ static const struct PllConfig usbPllConfig = {
     .divisor = 1,
     .multiplier = 40
 };
-
-static const struct CommonClockConfig mainClkConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct CommonClockConfig initialClock = {
-    .source = CLOCK_INTERNAL
-};
 /*----------------------------------------------------------------------------*/
 static const struct UsbDeviceConfig usbConfig = {
     .dm = PIN(PORT_USB, PIN_USB0_DM),
@@ -58,7 +58,7 @@ static const struct UsbDeviceConfig usbConfig = {
 /*----------------------------------------------------------------------------*/
 static void setupClock()
 {
-  clockEnable(MainClock, &initialClock);
+  clockEnable(MainClock, &initialClockConfig);
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -69,7 +69,7 @@ static void setupClock()
   clockEnable(UsbPll, &usbPllConfig);
   while (!clockReady(UsbPll));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
@@ -188,12 +188,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }

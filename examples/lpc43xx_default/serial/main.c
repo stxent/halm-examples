@@ -21,6 +21,14 @@ static const struct SerialConfig serialConfig = {
     .channel = 3
 };
 /*----------------------------------------------------------------------------*/
+static const struct GenericClockConfig initialClockConfig = {
+    .source = CLOCK_INTERNAL
+};
+
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_PLL
+};
+
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000,
     .bypass = false
@@ -31,18 +39,10 @@ static const struct PllConfig sysPllConfig = {
     .divisor = 4,
     .multiplier = 20
 };
-
-static const struct CommonClockConfig mainClkConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct CommonClockConfig initialClock = {
-    .source = CLOCK_INTERNAL
-};
 /*----------------------------------------------------------------------------*/
 static void setupClock()
 {
-  clockEnable(MainClock, &initialClock);
+  clockEnable(MainClock, &initialClockConfig);
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -50,10 +50,10 @@ static void setupClock()
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
 
-  clockEnable(Usart3Clock, &mainClkConfig);
+  clockEnable(Usart3Clock, &mainClockConfig);
   while (!clockReady(Usart3Clock));
 
-  clockEnable(MainClock, &mainClkConfig);
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
@@ -126,12 +126,4 @@ int main(void)
   }
 
   return 0;
-}
-/*----------------------------------------------------------------------------*/
-void __assert_func(const char *file __attribute__((unused)),
-    int line __attribute__((unused)),
-    const char *func __attribute__((unused)),
-    const char *expr __attribute__((unused)))
-{
-  while (1);
 }
