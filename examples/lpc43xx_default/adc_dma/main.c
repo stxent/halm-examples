@@ -13,11 +13,15 @@
 #define ADC_RATE      250000
 #define BUFFER_COUNT  2
 #define BUFFER_SIZE   4096
+#define INPUT_PIN     PIN(PORT_ADC, 0)
 #define LED_PIN       PIN(PORT_6, 6)
 /*----------------------------------------------------------------------------*/
-static const struct AdcUnitConfig adcUnitConfig = {
+static const struct AdcDmaConfig adcConfig = {
     .frequency = 4000000,
-    .channel = 0
+    .event = ADC_CTOUT_15,
+    .pin = INPUT_PIN,
+    .channel = 0,
+    .dma = 0
 };
 
 static const struct GpTimerConfig timerConfig = {
@@ -79,16 +83,6 @@ int main(void)
 
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
-
-  struct AdcUnit * const adcUnit = init(AdcUnit, &adcUnitConfig);
-  assert(adcUnit);
-
-  const struct AdcDmaConfig adcConfig = {
-      .parent = adcUnit,
-      .event = ADC_CTOUT_15,
-      .pin = PIN(PORT_ADC, 0),
-      .dma = 0
-  };
 
   struct Interface * const adc = init(AdcDma, &adcConfig);
   assert(adc);

@@ -16,40 +16,44 @@ static const struct SerialDmaConfig serialConfig[] = {
     /* UART0 */
     {
         .rate = 19200,
-        .rx = PIN(0, 3),
-        .tx = PIN(0, 2),
+        .rxChunk = 16,
         .rxLength = 128,
         .txLength = 128,
+        .rx = PIN(0, 3),
+        .tx = PIN(0, 2),
         .channel = 0,
         .dma = {0, 1}
     },
     /* UART1 */
     {
         .rate = 19200,
-        .rx = PIN(0, 16),
-        .tx = PIN(0, 15),
+        .rxChunk = 16,
         .rxLength = 128,
         .txLength = 128,
+        .rx = PIN(0, 16),
+        .tx = PIN(0, 15),
         .channel = 1,
         .dma = {3, 2}
     },
     /* UART2 */
     {
         .rate = 19200,
-        .rx = PIN(0, 11),
-        .tx = PIN(0, 10),
+        .rxChunk = 16,
         .rxLength = 128,
         .txLength = 128,
+        .rx = PIN(0, 11),
+        .tx = PIN(0, 10),
         .channel = 2,
         .dma = {0, 1}
     },
     /* UART3 */
     {
         .rate = 19200,
-        .rx = PIN(4, 29),
-        .tx = PIN(4, 28),
+        .rxChunk = 16,
         .rxLength = 128,
         .txLength = 128,
+        .rx = PIN(4, 29),
+        .tx = PIN(4, 28),
         .channel = 3,
         .dma = {7, 6}
     }

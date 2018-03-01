@@ -16,9 +16,12 @@
 #define INPUT_PIN     PIN(0, 25)
 #define LED_PIN       PIN(1, 8)
 /*----------------------------------------------------------------------------*/
-static const struct AdcUnitConfig adcUnitConfig = {
+static const struct AdcDmaConfig adcConfig = {
     .frequency = 4000000,
-    .channel = 0
+    .event = ADC_TIMER1_MAT1,
+    .pin = INPUT_PIN,
+    .channel = 0,
+    .dma = 0
 };
 
 static const struct GpTimerConfig timerConfig = {
@@ -70,16 +73,6 @@ int main(void)
 
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
-
-  struct AdcUnit * const adcUnit = init(AdcUnit, &adcUnitConfig);
-  assert(adcUnit);
-
-  const struct AdcDmaConfig adcConfig = {
-      .parent = adcUnit,
-      .event = ADC_TIMER1_MAT1,
-      .pin = INPUT_PIN,
-      .dma = 0
-  };
 
   struct Interface * const adc = init(AdcDma, &adcConfig);
   assert(adc);

@@ -6,13 +6,14 @@
 
 #include <assert.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/adc.h>
+#include <halm/platform/nxp/adc_oneshot.h>
 #include <halm/platform/nxp/gptimer.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN   PIN(3, 0)
 #define INPUT_PIN PIN(1, 11)
 /*----------------------------------------------------------------------------*/
-static const struct AdcUnitConfig adcUnitConfig = {
+static const struct AdcOneShotConfig adcConfig = {
+    .pin = INPUT_PIN,
     .channel = 0
 };
 
@@ -31,14 +32,7 @@ int main(void)
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  struct AdcUnit * const adcUnit = init(AdcUnit, &adcUnitConfig);
-  assert(adcUnit);
-
-  const struct AdcConfig adcConfig = {
-      .parent = adcUnit,
-      .pin = INPUT_PIN
-  };
-  struct Interface * const adc = init(Adc, &adcConfig);
+  struct Interface * const adc = init(AdcOneShot, &adcConfig);
   assert(adc);
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
