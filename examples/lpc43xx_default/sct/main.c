@@ -22,7 +22,7 @@ struct Descriptor
 /*----------------------------------------------------------------------------*/
 #ifdef TEST_UNIFIED
 static const struct SctTimerConfig timerConfig = {
-    .frequency = 100000,
+    .frequency = 1000000,
     .part = SCT_UNIFIED,
     .channel = 0
 };
@@ -75,9 +75,9 @@ int main(void)
   pinOutput(descriptors[1].led, false);
 
 #ifdef TEST_UNIFIED
-  struct Timer * const timerA = init(SctTimer, &timerConfig);
+  struct Timer * const timerA = init(SctUnifiedTimer, &timerConfig);
   assert(timerA);
-  timerSetOverflow(timerA, 50000);
+  timerSetOverflow(timerA, 500000);
   timerSetCallback(timerA, onTimerOverflow, &descriptors[0]);
   timerEnable(timerA);
 #else

@@ -1,20 +1,21 @@
 /*
- * lpc13xx_default/pwm/main.c
- * Copyright (C) 2014 xent
+ * lpc13xx_default/pwm_tuner/main.c
+ * Copyright (C) 2018 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <assert.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
+#include <halm/platform/nxp/adc_bus.h>
 #include <halm/platform/nxp/gptimer_pwm.h>
 #include <halm/platform/nxp/lpc13xx/clocking.h>
 /*----------------------------------------------------------------------------*/
 #define SINGLE_EDGE_PIN     PIN(1, 2)
 #define SINGLE_EDGE_REF_PIN PIN(1, 1)
 /*----------------------------------------------------------------------------*/
-static struct Pwm *singleEdgeRef;
 static struct Pwm *singleEdge;
+static struct Pwm *singleEdgeRef;
+static struct Interface *adc;
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerPwmUnitConfig pwmUnitConfig = {
     .frequency = 1000,
@@ -22,9 +23,16 @@ static const struct GpTimerPwmUnitConfig pwmUnitConfig = {
     .channel = GPTIMER_CT32B1
 };
 
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = GPTIMER_CT32B0
+/* Should be sorted by ADC channel number */
+static const PinNumber adcBusPins[] = {
+    PIN(1, 0), 0
+};
+
+static const struct AdcBusConfig adcBusConfig = {
+    .pins = adcBusPins,
+    .frequency = 1100,
+    .event = ADC_BURST,
+    .channel = 0
 };
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
@@ -43,13 +51,23 @@ static void setupClock(void)
   clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *arg __attribute__((unused)))
+static void onConversionCompleted(void *arg __attribute__((unused)))
 {
-  static uint32_t iteration = 0;
+  static uint16_t duration = 0;
+  static uint16_t voltage = 0;
 
-  const uint32_t resolution = pwmGetResolution(singleEdgeRef);
-  pwmSetEdges(singleEdge, 0, iteration % (resolution + 1));
-  ++iteration;
+  const uint32_t resolution = pwmGetResolution(singleEdge);
+  const uint32_t div = (65535 + resolution) / (resolution + 1);
+  const uint16_t steps = voltage / div;
+
+  /* Start conversion and process a result in the next invocation of callback */
+  ifRead(adc, &voltage, sizeof(voltage));
+
+  if (steps != duration)
+  {
+    duration = steps;
+    pwmSetDuration(singleEdge, duration);
+  }
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -69,11 +87,13 @@ int main(void)
   pwmSetEdges(singleEdge, 0, 0);
   pwmEnable(singleEdge);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 10);
-  timerSetCallback(timer, onTimerOverflow, 0);
-  timerEnable(timer);
+  adc = init(AdcBus, &adcBusConfig);
+  assert(adc);
+  ifSetParam(adc, IF_ZEROCOPY, 0);
+  ifSetCallback(adc, onConversionCompleted, 0);
+
+  /* Start callback chain */
+  onConversionCompleted(0);
 
   while (1);
   return 0;
