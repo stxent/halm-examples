@@ -10,10 +10,6 @@
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(PORT_C, 14)
 /*----------------------------------------------------------------------------*/
-static const struct SysTickTimerConfig timerConfig = {
-    .frequency = 1000
-};
-/*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
@@ -24,9 +20,13 @@ int main(void)
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, true);
 
-  struct Timer * const timer = init(SysTickTimer, &timerConfig);
+  /*
+   * Core frequency and SysTick resolution must be kept in mind
+   * when configuring timer overflow.
+   */
+  struct Timer * const timer = init(SysTickTimer, 0);
   assert(timer);
-  timerSetOverflow(timer, 500);
+  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
 
   bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);

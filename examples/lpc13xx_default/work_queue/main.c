@@ -12,10 +12,6 @@
 #define LED_PIN         PIN(3, 0)
 #define WORK_QUEUE_SIZE 4
 /*----------------------------------------------------------------------------*/
-static const struct SysTickTimerConfig timerConfig = {
-    .frequency = 1000
-};
-/*----------------------------------------------------------------------------*/
 static void blinkTask(void *argument)
 {
   static bool value = 0;
@@ -36,10 +32,9 @@ int main(void)
   struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  struct Timer * const timer = init(SysTickTimer, &timerConfig);
+  struct Timer * const timer = init(SysTickTimer, 0);
   assert(timer);
-
-  timerSetOverflow(timer, 500);
+  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
   timerSetCallback(timer, onTimerOverflow, &led);
 
   /* Initialize Work Queue */

@@ -15,10 +15,6 @@
 #define LED_PIN     PIN(PORT_C, 14)
 #define SPI_CHANNEL 0
 /*----------------------------------------------------------------------------*/
-static const struct SysTickTimerConfig timerConfig = {
-    .frequency = 1000
-};
-/*----------------------------------------------------------------------------*/
 static const struct SpiConfig spiConfig[] = {
     {
         .rate = 2000000,
@@ -71,9 +67,9 @@ int main(void)
   res = ifSetParam(spi, IF_RATE, &desiredRate);
   assert(res == E_OK);
 
-  struct Timer * const timer = init(SysTickTimer, &timerConfig);
+  struct Timer * const timer = init(SysTickTimer, 0);
   assert(timer);
-  timerSetOverflow(timer, 250);
+  timerSetOverflow(timer, timerGetFrequency(timer) / 4);
 
   unsigned int value = 0;
   bool event = false;

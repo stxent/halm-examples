@@ -56,7 +56,7 @@ int main(void)
   setupClock();
 
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, true);
+  pinOutput(led, false);
 
   struct GpTimerPwmUnit * const pwmUnit = init(GpTimerPwmUnit,
       &pwmUnitConfig);

@@ -5,15 +5,10 @@
  */
 
 #include <assert.h>
+#include <halm/core/cortex/systick.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(1, 8)
-/*----------------------------------------------------------------------------*/
-static struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -25,9 +20,13 @@ int main(void)
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, true);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
+  /*
+   * Core frequency and SysTick resolution must be kept in mind
+   * when configuring timer overflow.
+   */
+  struct Timer * const timer = init(SysTickTimer, 0);
   assert(timer);
-  timerSetOverflow(timer, 500);
+  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
 
   bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);
