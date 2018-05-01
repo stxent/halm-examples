@@ -24,7 +24,7 @@ make
 ```
 
 Useful settings
-----------
+---------------
 
 * CMAKE_BUILD_TYPE — specifies the build type. Possible values are empty, Debug and Release.
 * USE_LTO — option enables Link Time Optimization.

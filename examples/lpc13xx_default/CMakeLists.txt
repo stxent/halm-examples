@@ -66,7 +66,6 @@ ExternalProject_Add(halm
 
 # Build examples
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../../cmake")
-message(${CMAKE_MODULE_PATH})
 include(ListDirectories)
 
 add_custom_target(size)
