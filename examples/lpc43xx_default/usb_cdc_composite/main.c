@@ -16,8 +16,8 @@
 /*----------------------------------------------------------------------------*/
 struct StreamDescriptor
 {
-  struct Interface *interface;
-  struct Pin indication;
+  struct Interface *stream;
+  struct Pin led;
   bool event;
 };
 /*----------------------------------------------------------------------------*/
@@ -119,12 +119,27 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
     config.endpoints.rx = endpointAddressMap[i][EP_RX];
     config.endpoints.tx = endpointAddressMap[i][EP_TX];
 
-    streams[i].interface = init(CdcAcm, &config);
-    assert(streams[i].interface);
-    ifSetCallback(streams[i].interface, onSerialEvent, streams + i);
+    streams[i].stream = init(CdcAcm, &config);
+    assert(streams[i].stream);
+    ifSetCallback(streams[i].stream, onSerialEvent, streams + i);
     streams[i].event = false;
-    streams[i].indication = leds[i];
-    pinOutput(streams[i].indication, false);
+    streams[i].led = leds[i];
+    pinOutput(streams[i].led, false);
+  }
+}
+/*----------------------------------------------------------------------------*/
+static void processInput(struct Interface *interface, char *buffer,
+    size_t length)
+{
+  for (size_t index = 0; index < length; ++index)
+    ++buffer[index];
+
+  while (length)
+  {
+    const size_t bytesWritten = ifWrite(interface, buffer, length);
+
+    length -= bytesWritten;
+    buffer += bytesWritten;
   }
 }
 /*----------------------------------------------------------------------------*/
@@ -162,28 +177,17 @@ int main(void)
     {
       if (!streams[i].event)
         continue;
-
       streams[i].event = false;
-      pinSet(streams[i].indication);
 
-      size_t read;
       char buffer[BUFFER_SIZE];
+      size_t bytesRead;
 
-      while ((read = ifRead(streams[i].interface, buffer, sizeof(buffer))))
-      {
-        size_t pending = read;
-        const char *bufferPointer = buffer;
+      pinSet(streams[i].led);
 
-        while (pending)
-        {
-          const size_t written = ifWrite(streams[i].interface, buffer, pending);
+      while ((bytesRead = ifRead(streams[i].stream, buffer, sizeof(buffer))))
+        processInput(streams[i].stream, buffer, bytesRead);
 
-          pending -= written;
-          bufferPointer += written;
-        }
-      }
-
-      pinReset(streams[i].indication);
+      pinReset(streams[i].led);
     }
   }
 

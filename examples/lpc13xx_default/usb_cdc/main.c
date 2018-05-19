@@ -76,32 +76,18 @@ static void onSerialEvent(void *argument)
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void processInput(struct Interface *interface, const char *input,
+static void processInput(struct Interface *interface, char *buffer,
     size_t length)
 {
-  char buffer[16];
+  for (size_t index = 0; index < length; ++index)
+    ++buffer[index];
 
   while (length)
   {
-    const size_t chunkLength = length > sizeof(buffer) ?
-        sizeof(buffer) : length;
+    const size_t bytesWritten = ifWrite(interface, buffer, length);
 
-    for (size_t index = 0; index < chunkLength; ++index)
-      buffer[index] = input[index] + 1;
-
-    size_t pending = chunkLength;
-    const char *bufferPointer = buffer;
-
-    while (pending)
-    {
-      const size_t bytesWritten = ifWrite(interface, buffer, chunkLength);
-
-      pending -= bytesWritten;
-      bufferPointer += bytesWritten;
-    }
-
-    length -= chunkLength;
-    input += chunkLength;
+    length -= bytesWritten;
+    buffer += bytesWritten;
   }
 }
 /*----------------------------------------------------------------------------*/
@@ -127,7 +113,6 @@ int main(void)
       }
   };
 
-  char buffer[BUFFER_SIZE];
   bool event = false;
 
   struct Interface * const serial = init(CdcAcm, &config);
@@ -146,6 +131,7 @@ int main(void)
 
     if (ifGetParam(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
     {
+      char buffer[BUFFER_SIZE];
       size_t bytesRead;
 
       pinSet(led);

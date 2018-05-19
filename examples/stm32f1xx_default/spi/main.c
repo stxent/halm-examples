@@ -18,9 +18,9 @@
 static const struct SpiConfig spiConfig[] = {
     {
         .rate = 2000000,
-        .sck = PIN(PORT_A, 5),
         .miso = PIN(PORT_A, 6),
         .mosi = PIN(PORT_A, 7),
+        .sck = PIN(PORT_A, 5),
         .channel = 0,
         .mode = 0,
         .rxDma = DMA1_STREAM2,
@@ -28,9 +28,9 @@ static const struct SpiConfig spiConfig[] = {
     },
     {
         .rate = 2000000,
-        .sck = PIN(PORT_B, 13),
         .miso = PIN(PORT_B, 14),
         .mosi = PIN(PORT_B, 15),
+        .sck = PIN(PORT_B, 13),
         .channel = 1,
         .mode = 0,
         .rxDma = DMA1_STREAM4,

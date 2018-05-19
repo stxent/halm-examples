@@ -47,7 +47,6 @@ static enum Result interfaceInit(void *object, const void *configBase)
 /*----------------------------------------------------------------------------*/
 static void interfaceDeinit(void *object __attribute__((unused)))
 {
-
 }
 /*----------------------------------------------------------------------------*/
 static enum Result interfaceSetCallback(void *object, void (*callback)(void *),
