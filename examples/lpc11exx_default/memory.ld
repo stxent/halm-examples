@@ -8,8 +8,12 @@ EXTERN(vectorTable)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x08000 /* 32 KiB */
-  RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 0x01FE0 /* 8160 bytes */
+  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x008000 /* 32 KiB */
+  RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 0x001FE0 /* 8160 bytes */
+
+  APB (rw)   : ORIGIN = 0x40000000, LENGTH = 0x080000 /* 512 KiB */
+  GPIO (rw)  : ORIGIN = 0x50000000, LENGTH = 0x004000 /* 16 KiB */
+  PPB (rw)   : ORIGIN = 0xE0000000, LENGTH = 0x100000 /* 1 MiB */
 }
 
 SECTIONS
@@ -53,6 +57,21 @@ SECTIONS
     . = ALIGN(4);
     heapStart = .;
   } >RAM
+
+  .apb :
+  {
+    APB_DOMAIN = .;
+  } >APB
+
+  .ahb :
+  {
+    GPIO_DOMAIN = .;
+  } >GPIO
+
+  .ppb :
+  {
+    PPB_DOMAIN = .;
+  } >PPB
 
   /DISCARD/ :
   {
