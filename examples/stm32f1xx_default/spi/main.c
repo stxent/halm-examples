@@ -12,7 +12,7 @@
 #define TEST_ZEROCOPY
 
 #define CS_PIN      PIN(PORT_A, 4)
-#define LED_PIN     PIN(PORT_C, 14)
+#define LED_PIN     PIN(PORT_C, 13)
 #define SPI_CHANNEL 0
 /*----------------------------------------------------------------------------*/
 static const struct SpiConfig spiConfig[] = {

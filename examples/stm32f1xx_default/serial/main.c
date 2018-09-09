@@ -9,15 +9,15 @@
 #include <halm/platform/stm/serial.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 64
-#define LED_PIN     PIN(PORT_C, 14)
+#define LED_PIN     PIN(PORT_C, 13)
 /*----------------------------------------------------------------------------*/
 static const struct SerialConfig serialConfig = {
     .rate = 19200,
     .rxLength = 64,
     .txLength = 64,
-    .rx = PIN(PORT_B, 11),
-    .tx = PIN(PORT_B, 10),
-    .channel = 2
+    .rx = PIN(PORT_B, 7),
+    .tx = PIN(PORT_B, 6),
+    .channel = 0
 };
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)

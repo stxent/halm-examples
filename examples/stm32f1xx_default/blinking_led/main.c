@@ -8,7 +8,7 @@
 #include <halm/core/cortex/systick.h>
 #include <halm/pin.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_C, 14)
+#define LED_PIN PIN(PORT_C, 13)
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {

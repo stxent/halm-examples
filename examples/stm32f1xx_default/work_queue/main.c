@@ -9,7 +9,7 @@
 #include <halm/generic/work_queue.h>
 #include <halm/pin.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN         PIN(PORT_C, 14)
+#define LED_PIN         PIN(PORT_C, 13)
 #define WORK_QUEUE_SIZE 4
 /*----------------------------------------------------------------------------*/
 static void blinkTask(void *argument)
