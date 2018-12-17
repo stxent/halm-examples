@@ -3,7 +3,6 @@
 
 project(examples C)
 cmake_minimum_required(VERSION 3.6)
-include(ExternalProject)
 
 # Project platform must be set correctly
 set(PLATFORM "LPC43XX")
@@ -32,37 +31,12 @@ if(${USE_LTO})
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto -ffat-lto-objects")
 endif()
 
-include_directories("${PATH_XCORE}/include")
-include_directories("${PATH_HALM}/include")
+# Configure XCORE library
+add_subdirectory(${PATH_XCORE} xcore)
 
-# Subproject settings
-set(FLAGS_SUBPROJECT "")
-list(APPEND FLAGS_SUBPROJECT -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
-list(APPEND FLAGS_SUBPROJECT -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE})
-list(APPEND FLAGS_SUBPROJECT -DUSE_LTO=${USE_LTO})
-
-# Configure external libraries
-ExternalProject_Add(xcore
-        SOURCE_DIR ${PATH_XCORE}
-        CMAKE_COMMAND ${CMAKE_COMMAND}
-        CMAKE_ARGS ${FLAGS_SUBPROJECT}
-        BINARY_DIR ${CMAKE_BINARY_DIR}/xcore
-        INSTALL_COMMAND ""
-        BUILD_ALWAYS 1
-)
-
-ExternalProject_Add(halm
-        SOURCE_DIR ${PATH_HALM}
-        CMAKE_COMMAND ${CMAKE_COMMAND}
-        CMAKE_ARGS
-                ${FLAGS_SUBPROJECT}
-                -DPLATFORM=${PLATFORM}
-                -DPATH_XCORE=${PATH_XCORE}
-                -DCONFIG_FILE=${PROJECT_SOURCE_DIR}/halm_config
-        BINARY_DIR ${CMAKE_BINARY_DIR}/halm
-        INSTALL_COMMAND ""
-        BUILD_ALWAYS 1
-)
+# Configure HALM library, CONFIG_FILE should be defined
+set(CONFIG_FILE "${PROJECT_SOURCE_DIR}/halm_config" CACHE INTERNAL "Path to the library configuration file" FORCE)
+add_subdirectory(${PATH_HALM} halm)
 
 # Build examples
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../../cmake")
@@ -75,10 +49,8 @@ foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
     file(GLOB_RECURSE EXAMPLE_SOURCES "${EXAMPLE_NAME}/*.c")
     add_executable("${EXAMPLE_NAME}.elf" ${EXAMPLE_SOURCES})
 
-    target_link_libraries("${EXAMPLE_NAME}.elf" "${CMAKE_BINARY_DIR}/halm/libhalm.a")
-    add_dependencies("${EXAMPLE_NAME}.elf" halm)
-    target_link_libraries("${EXAMPLE_NAME}.elf" "${CMAKE_BINARY_DIR}/xcore/libxcore.a")
-    add_dependencies("${EXAMPLE_NAME}.elf" xcore)
+    target_link_libraries("${EXAMPLE_NAME}.elf" PRIVATE halm)
+    target_link_libraries("${EXAMPLE_NAME}.elf" PRIVATE xcore)
 
     add_custom_command(TARGET "${EXAMPLE_NAME}.elf"
             POST_BUILD
