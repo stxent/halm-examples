@@ -77,7 +77,7 @@ static const struct GenericClockConfig initialClockConfig = {
     .source = CLOCK_INTERNAL
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock()
+static void setupClock(void)
 {
   clockEnable(MainClock, &initialClockConfig);
 }

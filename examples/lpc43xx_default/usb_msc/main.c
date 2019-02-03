@@ -74,7 +74,7 @@ static const struct PllConfig usbPllConfig = {
     .multiplier = 40
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock()
+static void setupClock(void)
 {
   clockEnable(MainClock, &initialClockConfig);
 

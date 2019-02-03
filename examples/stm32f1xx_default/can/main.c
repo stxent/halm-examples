@@ -1,17 +1,17 @@
 /*
- * lpc43xx_default/can/main.c
- * Copyright (C) 2017 xent
+ * stm32f1xx_default/can/main.c
+ * Copyright (C) 2019 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <assert.h>
 #include <halm/generic/can.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/can.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
+#include <halm/platform/stm/can.h>
+#include <halm/platform/stm/gptimer.h>
+#include <halm/platform/stm/stm32f1xx/clocking.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(PORT_C, 13)
 
 /* Period between message groups in milliseconds */
 #define GROUP_PERIOD 10000
@@ -20,17 +20,17 @@
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig blinkTimerConfig = {
     .frequency = 1000,
-    .channel = 0
+    .channel = 1
 };
 
 static const struct GpTimerConfig eventTimerConfig = {
     .frequency = 1000,
-    .channel = 1
+    .channel = 2
 };
 
 static const struct GpTimerConfig chronoTimerConfig = {
     .frequency = 1000,
-    .channel = 2
+    .channel = 3
 };
 
 static struct CanConfig canConfig = {
@@ -38,29 +38,32 @@ static struct CanConfig canConfig = {
     .rate = 1000000,
     .rxBuffers = 4,
     .txBuffers = 4,
-    .rx = PIN(3, 1),
-    .tx = PIN(3, 2),
+    .rx = PIN(PORT_B, 8),
+    .tx = PIN(PORT_B, 9),
     .priority = 0,
     .channel = 0
 };
 /*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig initialClockConfig = {
-    .source = CLOCK_INTERNAL
+static const struct ExternalOscConfig extOscConfig = {
+    .frequency = 8000000
 };
 
-static const struct GenericClockConfig mainClockConfig = {
+static const struct MainPllConfig mainPllConfig = {
+    .source = CLOCK_EXTERNAL,
+    .divisor = 1,
+    .multiplier = 6
+};
+
+static const struct SystemClockConfig systemClockConfig = {
     .source = CLOCK_PLL
 };
 
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000,
-    .bypass = false
+static const struct BusClockConfig ahbBusClockConfig = {
+    .divisor = 1
 };
 
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 4,
-    .multiplier = 20
+static const struct BusClockConfig apbBusClockConfig = {
+    .divisor = 2
 };
 /*----------------------------------------------------------------------------*/
 static void sendMessageGroup(struct Interface *interface,
@@ -101,21 +104,17 @@ static void runTransmissionTest(struct Interface *interface,
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
-  clockEnable(MainClock, &initialClockConfig);
-
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
+  clockEnable(MainPll, &mainPllConfig);
+  while (!clockReady(MainPll));
 
-  clockEnable(MainClock, &mainClockConfig);
+  clockEnable(Apb1Clock, &apbBusClockConfig);
+  clockEnable(Apb2Clock, &apbBusClockConfig);
+  clockEnable(SystemClock, &systemClockConfig);
 
-  clockEnable(Apb1Clock, &mainClockConfig);
-  while (!clockReady(Apb1Clock));
-
-  clockEnable(Apb3Clock, &mainClockConfig);
-  while (!clockReady(Apb3Clock));
+  clockEnable(MainClock, &ahbBusClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onBlinkTimeout(void *argument)

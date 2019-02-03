@@ -48,9 +48,7 @@ list_directories(EXAMPLES_LIST "${PROJECT_SOURCE_DIR}")
 foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
     file(GLOB_RECURSE EXAMPLE_SOURCES "${EXAMPLE_NAME}/*.c")
     add_executable("${EXAMPLE_NAME}.elf" ${EXAMPLE_SOURCES})
-
-    target_link_libraries("${EXAMPLE_NAME}.elf" PRIVATE halm)
-    target_link_libraries("${EXAMPLE_NAME}.elf" PRIVATE xcore)
+    target_link_libraries("${EXAMPLE_NAME}.elf" PRIVATE halm xcore)
 
     add_custom_command(TARGET "${EXAMPLE_NAME}.elf"
             POST_BUILD

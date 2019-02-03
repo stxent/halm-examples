@@ -10,33 +10,28 @@
 #include <halm/platform/nxp/can.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
-#include <xcore/bits.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(1, 8)
 
-#define TEST_EXT_ID
-/* #define TEST_RTR */
-#define TEST_TIMESTAMPS
-
-/* Period between messages in microseconds */
-#define MESSAGE_PERIOD 100000
+/* Period between message groups in milliseconds */
+#define GROUP_PERIOD 10000
+/* Number of messages in each group */
+#define GROUP_SIZE   1000
 /*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig blinkerConfig = {
+static const struct GpTimerConfig blinkTimerConfig = {
     .frequency = 1000,
     .channel = 0
 };
 
 static const struct GpTimerConfig eventTimerConfig = {
-    .frequency = 1000000,
+    .frequency = 1000,
     .channel = 1
 };
 
-#ifdef TEST_TIMESTAMPS
 static const struct GpTimerConfig chronoTimerConfig = {
-    .frequency = 1000000,
+    .frequency = 1000,
     .channel = 2
 };
-#endif
 
 static struct CanConfig canConfig = {
     .timer = 0,
@@ -63,23 +58,43 @@ static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_PLL
 };
 /*----------------------------------------------------------------------------*/
-#ifndef TEST_RTR
-static char binToHex(uint8_t value)
+static void sendMessageGroup(struct Interface *interface,
+    struct Timer *timer, uint8_t flags, size_t length, size_t count)
 {
-  const uint8_t nibble = value & 0x0F;
-  return nibble < 10 ? nibble + '0' : nibble + 'A' - 10;
+  static const uint32_t INTERFACE_TIMEOUT = 1000;
+
+  timerSetValue(timer, 0);
+
+  for (size_t i = 0; i < count; ++i)
+  {
+    const struct CanStandardMessage message = {
+        .timestamp = 0,
+        .id = (uint32_t)i,
+        .flags = flags,
+        .length = length,
+        .data = {1, 2, 3, 4, 5, 6, 7, 8}
+    };
+
+    while (ifWrite(interface, &message, sizeof(message)) != sizeof(message))
+    {
+      if (timerGetValue(timer) >= INTERFACE_TIMEOUT)
+        return;
+    }
+  }
 }
-#endif
 /*----------------------------------------------------------------------------*/
-#ifndef TEST_RTR
-static void numberToHex(uint8_t *output, uint32_t value)
+static void runTransmissionTest(struct Interface *interface,
+    struct Timer *timer)
 {
-  for (size_t i = 0; i < sizeof(value) * 2; ++i)
-    *output++ = binToHex((uint8_t)(value >> 4 * i));
+  sendMessageGroup(interface, timer, 0, 0, GROUP_SIZE);
+  sendMessageGroup(interface, timer, 0, 8, GROUP_SIZE);
+  sendMessageGroup(interface, timer, CAN_EXT_ID, 0, GROUP_SIZE);
+  sendMessageGroup(interface, timer, CAN_EXT_ID, 8, GROUP_SIZE);
+  sendMessageGroup(interface, timer, CAN_RTR, 0, GROUP_SIZE);
+  sendMessageGroup(interface, timer, CAN_EXT_ID | CAN_RTR, 0, GROUP_SIZE);
 }
-#endif
 /*----------------------------------------------------------------------------*/
-static void setupClock()
+static void setupClock(void)
 {
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -93,12 +108,11 @@ static void setupClock()
 static void onBlinkTimeout(void *argument)
 {
   void * const * const array = argument;
+  struct Timer * const timer = array[0];
+  const struct Pin * const led = array[1];
 
-  struct Timer * const blinker = array[0];
-  const struct Pin * const pin = array[1];
-
-  pinReset(*pin);
-  timerDisable(blinker);
+  pinReset(*led);
+  timerDisable(timer);
 }
 /*----------------------------------------------------------------------------*/
 static void onEvent(void *argument)
@@ -108,33 +122,27 @@ static void onEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  setupClock();
+
   struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  setupClock();
+  struct Timer * const blinkTimer = init(GpTimer, &blinkTimerConfig);
+  assert(blinkTimer);
+  timerSetOverflow(blinkTimer, 50);
 
-  struct Timer * const blinker = init(GpTimer, &blinkerConfig);
-  assert(blinker);
-  timerSetOverflow(blinker, 50);
-
-  void *blinkTimeoutHandlerArguments[] = {
-      blinker,
-      &led
-  };
-  timerSetCallback(blinker, onBlinkTimeout, &blinkTimeoutHandlerArguments);
+  void *onBlinkTimeoutArguments[] = {blinkTimer, &led};
+  timerSetCallback(blinkTimer, onBlinkTimeout, &onBlinkTimeoutArguments);
 
   struct Timer * const eventTimer = init(GpTimer, &eventTimerConfig);
   assert(eventTimer);
-  timerSetOverflow(eventTimer, MESSAGE_PERIOD);
+  timerSetOverflow(eventTimer, GROUP_PERIOD);
 
-#ifdef TEST_TIMESTAMPS
   struct Timer * const chronoTimer = init(GpTimer, &chronoTimerConfig);
   assert(chronoTimer);
   timerEnable(chronoTimer);
 
   canConfig.timer = chronoTimer;
-#endif
-
   struct Interface * const can = init(Can, &canConfig);
   assert(can);
   ifSetParam(can, IF_CAN_ACTIVE, 0);
@@ -146,8 +154,6 @@ int main(void)
   timerSetCallback(eventTimer, onEvent, &timerEvent);
   timerEnable(eventTimer);
 
-  unsigned int iteration = 0;
-
   while (1)
   {
     while (!timerEvent && !canEvent)
@@ -156,31 +162,7 @@ int main(void)
     if (timerEvent)
     {
       timerEvent = false;
-
-      struct CanStandardMessage message = {
-          .timestamp = 0,
-          .flags = 0,
-          .data = {0}
-      };
-
-#ifdef TEST_EXT_ID
-      message.id = iteration & MASK(29);
-      message.flags |= CAN_EXT_ID;
-#else
-      message.id = iteration & MASK(11);
-#endif
-
-#ifdef TEST_RTR
-      message.length = 0;
-      message.flags |= CAN_RTR;
-#else
-      message.length = iteration % 9;
-      numberToHex(message.data, iteration);
-#endif
-
-      ++iteration;
-
-      ifWrite(can, &message, sizeof(message));
+      runTransmissionTest(can, chronoTimer);
     }
 
     if (canEvent)
@@ -191,7 +173,7 @@ int main(void)
       ifRead(can, &message, sizeof(message));
 
       pinSet(led);
-      timerEnable(blinker);
+      timerEnable(blinkTimer);
     }
   }
 

@@ -1,68 +1,82 @@
 /*
- * lpc43xx_default/sdmmc/main.c
- * Copyright (C) 2017 xent
+ * stm32f1xx_default/spi_sdio/main.c
+ * Copyright (C) 2019 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <assert.h>
 #include <string.h>
 #include <halm/generic/sdcard.h>
+#include <halm/generic/sdio_spi.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
-#include <halm/platform/nxp/sdmmc.h>
+#include <halm/platform/stm/gptimer.h>
+#include <halm/platform/stm/spi.h>
+#include <halm/platform/stm/stm32f1xx/clocking.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE (4 * 512)
-#define LED_PIN     PIN(PORT_6, 6)
+#define CS_PIN      PIN(PORT_A, 4)
+#define LED_PIN     PIN(PORT_C, 13)
 
-/* #define TEST_1BIT */
+#define TEST_BUSY_TIMER
 /* #define TEST_WRITE */
+
+#define SPI_CHANNEL 0
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig eventTimerConfig = {
-    .frequency = 1000000,
-    .channel = 0
+    .frequency = 10000,
+    .channel = 1
 };
 
-static const struct SdmmcConfig sdioConfig = {
-    .rate = 12000000,
-    .clk = PIN(PORT_CLK, 0),
-    .cmd = PIN(PORT_1, 6),
-#ifndef TEST_1BIT
-    .dat0 = PIN(PORT_1, 9),
-    .dat1 = PIN(PORT_1, 10),
-    .dat2 = PIN(PORT_1, 11),
-    .dat3 = PIN(PORT_1, 12)
-#else
-    .dat0 = PIN(PORT_1, 9)
+#ifdef TEST_BUSY_TIMER
+static const struct GpTimerConfig busyTimerConfig = {
+    .frequency = 100000,
+    .channel = 2
+};
 #endif
+
+static const struct SpiConfig spiConfig[] = {
+    {
+        .rate = 4500000,
+        .miso = PIN(PORT_A, 6),
+        .mosi = PIN(PORT_A, 7),
+        .sck = PIN(PORT_A, 5),
+        .channel = 0,
+        .mode = 0,
+        .rxDma = DMA1_STREAM2,
+        .txDma = DMA1_STREAM3
+    },
+    {
+        .rate = 4500000,
+        .miso = PIN(PORT_B, 14),
+        .mosi = PIN(PORT_B, 15),
+        .sck = PIN(PORT_B, 13),
+        .channel = 1,
+        .mode = 0,
+        .rxDma = DMA1_STREAM4,
+        .txDma = DMA1_STREAM5
+    }
 };
 /*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig initialClockConfig = {
-    .source = CLOCK_INTERNAL
+static const struct ExternalOscConfig extOscConfig = {
+    .frequency = 8000000
 };
 
-static const struct GenericClockConfig mainClockConfig = {
+static const struct MainPllConfig mainPllConfig = {
+    .source = CLOCK_EXTERNAL,
+    .divisor = 1,
+    .multiplier = 9
+};
+
+static const struct SystemClockConfig systemClockConfig = {
     .source = CLOCK_PLL
 };
 
-static const struct GenericClockConfig sdClockConfig = {
-    .source = CLOCK_IDIVB
+static const struct BusClockConfig ahbBusClockConfig = {
+    .divisor = 1
 };
 
-static const struct GenericDividerConfig dividerConfig = {
-    .source = CLOCK_PLL,
+static const struct BusClockConfig apbBusClockConfig = {
     .divisor = 2
-};
-
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000,
-    .bypass = false
-};
-
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 3,
-    .multiplier = 24
 };
 /*----------------------------------------------------------------------------*/
 #ifdef TEST_WRITE
@@ -101,21 +115,17 @@ static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
-  clockEnable(MainClock, &initialClockConfig);
-
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
+  clockEnable(MainPll, &mainPllConfig);
+  while (!clockReady(MainPll));
 
-  clockEnable(DividerB, &dividerConfig);
-  while (!clockReady(DividerB));
+  clockEnable(Apb1Clock, &apbBusClockConfig);
+  clockEnable(Apb2Clock, &apbBusClockConfig);
+  clockEnable(SystemClock, &systemClockConfig);
 
-  clockEnable(SdioClock, &sdClockConfig);
-  while (!clockReady(SdioClock));
-
-  clockEnable(MainClock, &mainClockConfig);
+  clockEnable(MainClock, &ahbBusClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onEvent(void *argument)
@@ -183,14 +193,33 @@ int main(void)
 {
   setupClock();
 
+#ifdef TEST_BUSY_TIMER
+  struct Timer * const busyTimer = init(GpTimer, &busyTimerConfig);
+  assert(busyTimer);
+  /* Set 2 kHz event rate at 100 kHz timer frequency */
+  timerSetOverflow(busyTimer, 50);
+#else
+  struct Timer * const busyTimer = 0;
+#endif
+
+  /* Initialize SPI layer */
+  struct Interface * const spi = init(Spi, &spiConfig[SPI_CHANNEL]);
+  assert(spi);
+
   /* Initialize SDIO layer */
-  struct Interface * const sdio = init(Sdmmc, &sdioConfig);
+  const struct SdioSpiConfig sdioConfig = {
+      .interface = spi,
+      .timer = busyTimer,
+      .blocks = 0,
+      .cs = CS_PIN
+  };
+  struct Interface * const sdio = init(SdioSpi, &sdioConfig);
   assert(sdio);
 
   /* Initialize SD Card layer */
   const struct SdCardConfig cardConfig = {
       .interface = sdio,
-      .crc = true
+      .crc = false
   };
   struct Interface * const card = init(SdCard, &cardConfig);
   assert(card);
@@ -209,7 +238,7 @@ int main(void)
   /* Configure the timer for read/write events */
   struct Timer * const eventTimer = init(GpTimer, &eventTimerConfig);
   assert(eventTimer);
-  timerSetOverflow(eventTimer, 1000000);
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
   timerSetCallback(eventTimer, onEvent, &event);
 
   timerEnable(eventTimer);

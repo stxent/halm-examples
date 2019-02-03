@@ -103,7 +103,7 @@ static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_PLL
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock()
+static void setupClock(void)
 {
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));

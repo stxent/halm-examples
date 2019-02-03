@@ -101,7 +101,7 @@ static void deviceCallback(void *argument)
         if (device->buffer[i] != (uint8_t)(device->change ? ~i : i))
           return;
       }
-      /* No break */
+      /* Falls through */
 
     case DEVICE_PH2_DATA:
       device->state = DEVICE_IDLE;

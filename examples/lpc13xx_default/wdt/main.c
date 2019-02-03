@@ -31,7 +31,7 @@ static const struct GenericClockConfig wdtClockConfig = {
     .source = CLOCK_WDT
 };
 /*----------------------------------------------------------------------------*/
-void setupClock()
+void setupClock(void)
 {
   clockEnable(WdtOsc, &wdtOscConfig);
   while (!clockReady(WdtOsc));

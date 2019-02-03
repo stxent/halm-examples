@@ -45,7 +45,7 @@ static const struct UsbDeviceConfig usbConfig = {
     .channel = 0
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock()
+static void setupClock(void)
 {
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));

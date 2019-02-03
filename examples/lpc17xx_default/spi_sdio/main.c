@@ -132,7 +132,7 @@ static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
 }
 #endif
 /*----------------------------------------------------------------------------*/
-static void setupClock()
+static void setupClock(void)
 {
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -211,7 +211,8 @@ int main(void)
 #ifdef TEST_BUSY_TIMER
   struct Timer * const busyTimer = init(GpTimer, &busyTimerConfig);
   assert(busyTimer);
-  timerSetOverflow(busyTimer, 50); /* 2 kHz event rate */
+  /* Set 2 kHz event rate at 100 kHz timer frequency */
+  timerSetOverflow(busyTimer, 50);
 #else
   struct Timer * const busyTimer = 0;
 #endif
@@ -252,7 +253,7 @@ int main(void)
   /* Configure the timer for read/write events */
   struct Timer * const eventTimer = init(GpTimer, &eventTimerConfig);
   assert(eventTimer);
-  timerSetOverflow(eventTimer, 1000000);
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
   timerSetCallback(eventTimer, onEvent, &event);
 
   timerEnable(eventTimer);
