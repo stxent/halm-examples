@@ -15,7 +15,7 @@ static void fillBuffer(uint16_t *, uint32_t (*)(size_t, size_t), size_t,
     size_t, int);
 static void prepareBuffers(struct SspPwm *, uint16_t *,
     uint32_t (*)(size_t, size_t), size_t, size_t);
-static enum Result setupDataChannel(struct SspPwm *, uint8_t, uint8_t, size_t);
+static bool setupDataChannel(struct SspPwm *, uint8_t, uint8_t, size_t);
 static void setupInterface(struct SspPwm *);
 /*----------------------------------------------------------------------------*/
 static enum Result objectInit(void *, const void *);
@@ -53,7 +53,7 @@ static void prepareBuffers(struct SspPwm *controller, uint16_t *buffer,
     dmaAppend(controller->dma, target, buffer + i * resolution, resolution);
 }
 /*----------------------------------------------------------------------------*/
-static enum Result setupDataChannel(struct SspPwm *controller, uint8_t channel,
+static bool setupDataChannel(struct SspPwm *controller, uint8_t channel,
     uint8_t timer, size_t length)
 {
   static const struct GpDmaSettings dmaSettings = {
@@ -78,10 +78,10 @@ static enum Result setupDataChannel(struct SspPwm *controller, uint8_t channel,
 
   controller->dma = init(GpDmaCircular, &dmaConfig);
   if (!controller->dma)
-    return E_ERROR;
+    return false;
   dmaConfigure(controller->dma, &dmaSettings);
 
-  return E_OK;
+  return true;
 }
 /*----------------------------------------------------------------------------*/
 static void setupInterface(struct SspPwm *controller)
@@ -138,10 +138,8 @@ static enum Result objectInit(void *object, const void *configPtr)
   if (config->cs)
     pinOutput(pinInit(config->cs), false);
 
-  res = setupDataChannel(controller, config->dma, config->timer,
-      config->length);
-  if (res != E_OK)
-    return res;
+  if (!setupDataChannel(controller, config->dma, config->timer, config->length))
+    return E_ERROR;
 
   controller->buffer =
       malloc(config->length * config->resolution * sizeof(uint16_t));
