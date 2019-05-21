@@ -7,9 +7,10 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <halm/core/cortex/nvic.h>
+#include <halm/generic/flash.h>
 #include <halm/generic/work_queue.h>
 #include <halm/irq.h>
-#include <halm/platform/nxp/flash.h>
 #include <halm/usb/dfu.h>
 #include "flash_loader.h"
 /*----------------------------------------------------------------------------*/
@@ -19,6 +20,7 @@ static void flashLoaderReset(struct FlashLoader *);
 static void flashProgramTask(void *);
 static uint32_t getSectorEraseTime(const struct FlashLoader *, size_t);
 static bool isSectorAddress(const struct FlashLoader *, size_t);
+static void onDetachRequest(void *, uint16_t);
 static size_t onDownloadRequest(void *, size_t, const void *, size_t,
     uint16_t *);
 static size_t onUploadRequest(void *, size_t, void *, size_t);
@@ -87,6 +89,12 @@ static bool isSectorAddress(const struct FlashLoader *loader, size_t address)
 {
   const struct FlashGeometry * const region = findFlashRegion(loader, address);
   return region != 0;
+}
+/*----------------------------------------------------------------------------*/
+static void onDetachRequest(void *object __attribute__((unused)),
+    uint16_t timeout __attribute__((unused)))
+{
+  nvicResetCore();
 }
 /*----------------------------------------------------------------------------*/
 static size_t onDownloadRequest(void *object, size_t position,
@@ -187,7 +195,6 @@ static enum Result flashLoaderInit(void *object, const void *configBase)
   if (loader->flashOffset >= loader->flashSize)
     return E_VALUE;
 
-  // TODO Generic flash header
   res = ifGetParam(loader->flash, IF_FLASH_PAGE_SIZE, &loader->pageSize);
   if (res != E_OK)
     return res;
@@ -197,6 +204,7 @@ static enum Result flashLoaderInit(void *object, const void *configBase)
     return E_MEMORY;
 
   dfuSetCallbackArgument(loader->device, loader);
+  dfuSetDetachRequestCallback(loader->device, onDetachRequest);
   dfuSetDownloadRequestCallback(loader->device, onDownloadRequest);
   dfuSetUploadRequestCallback(loader->device, onUploadRequest);
 
@@ -210,6 +218,7 @@ static void flashLoaderDeinit(void *object)
 
   dfuSetUploadRequestCallback(loader->device, 0);
   dfuSetDownloadRequestCallback(loader->device, 0);
+  dfuSetDetachRequestCallback(loader->device, 0);
   dfuSetCallbackArgument(loader->device, 0);
 
   free(loader->chunk);

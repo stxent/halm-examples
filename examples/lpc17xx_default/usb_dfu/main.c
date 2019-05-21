@@ -130,10 +130,10 @@ int main(void)
   assert(dfu);
 
   const struct FlashLoaderConfig loaderConfig = {
-    .geometry = geometry,
-    .flash = flash,
-    .device = dfu,
-    .offset = FIRMWARE_OFFSET
+      .geometry = geometry,
+      .flash = flash,
+      .device = dfu,
+      .offset = FIRMWARE_OFFSET
   };
   struct FlashLoader * const loader = init(FlashLoader, &loaderConfig);
   assert(loader);
