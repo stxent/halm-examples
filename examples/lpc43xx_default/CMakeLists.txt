@@ -35,7 +35,7 @@ endif()
 add_subdirectory(${PATH_XCORE} xcore)
 
 # Configure HALM library, CONFIG_FILE should be defined
-set(CONFIG_FILE "${PROJECT_SOURCE_DIR}/halm_config" CACHE INTERNAL "Path to the library configuration file" FORCE)
+set(CONFIG_FILE "${PROJECT_SOURCE_DIR}/halm.config" CACHE INTERNAL "Path to the library configuration file" FORCE)
 add_subdirectory(${PATH_HALM} halm)
 
 # Build examples
