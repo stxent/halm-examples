@@ -52,14 +52,14 @@ static const char vendorStringEn[] = "Undefined";
 static const char productStringEn[] = "LPC17xx DevBoard";
 static const char serialStringEn[] = "00000001";
 /*----------------------------------------------------------------------------*/
-static void customStringHeader(void *argument __attribute__((unused)),
+static void customStringHeader(const void *argument __attribute__((unused)),
     enum UsbLangId langid __attribute__((unused)),
     struct UsbDescriptor *header, void *payload)
 {
   usbStringHeader(header, payload, LANGID_ENGLISH_US);
 }
 /*----------------------------------------------------------------------------*/
-static void customStringWrapper(void *argument,
+static void customStringWrapper(const void *argument,
     enum UsbLangId langid __attribute__((unused)),
     struct UsbDescriptor *header, void *payload)
 {
@@ -120,11 +120,11 @@ int main(void)
   usbDevStringAppend(usb, usbStringBuild(customStringHeader, 0,
       USB_STRING_HEADER));
   usbDevStringAppend(usb, usbStringBuild(customStringWrapper,
-      (void *)vendorStringEn, USB_STRING_VENDOR));
+      vendorStringEn, USB_STRING_VENDOR));
   usbDevStringAppend(usb, usbStringBuild(customStringWrapper,
-      (void *)productStringEn, USB_STRING_PRODUCT));
+      productStringEn, USB_STRING_PRODUCT));
   usbDevStringAppend(usb, usbStringBuild(customStringWrapper,
-      (void *)serialStringEn, USB_STRING_SERIAL));
+      serialStringEn, USB_STRING_SERIAL));
 
   usbDevSetConnected(usb, true);
 
