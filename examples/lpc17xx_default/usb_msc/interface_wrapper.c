@@ -15,7 +15,8 @@ static enum Result interfaceSetParam(void *, enum IfParameter, const void *);
 static size_t interfaceRead(void *, void *, size_t);
 static size_t interfaceWrite(void *, const void *, size_t);
 /*----------------------------------------------------------------------------*/
-static const struct InterfaceClass interfaceTable = {
+const struct InterfaceClass * const InterfaceWrapper =
+    &(const struct InterfaceClass){
     .size = sizeof(struct InterfaceWrapper),
     .init = interfaceInit,
     .deinit = interfaceDeinit,
@@ -26,8 +27,6 @@ static const struct InterfaceClass interfaceTable = {
     .read = interfaceRead,
     .write = interfaceWrite
 };
-/*----------------------------------------------------------------------------*/
-const struct InterfaceClass * const InterfaceWrapper = &interfaceTable;
 /*----------------------------------------------------------------------------*/
 static enum Result interfaceInit(void *object, const void *configBase)
 {

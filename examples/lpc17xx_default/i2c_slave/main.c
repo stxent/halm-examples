@@ -10,7 +10,7 @@
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(1, 8)
 /*----------------------------------------------------------------------------*/
-static const struct I2cSlaveConfig i2cConfig = {
+static const struct I2CSlaveConfig i2cConfig = {
     .size = 16,
     .scl = PIN(0, 11),
     .sda = PIN(0, 10),
@@ -28,7 +28,7 @@ int main(void)
   static const uint32_t internalOffset = 0;
   enum Result res;
 
-  struct Interface * const i2c = init(I2cSlave, &i2cConfig);
+  struct Interface * const i2c = init(I2CSlave, &i2cConfig);
   assert(i2c);
   ifSetParam(i2c, IF_ADDRESS, &deviceAddress);
 

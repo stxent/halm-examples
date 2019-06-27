@@ -26,7 +26,7 @@
 #define DEVICE_CLOCK  100000
 #define LED_PIN       PIN(1, 8)
 /*----------------------------------------------------------------------------*/
-static const struct I2cConfig i2cConfig = {
+static const struct I2CConfig i2cConfig = {
     .rate = 400000, /* Initial rate */
     .scl = PIN(0, 11),
     .sda = PIN(0, 10),
@@ -199,7 +199,7 @@ int main(void)
 {
   struct DeviceDriver device;
 
-  struct Interface * const i2c = init(I2c, &i2cConfig);
+  struct Interface * const i2c = init(I2C, &i2cConfig);
   assert(i2c);
 
   deviceInit(&device, i2c, LED_PIN, DEVICE_ADDRESS);

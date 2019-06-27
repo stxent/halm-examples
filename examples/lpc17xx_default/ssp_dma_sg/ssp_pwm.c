@@ -21,13 +21,11 @@ static void setupInterface(struct SspPwm *);
 static enum Result objectInit(void *, const void *);
 static void objectDeinit(void *);
 /*----------------------------------------------------------------------------*/
-static const struct EntityClass objectTable = {
+const struct EntityClass * const SspPwm = &(const struct EntityClass){
     .size = sizeof(struct SspPwm),
     .init = objectInit,
     .deinit = objectDeinit
 };
-/*----------------------------------------------------------------------------*/
-const struct EntityClass * const SspPwm = &objectTable;
 /*----------------------------------------------------------------------------*/
 static void fillBuffer(uint16_t *buffer, uint32_t (*style)(size_t, size_t),
     size_t resolution, size_t length, int iteration)
