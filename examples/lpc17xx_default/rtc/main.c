@@ -41,7 +41,7 @@ int main(void)
   pinSet(led);
   rtc = init(Rtc, &rtcConfig);
   assert(rtc);
-  rtCallback(rtc, onTimerAlarm, 0);
+  rtSetCallback(rtc, onTimerAlarm, 0);
   pinReset(led);
 
   rtSetAlarm(rtc, rtTime(rtc) + RTC_ALARM_PERIOD);
