@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 xent
+ * Copyright (C) 2020 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -12,6 +12,7 @@ MEMORY
   RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 0x001FE0 /* 8160 bytes */
 
   APB (rw)   : ORIGIN = 0x40000000, LENGTH = 0x080000 /* 512 KiB */
+  AHB (rw)   : ORIGIN = 0x48000000, LENGTH = 0x004000 /* 16 KiB */
   GPIO (rw)  : ORIGIN = 0x50000000, LENGTH = 0x004000 /* 16 KiB */
   PPB (rw)   : ORIGIN = 0xE0000000, LENGTH = 0x100000 /* 1 MiB */
 }
@@ -62,6 +63,11 @@ SECTIONS
   {
     APB_DOMAIN = .;
   } >APB
+
+  .ahb :
+  {
+    AHB_DOMAIN = .;
+  } >AHB
 
   .gpio :
   {
