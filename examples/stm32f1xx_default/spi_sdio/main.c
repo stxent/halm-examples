@@ -24,13 +24,13 @@
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig eventTimerConfig = {
     .frequency = 10000,
-    .channel = 1
+    .channel = TIM2
 };
 
 #ifdef TEST_BUSY_TIMER
 static const struct GpTimerConfig busyTimerConfig = {
     .frequency = 100000,
-    .channel = 2
+    .channel = TIM3
 };
 #endif
 

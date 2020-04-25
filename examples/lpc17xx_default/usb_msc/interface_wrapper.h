@@ -11,7 +11,7 @@
 #include <xcore/interface.h>
 /*----------------------------------------------------------------------------*/
 extern const struct InterfaceClass * const InterfaceWrapper;
-/*----------------------------------------------------------------------------*/
+
 struct InterfaceWrapperConfig
 {
   /** Mandatory: underlying interface. */
@@ -21,13 +21,14 @@ struct InterfaceWrapperConfig
   /** Mandatory: transmission indication. */
   PinNumber tx;
 };
-/*----------------------------------------------------------------------------*/
+
 struct InterfaceWrapper
 {
   struct Interface base;
 
   struct Interface *pipe;
-  struct Pin rx, tx;
+  struct Pin rx;
+  struct Pin tx;
 };
 /*----------------------------------------------------------------------------*/
 #endif /* LPC17XX_DEFAULT_USB_MSC_INTERFACE_WRAPPER_H_ */

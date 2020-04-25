@@ -8,7 +8,7 @@ EXTERN(vectorTable)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x008000 /* 32 KiB */
+  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x010000 /* 64 KiB */
   RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 0x001FE0 /* 8160 bytes */
 
   APB (rw)   : ORIGIN = 0x40000000, LENGTH = 0x080000 /* 512 KiB */

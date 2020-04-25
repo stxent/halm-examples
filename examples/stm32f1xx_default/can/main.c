@@ -20,17 +20,17 @@
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig blinkTimerConfig = {
     .frequency = 1000,
-    .channel = 1
+    .channel = TIM2
 };
 
 static const struct GpTimerConfig eventTimerConfig = {
     .frequency = 1000,
-    .channel = 2
+    .channel = TIM3
 };
 
 static const struct GpTimerConfig chronoTimerConfig = {
     .frequency = 1000,
-    .channel = 3
+    .channel = TIM4
 };
 
 static struct CanConfig canConfig = {

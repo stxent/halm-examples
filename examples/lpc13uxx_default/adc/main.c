@@ -1,18 +1,25 @@
 /*
- * stm32f1xx_default/gptimer/main.c
- * Copyright (C) 2019 xent
+ * lpc13uxx_default/adc/main.c
+ * Copyright (C) 2020 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <assert.h>
 #include <halm/pin.h>
-#include <halm/platform/stm/gptimer.h>
+#include <halm/platform/nxp/adc_oneshot.h>
+#include <halm/platform/nxp/gptimer.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_C, 13)
+#define LED_PIN   PIN(1, 13)
+#define INPUT_PIN PIN(0, 11)
 /*----------------------------------------------------------------------------*/
+static const struct AdcOneShotConfig adcConfig = {
+    .pin = INPUT_PIN,
+    .channel = 0
+};
+
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
-    .channel = TIM2
+    .channel = GPTIMER_CT32B0
 };
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -23,11 +30,14 @@ static void onTimerOverflow(void *argument)
 int main(void)
 {
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, true);
+  pinOutput(led, false);
+
+  struct Interface * const adc = init(AdcOneShot, &adcConfig);
+  assert(adc);
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
-  timerSetOverflow(timer, 500);
+  timerSetOverflow(timer, 1000);
 
   bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);
@@ -39,7 +49,14 @@ int main(void)
       barrier();
     event = false;
 
-    pinToggle(led);
+    pinSet(led);
+
+    uint16_t voltage;
+    const size_t bytesRead = ifRead(adc, &voltage, sizeof(voltage));
+    assert(bytesRead == sizeof(voltage));
+    (void)bytesRead; /* Suppress warning */
+
+    pinReset(led);
   }
 
   return 0;
