@@ -8,13 +8,15 @@ EXTERN(vectorTable)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x010000 /* 64 KiB */
-  RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 0x001FE0 /* 8160 bytes */
+  FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 64K
+  SRAM0 (rwx) : ORIGIN = 0x10000000, LENGTH = 8K - 32
+  SRAM1 (rwx) : ORIGIN = 0x20000000, LENGTH = 2K
+  SRAM2 (rwx) : ORIGIN = 0x20004000, LENGTH = 2K
 
-  APB (rw)   : ORIGIN = 0x40000000, LENGTH = 0x080000 /* 512 KiB */
-  AHB (rw)   : ORIGIN = 0x48000000, LENGTH = 0x004000 /* 16 KiB */
-  GPIO (rw)  : ORIGIN = 0x50000000, LENGTH = 0x004000 /* 16 KiB */
-  PPB (rw)   : ORIGIN = 0xE0000000, LENGTH = 0x100000 /* 1 MiB */
+  APB (rw)    : ORIGIN = 0x40000000, LENGTH = 512K
+  AHB (rw)    : ORIGIN = 0x40080000, LENGTH = 16K
+  GPIO (rw)   : ORIGIN = 0x50000000, LENGTH = 16K
+  PPB (rw)    : ORIGIN = 0xE0000000, LENGTH = 1M
 }
 
 SECTIONS
@@ -43,7 +45,7 @@ SECTIONS
     *(.data*)
 
     _edata = .;
-  } >RAM
+  } >SRAM0
 
   .bss : ALIGN(4)
   {
@@ -57,7 +59,18 @@ SECTIONS
 
     . = ALIGN(4);
     heapStart = .;
-  } >RAM
+  } >SRAM0
+
+  .sram1 : ALIGN(4)
+  {
+    *(.sram1)
+    *(.sram1*)
+  } >SRAM1
+
+  .sram2 :
+  {
+    RAM_DOMAIN = .;
+  } >SRAM2
 
   .apb :
   {
@@ -92,5 +105,8 @@ SECTIONS
   }
 
   PROVIDE(end = heapStart);
-  PROVIDE(_stack = ORIGIN(RAM) + LENGTH(RAM));
+  PROVIDE(_stack = ORIGIN(SRAM0) + LENGTH(SRAM0));
+
+  PROVIDE(_ssram1 = ORIGIN(SRAM1));
+  PROVIDE(_esram1 = ORIGIN(SRAM1) + LENGTH(SRAM1));
 }

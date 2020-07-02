@@ -42,7 +42,7 @@ struct SspPwmConfig
 /*----------------------------------------------------------------------------*/
 struct SspPwm
 {
-  struct SspBase parent;
+  struct SspBase base;
 
   struct Dma *dma;
   struct Timer *timer;

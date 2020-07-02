@@ -42,7 +42,7 @@ static void prepareBuffers(struct SspPwm *controller, uint16_t *buffer,
   for (size_t i = 0; i < length; ++i)
     fillBuffer(buffer + i * resolution, style, resolution, length, i);
 
-  LPC_SSP_Type * const reg = controller->parent.reg;
+  LPC_SSP_Type * const reg = controller->base.reg;
   void * const target = (void *)&reg->DR;
 
   for (size_t i = 0; i < length - 1; ++i)
@@ -84,7 +84,7 @@ static bool setupDataChannel(struct SspPwm *controller, uint8_t channel,
 /*----------------------------------------------------------------------------*/
 static void setupInterface(struct SspPwm *controller)
 {
-  LPC_SSP_Type * const reg = controller->parent.reg;
+  LPC_SSP_Type * const reg = controller->base.reg;
 
   /* Set frame size */
   reg->CR0 = CR0_DSS(16);
