@@ -4,11 +4,11 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/adc_dma.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define ADC_RATE      100000
 #define BUFFER_COUNT  2

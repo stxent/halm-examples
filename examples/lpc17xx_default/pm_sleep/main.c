@@ -4,13 +4,13 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/delay.h>
 #include <halm/gpio_bus.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <halm/pm.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN_0 PIN(1, 8)
 #define LED_PIN_1 PIN(1, 9)

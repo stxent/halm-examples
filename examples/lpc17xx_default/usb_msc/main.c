@@ -4,8 +4,8 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
-#include <halm/generic/sdcard.h>
+#include "interface_wrapper.h"
+#include <halm/generic/mmcsd.h>
 #include <halm/generic/sdio_spi.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
@@ -14,9 +14,9 @@
 #include <halm/platform/nxp/spi_dma.h>
 #include <halm/platform/nxp/usb_device.h>
 #include <halm/usb/msc.h>
-#include "interface_wrapper.h"
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE (4 * 512)
+#define BUFFER_SIZE 8192
 #define CS_PIN      PIN(0, 22)
 #define LED_R       PIN(1, 9)
 #define LED_W       PIN(1, 10)
@@ -117,7 +117,7 @@ static void setupClock(void)
   while (!clockReady(UsbClock));
 }
 /*----------------------------------------------------------------------------*/
-static uint8_t transferBuffer[BUFFER_SIZE];
+static uint8_t arena[BUFFER_SIZE];
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
@@ -157,11 +157,11 @@ int main(void)
 #endif
 
   /* Initialize SD Card layer */
-  const struct SdCardConfig cardConfig = {
+  const struct MMCSDConfig cardConfig = {
       .interface = wrapper,
       .crc = false
   };
-  struct Interface * const card = init(SdCard, &cardConfig);
+  struct Interface * const card = init(MMCSD, &cardConfig);
   assert(card);
   ifSetParam(card, IF_ZEROCOPY, 0);
 
@@ -174,8 +174,8 @@ int main(void)
       .device = usb,
       .storage = card,
 
-      .buffer = transferBuffer,
-      .size = sizeof(transferBuffer),
+      .buffer = arena,
+      .size = sizeof(arena),
 
       .endpoints = {
           .rx = 0x02,

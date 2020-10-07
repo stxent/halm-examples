@@ -4,8 +4,8 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <xcore/bits.h>
 #include "ssp_pwm.h"
+#include <xcore/bits.h>
 /*----------------------------------------------------------------------------*/
 #define SSP_CHANNEL 0
 /*----------------------------------------------------------------------------*/

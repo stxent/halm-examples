@@ -4,9 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/i2c_slave.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(3, 0)
 /*----------------------------------------------------------------------------*/

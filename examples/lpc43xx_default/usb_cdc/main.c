@@ -4,14 +4,14 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/lpc43xx/clocking.h>
 #include <halm/platform/nxp/usb_device.h>
 #include <halm/usb/cdc_acm.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 512
-#define LED_PIN     PIN(PORT_6, 6)
+#define LED_PIN     PIN(PORT_6, 9)
 #define USB_PORT    0
 /*----------------------------------------------------------------------------*/
 static const struct UsbDeviceConfig usbConfig[] = {
@@ -23,8 +23,7 @@ static const struct UsbDeviceConfig usbConfig[] = {
         .vid = 0x15A2,
         .pid = 0x0044,
         .channel = 0
-    },
-    {
+    }, {
         .dm = PIN(PORT_USB, PIN_USB1_DM),
         .dp = PIN(PORT_USB, PIN_USB1_DP),
         .connect = 0,

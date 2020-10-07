@@ -4,12 +4,12 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/spi.h>
 #include <halm/platform/nxp/spi_dma.h>
 #include <xcore/memory.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define CS_PIN  PIN(0, 16)
 #define LED_PIN PIN(1, 8)
@@ -111,8 +111,7 @@ int main(void)
 #ifdef TEST_ZEROCOPY
   res = ifSetParam(spi, IF_ZEROCOPY, 0);
   assert(res == E_OK);
-  res = ifSetCallback(spi, onTransferCompleted, &value);
-  assert(res == E_OK);
+  ifSetCallback(spi, onTransferCompleted, &value);
 #endif
 
   (void)res; /* Suppress warning */

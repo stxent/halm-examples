@@ -4,13 +4,13 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/delay.h>
 #include <halm/gpio_bus.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <halm/platform/nxp/rtc.h>
 #include <halm/pm.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */
 #define RTC_ALARM_PERIOD  5

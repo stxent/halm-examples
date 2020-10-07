@@ -4,10 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/emc_sram.h>
 #include <halm/platform/nxp/lpc43xx/clocking.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define MEMORY_SIZE 8192
 #define LED_PIN     PIN(PORT_6, 6)

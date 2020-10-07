@@ -4,11 +4,11 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/adc_bus.h>
 #include <halm/platform/nxp/gptimer_pwm.h>
 #include <halm/platform/nxp/lpc13xx/clocking.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define SINGLE_EDGE_PIN     PIN(1, 2)
 #define SINGLE_EDGE_REF_PIN PIN(1, 1)

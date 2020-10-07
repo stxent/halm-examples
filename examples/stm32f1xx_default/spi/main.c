@@ -4,16 +4,16 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
-#include <xcore/memory.h>
 #include <halm/core/cortex/systick.h>
 #include <halm/platform/stm/spi.h>
+#include <xcore/memory.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define TEST_ZEROCOPY
-
 #define CS_PIN      PIN(PORT_A, 4)
 #define LED_PIN     PIN(PORT_C, 13)
 #define SPI_CHANNEL 0
+
+#define TEST_ZEROCOPY
 /*----------------------------------------------------------------------------*/
 static const struct SpiConfig spiConfig[] = {
     {
@@ -77,8 +77,7 @@ int main(void)
 #ifdef TEST_ZEROCOPY
   res = ifSetParam(spi, IF_ZEROCOPY, 0);
   assert(res == E_OK);
-  res = ifSetCallback(spi, onTransferCompleted, &value);
-  assert(res == E_OK);
+  ifSetCallback(spi, onTransferCompleted, &value);
 #endif
 
   (void)res; /* Suppress warning */

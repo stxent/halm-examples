@@ -4,12 +4,12 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
-#include <stdlib.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/dac_dma.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <xcore/bits.h>
+#include <assert.h>
+#include <stdlib.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_COUNT  2
 #define BUFFER_SIZE   512

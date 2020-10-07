@@ -4,9 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/core/cortex/systick.h>
 #include <halm/pin.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(1, 8)
 /*----------------------------------------------------------------------------*/

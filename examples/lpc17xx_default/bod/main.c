@@ -4,9 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/bod.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN_1 PIN(1, 8)
 #define LED_PIN_2 PIN(1, 9)

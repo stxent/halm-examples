@@ -4,11 +4,11 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/generic/software_timer.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/lpc13xx/clocking.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define OUTPUT_PIN_0 PIN(1, 0)
 #define OUTPUT_PIN_1 PIN(1, 1)

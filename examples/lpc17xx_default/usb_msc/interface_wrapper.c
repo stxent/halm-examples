@@ -4,12 +4,12 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include "interface_wrapper.h"
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 static enum Result interfaceInit(void *, const void *);
 static void interfaceDeinit(void *);
-static enum Result interfaceSetCallback(void *, void (*)(void *), void *);
+static void interfaceSetCallback(void *, void (*)(void *), void *);
 static enum Result interfaceGetParam(void *, enum IfParameter, void *);
 static enum Result interfaceSetParam(void *, enum IfParameter, const void *);
 static size_t interfaceRead(void *, void *, size_t);
@@ -48,11 +48,11 @@ static void interfaceDeinit(void *object __attribute__((unused)))
 {
 }
 /*----------------------------------------------------------------------------*/
-static enum Result interfaceSetCallback(void *object, void (*callback)(void *),
+static void interfaceSetCallback(void *object, void (*callback)(void *),
     void *argument)
 {
   struct InterfaceWrapper * const interface = object;
-  return ifSetCallback(interface->pipe, callback, argument);
+  ifSetCallback(interface->pipe, callback, argument);
 }
 /*----------------------------------------------------------------------------*/
 static enum Result interfaceGetParam(void *object, enum IfParameter parameter,

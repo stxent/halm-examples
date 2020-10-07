@@ -12,7 +12,7 @@
 #include <halm/timer.h>
 /*----------------------------------------------------------------------------*/
 extern const struct EntityClass * const SspPwm;
-/*----------------------------------------------------------------------------*/
+
 struct SspPwmConfig
 {
   /** Mandatory: lighting style. */
@@ -39,7 +39,7 @@ struct SspPwmConfig
   /** Mandatory: PWM resolution. */
   uint32_t resolution;
 };
-/*----------------------------------------------------------------------------*/
+
 struct SspPwm
 {
   struct SspBase base;

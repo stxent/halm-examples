@@ -4,10 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/dac.h>
 #include <halm/platform/nxp/gptimer.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define DAC_PIN PIN(0, 26)
 #define LED_PIN PIN(1, 8)

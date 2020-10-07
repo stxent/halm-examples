@@ -4,9 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/stm/serial.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 64
 #define LED_PIN     PIN(PORT_C, 13)

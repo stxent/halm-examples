@@ -4,12 +4,12 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
-#include <stdlib.h>
+#include "ssp_pwm.h"
 #include <halm/platform/nxp/gpdma_circular.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/ssp_defs.h>
-#include "ssp_pwm.h"
+#include <assert.h>
+#include <stdlib.h>
 /*----------------------------------------------------------------------------*/
 static void fillBuffer(uint16_t *, uint32_t (*)(size_t, size_t), size_t,
     size_t, int);

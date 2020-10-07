@@ -4,26 +4,26 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/core/cortex/systick.h>
 #include <halm/generic/work_queue.h>
 #include <halm/pin.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN         PIN(PORT_C, 13)
-#define WORK_QUEUE_SIZE 4
+#define LED_PIN PIN(PORT_C, 13)
+/*----------------------------------------------------------------------------*/
+static const struct WorkQueueConfig workQueueConfig = {
+    .size = 4
+};
 /*----------------------------------------------------------------------------*/
 static void blinkTask(void *argument)
 {
-  static bool value = 0;
   const struct Pin * const pin = argument;
-
-  pinWrite(*pin, value);
-  value = !value;
+  pinToggle(*pin);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
-  workQueueAdd(blinkTask, argument);
+  wqAdd(WQ_DEFAULT, blinkTask, argument);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -38,11 +38,12 @@ int main(void)
   timerSetCallback(timer, onTimerOverflow, &led);
 
   /* Initialize Work Queue */
-  workQueueInit(WORK_QUEUE_SIZE);
+  WQ_DEFAULT = init(WorkQueue, &workQueueConfig);
+  assert(WQ_DEFAULT);
 
   /* Start event generation and queue handler */
   timerEnable(timer);
-  workQueueStart(0);
+  wqStart(WQ_DEFAULT);
 
   return 0;
 }

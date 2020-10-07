@@ -4,10 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/serial_dma.h>
 #include <halm/platform/nxp/lpc17xx/clocking.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN       PIN(1, 8)
 #define UART_CHANNEL  0
@@ -16,7 +16,7 @@ static const struct SerialDmaConfig serialConfig[] = {
     /* UART0 */
     {
         .rate = 19200,
-        .rxChunk = 16,
+        .rxChunks = 2,
         .rxLength = 128,
         .txLength = 128,
         .rx = PIN(0, 3),
@@ -27,7 +27,7 @@ static const struct SerialDmaConfig serialConfig[] = {
     /* UART1 */
     {
         .rate = 19200,
-        .rxChunk = 16,
+        .rxChunks = 2,
         .rxLength = 128,
         .txLength = 128,
         .rx = PIN(0, 16),
@@ -38,7 +38,7 @@ static const struct SerialDmaConfig serialConfig[] = {
     /* UART2 */
     {
         .rate = 19200,
-        .rxChunk = 16,
+        .rxChunks = 2,
         .rxLength = 128,
         .txLength = 128,
         .rx = PIN(0, 11),
@@ -49,7 +49,7 @@ static const struct SerialDmaConfig serialConfig[] = {
     /* UART3 */
     {
         .rate = 19200,
-        .rxChunk = 16,
+        .rxChunks = 2,
         .rxLength = 128,
         .txLength = 128,
         .rx = PIN(4, 29),

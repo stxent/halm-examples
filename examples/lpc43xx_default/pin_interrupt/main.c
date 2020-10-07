@@ -4,14 +4,13 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/lpc43xx/clocking.h>
 #include <halm/platform/nxp/pin_interrupt.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN     PIN(PORT_6, 6)
-
 #define EVENT_PIN   PIN(PORT_3, 1)
 #define OUTPUT_PIN  PIN(PORT_3, 2)
 /*----------------------------------------------------------------------------*/
@@ -38,15 +37,12 @@ static void setupClock(void)
 static void onExternalEvent(void *argument)
 {
   const struct Pin * const led = argument;
-
   pinReset(*led);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
-  bool * const event = argument;
-
-  *event = true;
+  *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

@@ -4,12 +4,12 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
-#include <string.h>
 #include <halm/pin.h>
 #include <halm/platform/nxp/gptimer.h>
 #include <halm/platform/nxp/i2c.h>
 #include <xcore/memory.h>
+#include <assert.h>
+#include <string.h>
 /*----------------------------------------------------------------------------*/
 #define TEST_REPEATED_START
 #define TEST_ZEROCOPY
@@ -126,8 +126,7 @@ static void deviceConfigIO(struct DeviceDriver *device, bool rw)
 #ifdef TEST_ZEROCOPY
   res = ifSetParam(device->interface, IF_ZEROCOPY, 0);
   assert(res == E_OK);
-  res = ifSetCallback(device->interface, deviceCallback, device);
-  assert(res == E_OK);
+  ifSetCallback(device->interface, deviceCallback, device);
 #endif
 
 #ifdef TEST_REPEATED_START

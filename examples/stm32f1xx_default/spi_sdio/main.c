@@ -4,16 +4,16 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <assert.h>
-#include <string.h>
-#include <halm/generic/sdcard.h>
+#include <halm/generic/mmcsd.h>
 #include <halm/generic/sdio_spi.h>
 #include <halm/pin.h>
 #include <halm/platform/stm/gptimer.h>
 #include <halm/platform/stm/spi.h>
 #include <halm/platform/stm/stm32f1xx/clocking.h>
+#include <assert.h>
+#include <string.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE (4 * 512)
+#define BUFFER_SIZE 2048
 #define CS_PIN      PIN(PORT_A, 4)
 #define LED_PIN     PIN(PORT_C, 13)
 
@@ -187,7 +187,7 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t size,
   return completed;
 }
 /*----------------------------------------------------------------------------*/
-static uint8_t transferBuffer[BUFFER_SIZE];
+static uint8_t arena[BUFFER_SIZE];
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
@@ -217,16 +217,16 @@ int main(void)
   assert(sdio);
 
   /* Initialize SD Card layer */
-  const struct SdCardConfig cardConfig = {
+  const struct MMCSDConfig cardConfig = {
       .interface = sdio,
       .crc = false
   };
-  struct Interface * const card = init(SdCard, &cardConfig);
+  struct Interface * const card = init(MMCSD, &cardConfig);
   assert(card);
   ifSetParam(card, IF_ZEROCOPY, 0);
 
   uint64_t cardSize;
-  ifGetParam(card, IF_SIZE, &cardSize);
+  ifGetParam(card, IF_SIZE_64, &cardSize);
 
   /* Configure LED and variables for storing current state */
   const struct Pin led = pinInit(LED_PIN);
@@ -251,16 +251,16 @@ int main(void)
 
 #ifdef TEST_WRITE
     pinSet(led);
-    if (dataWrite(card, transferBuffer, sizeof(transferBuffer), position))
+    if (dataWrite(card, arena, sizeof(arena), position))
       pinReset(led);
 #endif
 
     pinSet(led);
-    if (dataRead(card, transferBuffer, sizeof(transferBuffer), position))
+    if (dataRead(card, arena, sizeof(arena), position))
       pinReset(led);
 
     /* Increment position */
-    position += sizeof(transferBuffer);
+    position += sizeof(arena);
     if (position >= cardSize)
       position = 0;
   }
