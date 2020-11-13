@@ -10,8 +10,8 @@
 static enum Result interfaceInit(void *, const void *);
 static void interfaceDeinit(void *);
 static void interfaceSetCallback(void *, void (*)(void *), void *);
-static enum Result interfaceGetParam(void *, enum IfParameter, void *);
-static enum Result interfaceSetParam(void *, enum IfParameter, const void *);
+static enum Result interfaceGetParam(void *, int, void *);
+static enum Result interfaceSetParam(void *, int, const void *);
 static size_t interfaceRead(void *, void *, size_t);
 static size_t interfaceWrite(void *, const void *, size_t);
 /*----------------------------------------------------------------------------*/
@@ -36,10 +36,10 @@ static enum Result interfaceInit(void *object, const void *configBase)
   interface->pipe = config->pipe;
   interface->rx = pinInit(config->rx);
   assert(pinValid(interface->rx));
-  pinOutput(interface->rx, 0);
+  pinOutput(interface->rx, false);
   interface->tx = pinInit(config->tx);
   assert(pinValid(interface->tx));
-  pinOutput(interface->tx, 0);
+  pinOutput(interface->tx, false);
 
   return E_OK;
 }
@@ -55,19 +55,18 @@ static void interfaceSetCallback(void *object, void (*callback)(void *),
   ifSetCallback(interface->pipe, callback, argument);
 }
 /*----------------------------------------------------------------------------*/
-static enum Result interfaceGetParam(void *object, enum IfParameter parameter,
-    void *data)
+static enum Result interfaceGetParam(void *object, int parameter, void *data)
 {
   struct InterfaceWrapper * const interface = object;
   return ifGetParam(interface->pipe, parameter, data);
 }
 /*----------------------------------------------------------------------------*/
-static enum Result interfaceSetParam(void *object, enum IfParameter parameter,
+static enum Result interfaceSetParam(void *object, int parameter,
     const void *data)
 {
   struct InterfaceWrapper * const interface = object;
 
-  switch (parameter)
+  switch ((enum IfParameter)parameter)
   {
     case IF_RELEASE:
       pinReset(interface->rx);

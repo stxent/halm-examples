@@ -9,16 +9,18 @@
 #include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+#define BUFFER_LENGTH 32
 #define LED_PIN       PIN(1, 8)
 #define UART_CHANNEL  0
+#define UART_RATE     19200
 /*----------------------------------------------------------------------------*/
 static const struct SerialDmaConfig serialConfig[] = {
     /* UART0 */
     {
-        .rate = 19200,
-        .rxChunks = 2,
-        .rxLength = 128,
-        .txLength = 128,
+        .rate = UART_RATE,
+        .rxChunks = 8,
+        .rxLength = BUFFER_LENGTH * 8,
+        .txLength = BUFFER_LENGTH * 8,
         .rx = PIN(0, 3),
         .tx = PIN(0, 2),
         .channel = 0,
@@ -26,10 +28,10 @@ static const struct SerialDmaConfig serialConfig[] = {
     },
     /* UART1 */
     {
-        .rate = 19200,
-        .rxChunks = 2,
-        .rxLength = 128,
-        .txLength = 128,
+        .rate = UART_RATE,
+        .rxChunks = 8,
+        .rxLength = BUFFER_LENGTH * 8,
+        .txLength = BUFFER_LENGTH * 8,
         .rx = PIN(0, 16),
         .tx = PIN(0, 15),
         .channel = 1,
@@ -37,10 +39,10 @@ static const struct SerialDmaConfig serialConfig[] = {
     },
     /* UART2 */
     {
-        .rate = 19200,
-        .rxChunks = 2,
-        .rxLength = 128,
-        .txLength = 128,
+        .rate = UART_RATE,
+        .rxChunks = 8,
+        .rxLength = BUFFER_LENGTH * 8,
+        .txLength = BUFFER_LENGTH * 8,
         .rx = PIN(0, 11),
         .tx = PIN(0, 10),
         .channel = 2,
@@ -48,10 +50,10 @@ static const struct SerialDmaConfig serialConfig[] = {
     },
     /* UART3 */
     {
-        .rate = 19200,
-        .rxChunks = 2,
-        .rxLength = 128,
-        .txLength = 128,
+        .rate = UART_RATE,
+        .rxChunks = 8,
+        .rxLength = BUFFER_LENGTH * 8,
+        .txLength = BUFFER_LENGTH * 8,
         .rx = PIN(4, 29),
         .tx = PIN(4, 28),
         .channel = 3,
@@ -65,7 +67,7 @@ static const struct ExternalOscConfig extOscConfig = {
 
 static const struct PllConfig sysPllConfig = {
     .source = CLOCK_EXTERNAL,
-    .divisor = 4,
+    .divisor = 16,
     .multiplier = 32
 };
 
@@ -73,8 +75,10 @@ static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_PLL
 };
 /*----------------------------------------------------------------------------*/
-static uint8_t buffer[128];
-static bool event = false;
+static void onSerialEvent(void *argument)
+{
+  *(bool *)argument = true;
+}
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
@@ -87,13 +91,23 @@ static void setupClock(void)
   clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
-static void onSerialEvent(void *argument)
+static void transferData(struct Interface *interface, struct Pin led)
 {
-  struct Interface * const interface = argument;
-  size_t available;
+  size_t available = 0;
 
-  if (ifGetParam(interface, IF_AVAILABLE, &available) == E_OK && available)
-    event = true;
+  pinSet(led);
+
+  do
+  {
+    uint8_t buffer[BUFFER_LENGTH];
+    const size_t length = ifRead(interface, buffer, sizeof(buffer));
+
+    ifWrite(interface, buffer, length);
+    ifGetParam(interface, IF_AVAILABLE, &available);
+  }
+  while (available > 0);
+
+  pinReset(led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -103,14 +117,13 @@ int main(void)
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  struct Interface * const serial =
-      init(SerialDma, &serialConfig[UART_CHANNEL]);
+  bool event = false;
+
+  struct Interface * const serial = init(SerialDma,
+      &serialConfig[UART_CHANNEL]);
   assert(serial);
   ifSetParam(serial, IF_ZEROCOPY, 0);
-  ifSetCallback(serial, onSerialEvent, serial);
-
-  size_t readTotal = 0;
-  size_t writtenTotal = 0;
+  ifSetCallback(serial, onSerialEvent, &event);
 
   while (1)
   {
@@ -118,19 +131,7 @@ int main(void)
       barrier();
     event = false;
 
-    size_t bytesRead;
-
-    do
-    {
-      bytesRead = ifRead(serial, buffer, sizeof(buffer));
-      readTotal += bytesRead;
-      writtenTotal += ifWrite(serial, buffer, bytesRead);
-    }
-    while (bytesRead);
-
-    /* Suppress warnings */
-    (void)readTotal;
-    (void)writtenTotal;
+    transferData(serial, led);
   }
 
   return 0;

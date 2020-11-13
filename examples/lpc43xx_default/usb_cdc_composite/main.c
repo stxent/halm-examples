@@ -11,8 +11,8 @@
 #include <halm/usb/composite_device.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE  512
-#define STREAM_COUNT 2
+#define BUFFER_LENGTH 512
+#define STREAM_COUNT  2
 /*----------------------------------------------------------------------------*/
 struct StreamDescriptor
 {
@@ -128,19 +128,31 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
   }
 }
 /*----------------------------------------------------------------------------*/
-static void processInput(struct Interface *interface, char *buffer,
-    size_t length)
+static void transferData(struct Interface *interface, struct Pin led)
 {
-  for (size_t index = 0; index < length; ++index)
-    ++buffer[index];
+  size_t available = 0;
 
-  while (length)
+  pinSet(led);
+
+  do
   {
-    const size_t bytesWritten = ifWrite(interface, buffer, length);
+    uint8_t buffer[BUFFER_LENGTH];
+    uint8_t *position = buffer;
+    size_t length = ifRead(interface, buffer, sizeof(buffer));
 
-    length -= bytesWritten;
-    buffer += bytesWritten;
+    while (length)
+    {
+      const size_t written = ifWrite(interface, position, length);
+
+      length -= written;
+      position += written;
+    }
+
+    ifGetParam(interface, IF_AVAILABLE, &available);
   }
+  while (available > 0);
+
+  pinReset(led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -167,9 +179,9 @@ int main(void)
 
     do
     {
-      barrier();
       for (size_t i = 0; i < STREAM_COUNT; ++i)
         event = event || streams[i].event;
+      barrier();
     }
     while (!event);
 
@@ -179,15 +191,7 @@ int main(void)
         continue;
       streams[i].event = false;
 
-      char buffer[BUFFER_SIZE];
-      size_t bytesRead;
-
-      pinSet(streams[i].led);
-
-      while ((bytesRead = ifRead(streams[i].stream, buffer, sizeof(buffer))))
-        processInput(streams[i].stream, buffer, bytesRead);
-
-      pinReset(streams[i].led);
+      transferData(streams[i].stream, streams[i].led);
     }
   }
 

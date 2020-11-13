@@ -43,7 +43,7 @@ foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
     file(GLOB_RECURSE EXAMPLE_SOURCES "${EXAMPLE_NAME}/*.c")
     add_executable("${EXAMPLE_NAME}" ${EXAMPLE_SOURCES})
     add_test("${EXAMPLE_NAME}" "${EXAMPLE_NAME}")
-    target_link_libraries("${EXAMPLE_NAME}" PRIVATE halm uv pthread rt)
+    target_link_libraries("${EXAMPLE_NAME}" PRIVATE halm)
 
     add_dependencies(size "${EXAMPLE_NAME}")
     add_custom_command(TARGET size POST_BUILD COMMAND "${CMAKE_SIZE}" "${EXAMPLE_NAME}")

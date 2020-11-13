@@ -6,18 +6,33 @@
 
 #include <halm/pin.h>
 #include <halm/platform/nxp/serial.h>
+#include <halm/platform/nxp/lpc17xx/clocking.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE 64
-#define LED_PIN     PIN(1, 8)
+#define BUFFER_LENGTH 64
+#define LED_PIN       PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct SerialConfig serialConfig = {
     .rate = 19200,
-    .rxLength = 64,
-    .txLength = 64,
+    .rxLength = BUFFER_LENGTH,
+    .txLength = BUFFER_LENGTH,
     .rx = PIN(0, 3),
     .tx = PIN(0, 2),
     .channel = 0
+};
+/*----------------------------------------------------------------------------*/
+static const struct ExternalOscConfig extOscConfig = {
+    .frequency = 12000000
+};
+
+static const struct PllConfig sysPllConfig = {
+    .source = CLOCK_EXTERNAL,
+    .divisor = 16,
+    .multiplier = 32
+};
+
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_PLL
 };
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
@@ -25,23 +40,40 @@ static void onSerialEvent(void *argument)
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void processInput(struct Interface *interface, char *buffer,
-    size_t length)
+static void setupClock(void)
 {
-  for (size_t index = 0; index < length; ++index)
-    ++buffer[index];
+  clockEnable(ExternalOsc, &extOscConfig);
+  while (!clockReady(ExternalOsc));
 
-  while (length)
+  clockEnable(SystemPll, &sysPllConfig);
+  while (!clockReady(SystemPll));
+
+  clockEnable(MainClock, &mainClockConfig);
+}
+/*----------------------------------------------------------------------------*/
+static void transferData(struct Interface *interface, struct Pin led)
+{
+  size_t available = 0;
+
+  pinSet(led);
+
+  do
   {
-    const size_t bytesWritten = ifWrite(interface, buffer, length);
+    uint8_t buffer[BUFFER_LENGTH];
+    const size_t length = ifRead(interface, buffer, sizeof(buffer));
 
-    length -= bytesWritten;
-    buffer += bytesWritten;
+    ifWrite(interface, buffer, length);
+    ifGetParam(interface, IF_AVAILABLE, &available);
   }
+  while (available > 0);
+
+  pinReset(led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  setupClock();
+
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
@@ -57,20 +89,7 @@ int main(void)
       barrier();
     event = false;
 
-    size_t available;
-
-    if (ifGetParam(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
-    {
-      char buffer[BUFFER_SIZE];
-      size_t bytesRead;
-
-      pinSet(led);
-
-      while ((bytesRead = ifRead(serial, buffer, sizeof(buffer))))
-        processInput(serial, buffer, bytesRead);
-
-      pinReset(led);
-    }
+    transferData(serial, led);
   }
 
   return 0;

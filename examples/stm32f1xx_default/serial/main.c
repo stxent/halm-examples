@@ -8,13 +8,13 @@
 #include <halm/platform/stm/serial.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE 64
-#define LED_PIN     PIN(PORT_C, 13)
+#define BUFFER_LENGTH 64
+#define LED_PIN       PIN(PORT_C, 13)
 /*----------------------------------------------------------------------------*/
 static const struct SerialConfig serialConfig = {
     .rate = 19200,
-    .rxLength = 64,
-    .txLength = 64,
+    .rxLength = BUFFER_LENGTH,
+    .txLength = BUFFER_LENGTH,
     .rx = PIN(PORT_B, 7),
     .tx = PIN(PORT_B, 6),
     .channel = 0
@@ -25,19 +25,23 @@ static void onSerialEvent(void *argument)
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void processInput(struct Interface *interface, char *buffer,
-    size_t length)
+static void transferData(struct Interface *interface, struct Pin led)
 {
-  for (size_t index = 0; index < length; ++index)
-    ++buffer[index];
+  size_t available = 0;
 
-  while (length)
+  pinSet(led);
+
+  do
   {
-    const size_t bytesWritten = ifWrite(interface, buffer, length);
+    uint8_t buffer[BUFFER_LENGTH];
+    const size_t length = ifRead(interface, buffer, sizeof(buffer));
 
-    length -= bytesWritten;
-    buffer += bytesWritten;
+    ifWrite(interface, buffer, length);
+    ifGetParam(interface, IF_AVAILABLE, &available);
   }
+  while (available > 0);
+
+  pinReset(led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -57,20 +61,7 @@ int main(void)
       barrier();
     event = false;
 
-    size_t available;
-
-    if (ifGetParam(serial, IF_AVAILABLE, &available) == E_OK && available > 0)
-    {
-      char buffer[BUFFER_SIZE];
-      size_t bytesRead;
-
-      pinSet(led);
-
-      while ((bytesRead = ifRead(serial, buffer, sizeof(buffer))))
-        processInput(serial, buffer, bytesRead);
-
-      pinReset(led);
-    }
+    transferData(serial, led);
   }
 
   return 0;

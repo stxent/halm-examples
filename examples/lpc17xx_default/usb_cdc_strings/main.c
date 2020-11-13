@@ -11,8 +11,8 @@
 #include <halm/usb/usb_langid.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE 64
-#define LED_PIN     PIN(1, 8)
+#define BUFFER_LENGTH 64
+#define LED_PIN       PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct UsbDeviceConfig usbConfig = {
     .dm = PIN(0, 30),
@@ -88,6 +88,33 @@ static void onSerialEvent(void *argument)
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
+static void transferData(struct Interface *interface, struct Pin led)
+{
+  size_t available = 0;
+
+  pinSet(led);
+
+  do
+  {
+    uint8_t buffer[BUFFER_LENGTH];
+    uint8_t *position = buffer;
+    size_t length = ifRead(interface, buffer, sizeof(buffer));
+
+    while (length)
+    {
+      const size_t written = ifWrite(interface, position, length);
+
+      length -= written;
+      position += written;
+    }
+
+    ifGetParam(interface, IF_AVAILABLE, &available);
+  }
+  while (available > 0);
+
+  pinReset(led);
+}
+/*----------------------------------------------------------------------------*/
 int main(void)
 {
   setupClock();
@@ -110,7 +137,6 @@ int main(void)
       }
   };
 
-  char buffer[BUFFER_SIZE];
   bool event = false;
 
   struct Interface * const serial = init(CdcAcm, &config);
@@ -134,12 +160,7 @@ int main(void)
       barrier();
     event = false;
 
-    size_t bytesRead;
-
-    pinSet(led);
-    while ((bytesRead = ifRead(serial, buffer, sizeof(buffer))))
-      ifWrite(serial, buffer, bytesRead);
-    pinReset(led);
+    transferData(serial, led);
   }
 
   return 0;

@@ -9,12 +9,6 @@
 #include <halm/platform/nxp/sct_timer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-struct Descriptor
-{
-  struct Pin led;
-  bool state;
-} descriptors[2];
-/*----------------------------------------------------------------------------*/
 #define LED_PIN_A PIN(PORT_6, 6)
 #define LED_PIN_B PIN(PORT_6, 7)
 
@@ -52,45 +46,36 @@ static void setupClock(void)
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
-  struct Descriptor * const descriptor = argument;
-
-  pinWrite(descriptor->led, descriptor->state);
-  descriptor->state = !descriptor->state;
+  pinToggle(*(struct Pin *)argument);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
   setupClock();
 
-  descriptors[0] = (struct Descriptor){
-    pinInit(LED_PIN_A),
-    false
-  };
-  descriptors[1] = (struct Descriptor){
-    pinInit(LED_PIN_B),
-    false
-  };
+  struct Pin ledA = pinInit(LED_PIN_A);
+  pinOutput(ledA, false);
 
-  pinOutput(descriptors[0].led, false);
-  pinOutput(descriptors[1].led, false);
+  struct Pin ledB = pinInit(LED_PIN_B);
+  pinOutput(ledB, false);
 
 #ifdef TEST_UNIFIED
   struct Timer * const timerA = init(SctUnifiedTimer, &timerConfig);
   assert(timerA);
   timerSetOverflow(timerA, 500000);
-  timerSetCallback(timerA, onTimerOverflow, &descriptors[0]);
+  timerSetCallback(timerA, onTimerOverflow, &ledA);
   timerEnable(timerA);
 #else
   struct Timer * const timerA = init(SctTimer, &timerConfigs[0]);
   assert(timerA);
   timerSetOverflow(timerA, 50000);
-  timerSetCallback(timerA, onTimerOverflow, &descriptors[0]);
+  timerSetCallback(timerA, onTimerOverflow, &ledA);
   timerEnable(timerA);
 
   struct Timer * const timerB = init(SctTimer, &timerConfigs[1]);
   assert(timerB);
   timerSetOverflow(timerB, 50000);
-  timerSetCallback(timerB, onTimerOverflow, &descriptors[1]);
+  timerSetCallback(timerB, onTimerOverflow, &ledB);
   timerEnable(timerB);
 #endif
 

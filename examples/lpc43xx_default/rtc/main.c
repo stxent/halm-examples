@@ -16,8 +16,11 @@
 
 #define LED_PIN           PIN(PORT_6, 6)
 /*----------------------------------------------------------------------------*/
-static struct RtClock *rtc;
-static struct Pin led;
+struct Context
+{
+  struct Pin led;
+  struct RtClock *rtc;
+};
 /*----------------------------------------------------------------------------*/
 static const struct RtcConfig rtcConfig = {
     .timestamp = RTC_INITIAL_TIME
@@ -29,31 +32,31 @@ static void setupClock(void)
   while (!clockReady(RtcOsc));
 }
 /*----------------------------------------------------------------------------*/
-static void onTimerAlarm(void *argument __attribute__((unused)))
+static void onTimerAlarm(void *argument)
 {
-  static bool value = true;
-  const time64_t currentTime = rtTime(rtc);
+  struct Context * const context = argument;
+  const time64_t currentTime = rtTime(context->rtc);
 
-  rtSetAlarm(rtc, currentTime + RTC_ALARM_PERIOD);
-
-  pinWrite(led, value);
-  value = !value;
+  rtSetAlarm(context->rtc, currentTime + RTC_ALARM_PERIOD);
+  pinToggle(context->led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
   setupClock();
 
-  led = pinInit(LED_PIN);
-  pinOutput(led, false);
+  struct Context context;
 
-  pinSet(led);
-  rtc = init(Rtc, &rtcConfig);
-  assert(rtc);
-  rtSetCallback(rtc, onTimerAlarm, 0);
-  pinReset(led);
+  context.led = pinInit(LED_PIN);
+  pinOutput(context.led, false);
 
-  rtSetAlarm(rtc, rtTime(rtc) + RTC_ALARM_PERIOD);
+  pinSet(context.led);
+  context.rtc = init(Rtc, &rtcConfig);
+  assert(context.rtc);
+  rtSetCallback(context.rtc, onTimerAlarm, &context);
+  pinReset(context.led);
+
+  rtSetAlarm(context.rtc, rtTime(context.rtc) + RTC_ALARM_PERIOD);
 
   while (1);
   return 0;
