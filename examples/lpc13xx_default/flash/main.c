@@ -93,6 +93,7 @@ int main(void)
     buffer[i] = i;
 
   /* Test sector erase */
+
   const size_t address = findNearestSector();
   assert(address < flashSize);
 

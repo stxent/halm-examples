@@ -1,6 +1,6 @@
 /*
- * lpc43xx_default/flash/main.c
- * Copyright (C) 2016 xent
+ * lpc13uxx_default/flash/main.c
+ * Copyright (C) 2020 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(1, 13)
 /*----------------------------------------------------------------------------*/
 extern unsigned long _stext;
 extern unsigned long _sidata;
@@ -20,7 +20,7 @@ extern unsigned long _edata;
 /*----------------------------------------------------------------------------*/
 static size_t findNearestSector(void)
 {
-  static const size_t sectorSize = 8192;
+  static const size_t sectorSize = 4096;
 
   const size_t textSectionSize = (size_t)(&_sidata - &_stext);
   const size_t roDataSectionSize = (size_t)(&_edata - &_sdata);
@@ -94,21 +94,21 @@ int main(void)
 
   /* Test sector erase */
 
-  const size_t sectorAddress = findNearestSector();
-  assert(sectorAddress < flashSize);
+  const size_t address = findNearestSector();
+  assert(address < flashSize);
 
   pinSet(led);
-  if ((res = ifSetParam(flash, IF_FLASH_ERASE_SECTOR, &sectorAddress)) == E_OK)
+  if ((res = ifSetParam(flash, IF_FLASH_ERASE_SECTOR, &address)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
   pinSet(led);
-  if ((res = program(flash, buffer, pageSize, sectorAddress)) == E_OK)
+  if ((res = program(flash, buffer, pageSize, address)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
   pinSet(led);
-  if ((res = verify(flash, buffer, pageSize, sectorAddress)) == E_OK)
+  if ((res = verify(flash, buffer, pageSize, address)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 

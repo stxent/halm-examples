@@ -93,6 +93,7 @@ int main(void)
     buffer[i] = i;
 
   /* Test sector erase */
+
   const size_t address = findNearestSector();
   assert(address < flashSize);
 
@@ -111,7 +112,7 @@ int main(void)
     pinReset(led);
   assert(res == E_OK);
 
-  /* Page erase is not available on some parts */
+  /* Page erase is not available on all parts */
 
   while (1);
   return 0;
