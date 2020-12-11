@@ -5,8 +5,8 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
-#include <halm/platform/nxp/rtc.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/rtc.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */

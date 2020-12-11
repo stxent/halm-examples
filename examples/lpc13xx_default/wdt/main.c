@@ -5,9 +5,9 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc13xx/clocking.h>
-#include <halm/platform/nxp/wdt.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define INPUT_PIN     PIN(1, 0)

@@ -5,9 +5,9 @@
  */
 
 #include "ssp_pwm.h"
-#include <halm/platform/nxp/gpdma_circular.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/ssp_defs.h>
+#include <halm/platform/lpc/gpdma_circular.h>
+#include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/ssp_defs.h>
 #include <assert.h>
 #include <stdlib.h>
 /*----------------------------------------------------------------------------*/

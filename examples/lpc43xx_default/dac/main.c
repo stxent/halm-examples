@@ -5,9 +5,9 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/dac.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/dac.h>
+#include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define DAC_PIN PIN(PORT_4, 4)

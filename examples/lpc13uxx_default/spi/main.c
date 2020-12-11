@@ -5,8 +5,8 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/spi.h>
+#include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/spi.h>
 #include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/

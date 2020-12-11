@@ -5,7 +5,7 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/stm/serial.h>
+#include <halm/platform/stm32/serial.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_LENGTH 64

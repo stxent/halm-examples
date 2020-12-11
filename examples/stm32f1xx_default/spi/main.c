@@ -5,7 +5,7 @@
  */
 
 #include <halm/core/cortex/systick.h>
-#include <halm/platform/stm/spi.h>
+#include <halm/platform/stm32/spi.h>
 #include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/

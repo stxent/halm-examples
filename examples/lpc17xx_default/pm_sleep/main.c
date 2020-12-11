@@ -7,8 +7,8 @@
 #include <halm/delay.h>
 #include <halm/gpio_bus.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc17xx/clocking.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/gptimer.h>
 #include <halm/pm.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/

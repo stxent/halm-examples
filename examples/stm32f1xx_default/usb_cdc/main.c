@@ -5,8 +5,8 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/stm/stm32f1xx/clocking.h>
-#include <halm/platform/stm/usb_device.h>
+#include <halm/platform/stm32/clocking.h>
+#include <halm/platform/stm32/usb_device.h>
 #include <halm/usb/cdc_acm.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
@@ -28,11 +28,15 @@ static const struct ExternalOscConfig extOscConfig = {
 static const struct MainPllConfig mainPllConfig = {
     .source = CLOCK_EXTERNAL,
     .divisor = 1,
-    .multiplier = 9
+    .multiplier = 6
 };
 
 static const struct SystemClockConfig systemClockConfig = {
     .source = CLOCK_PLL
+};
+
+static const struct UsbClockConfig usbClockConfig = {
+    .divisor = USB_CLK_DIV_1
 };
 
 static const struct BusClockConfig ahbBusClockConfig = {
@@ -54,6 +58,7 @@ static void setupClock(void)
   clockEnable(Apb1Clock, &apbBusClockConfig);
   clockEnable(Apb2Clock, &apbBusClockConfig);
   clockEnable(SystemClock, &systemClockConfig);
+  clockEnable(UsbClock, &usbClockConfig);
 
   clockEnable(MainClock, &ahbBusClockConfig);
 }

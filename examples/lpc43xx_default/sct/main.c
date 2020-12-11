@@ -5,8 +5,8 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
-#include <halm/platform/nxp/sct_timer.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/sct_timer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN_A PIN(PORT_6, 6)

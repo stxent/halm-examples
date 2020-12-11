@@ -4,9 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/one_wire_ssp.h>
-#include <halm/platform/nxp/serial.h>
+#include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/one_wire_ssp.h>
+#include <halm/platform/lpc/serial.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 static const struct OneWireSspConfig owConfig = {

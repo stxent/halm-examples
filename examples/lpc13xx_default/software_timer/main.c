@@ -6,8 +6,8 @@
 
 #include <halm/generic/software_timer.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc13xx/clocking.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define OUTPUT_PIN_0 PIN(1, 0)

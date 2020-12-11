@@ -4,7 +4,7 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/platform/nxp/rit.h>
+#include <halm/platform/lpc/rit.h>
 #include <halm/pin.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/

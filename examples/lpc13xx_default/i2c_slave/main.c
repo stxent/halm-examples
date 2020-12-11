@@ -5,7 +5,7 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/i2c_slave.h>
+#include <halm/platform/lpc/i2c_slave.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(3, 0)

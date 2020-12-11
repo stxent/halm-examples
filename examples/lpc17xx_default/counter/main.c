@@ -5,10 +5,10 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/gptimer_counter.h>
-#include <halm/platform/nxp/gppwm.h>
-#include <halm/platform/nxp/lpc17xx/clocking.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/gptimer_counter.h>
+#include <halm/platform/lpc/gppwm.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN     PIN(1, 8)

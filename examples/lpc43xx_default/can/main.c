@@ -6,9 +6,9 @@
 
 #include <halm/generic/can.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/can.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
+#include <halm/platform/lpc/can.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(PORT_6, 6)

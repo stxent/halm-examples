@@ -5,8 +5,8 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/dac_dma.h>
-#include <halm/platform/nxp/lpc17xx/clocking.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/dac_dma.h>
 #include <xcore/bits.h>
 #include <assert.h>
 #include <stdlib.h>

@@ -5,7 +5,7 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/serial_poll.h>
+#include <halm/platform/lpc/serial_poll.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_SIZE 16

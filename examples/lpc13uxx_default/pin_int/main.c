@@ -5,8 +5,8 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/gptimer.h>
-#include <halm/platform/nxp/pin_int.h>
+#include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/pin_int.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN     PIN(1, 13)

@@ -8,7 +8,7 @@
 #define LPC17XX_DEFAULT_SSP_DMA_SG_SSP_PWM_H_
 /*----------------------------------------------------------------------------*/
 #include <halm/dma.h>
-#include <halm/platform/nxp/ssp_base.h>
+#include <halm/platform/lpc/ssp_base.h>
 #include <halm/timer.h>
 /*----------------------------------------------------------------------------*/
 extern const struct EntityClass * const SspPwm;

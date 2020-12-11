@@ -6,7 +6,7 @@
 
 #include <halm/generic/flash.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/flash.h>
+#include <halm/platform/lpc/flash.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>

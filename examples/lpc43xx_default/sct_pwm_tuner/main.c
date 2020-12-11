@@ -5,9 +5,9 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/adc_bus.h>
-#include <halm/platform/nxp/sct_pwm.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
+#include <halm/platform/lpc/adc_bus.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/sct_pwm.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define DOUBLE_EDGE_PIN     PIN(7, 5)

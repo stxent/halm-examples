@@ -5,7 +5,7 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/bod.h>
+#include <halm/platform/lpc/bod.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN_1 PIN(1, 8)

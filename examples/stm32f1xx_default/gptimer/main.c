@@ -5,7 +5,7 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/stm/gptimer.h>
+#include <halm/platform/stm32/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN PIN(PORT_C, 13)

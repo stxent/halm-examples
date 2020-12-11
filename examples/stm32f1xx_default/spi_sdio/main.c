@@ -7,9 +7,9 @@
 #include <halm/generic/mmcsd.h>
 #include <halm/generic/sdio_spi.h>
 #include <halm/pin.h>
-#include <halm/platform/stm/gptimer.h>
-#include <halm/platform/stm/spi.h>
-#include <halm/platform/stm/stm32f1xx/clocking.h>
+#include <halm/platform/stm32/clocking.h>
+#include <halm/platform/stm32/gptimer.h>
+#include <halm/platform/stm32/spi.h>
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/

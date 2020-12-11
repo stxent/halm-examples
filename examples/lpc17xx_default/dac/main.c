@@ -5,8 +5,8 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/dac.h>
-#include <halm/platform/nxp/gptimer.h>
+#include <halm/platform/lpc/dac.h>
+#include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define DAC_PIN PIN(0, 26)

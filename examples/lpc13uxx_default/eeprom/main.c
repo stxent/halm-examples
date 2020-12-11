@@ -5,7 +5,7 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/nxp/eeprom.h>
+#include <halm/platform/lpc/eeprom.h>
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/

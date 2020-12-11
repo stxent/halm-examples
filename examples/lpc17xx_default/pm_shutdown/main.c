@@ -7,9 +7,9 @@
 #include <halm/delay.h>
 #include <halm/gpio_bus.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/backup_domain.h>
-#include <halm/platform/nxp/lpc17xx/clocking.h>
-#include <halm/platform/nxp/rtc.h>
+#include <halm/platform/lpc/backup_domain.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/rtc.h>
 #include <halm/pm.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/

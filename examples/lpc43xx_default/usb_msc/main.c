@@ -7,9 +7,9 @@
 #include "interface_wrapper.h"
 #include <halm/generic/mmcsd.h>
 #include <halm/pin.h>
-#include <halm/platform/nxp/lpc43xx/clocking.h>
-#include <halm/platform/nxp/sdmmc.h>
-#include <halm/platform/nxp/usb_device.h>
+#include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/sdmmc.h>
+#include <halm/platform/lpc/usb_device.h>
 #include <halm/usb/msc.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
