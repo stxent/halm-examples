@@ -144,13 +144,13 @@ int main(void)
   ifSetCallback(serial, onSerialEvent, &event);
 
   usbDevStringAppend(usb, usbStringBuild(customStringHeader, 0,
-      USB_STRING_HEADER));
+      USB_STRING_HEADER, 0));
   usbDevStringAppend(usb, usbStringBuild(customStringWrapper,
-      vendorStringEn, USB_STRING_VENDOR));
+      vendorStringEn, USB_STRING_VENDOR, 0));
   usbDevStringAppend(usb, usbStringBuild(customStringWrapper,
-      productStringEn, USB_STRING_PRODUCT));
+      productStringEn, USB_STRING_PRODUCT, 0));
   usbDevStringAppend(usb, usbStringBuild(customStringWrapper,
-      serialStringEn, USB_STRING_SERIAL));
+      serialStringEn, USB_STRING_SERIAL, 0));
 
   usbDevSetConnected(usb, true);
 

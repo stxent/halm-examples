@@ -41,8 +41,7 @@ static const struct SpiDmaConfig spiConfig[] = {
         .dma = {0, 1},
         .channel = 0,
         .mode = 0
-    },
-    {
+    }, {
         .rate = 400000,
         .sck = PIN(PORT_CLK, 0),
         .miso = PIN(PORT_0, 0),
@@ -61,8 +60,7 @@ static const struct SpiConfig spiConfig[] = {
         .mosi = PIN(PORT_3, 8),
         .channel = 0,
         .mode = 0
-    },
-    {
+    }, {
         .rate = 400000,
         .sck = PIN(PORT_CLK, 0),
         .miso = PIN(PORT_0, 0),

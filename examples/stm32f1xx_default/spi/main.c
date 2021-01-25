@@ -25,8 +25,7 @@ static const struct SpiConfig spiConfig[] = {
         .mode = 0,
         .rxDma = DMA1_STREAM2,
         .txDma = DMA1_STREAM3
-    },
-    {
+    }, {
         .rate = 2000000,
         .miso = PIN(PORT_B, 14),
         .mosi = PIN(PORT_B, 15),

@@ -31,6 +31,8 @@ const struct InterfaceClass * const InterfaceWrapper =
 static enum Result interfaceInit(void *object, const void *configBase)
 {
   const struct InterfaceWrapperConfig * const config = configBase;
+  assert(config);
+
   struct InterfaceWrapper * const interface = object;
 
   interface->pipe = config->pipe;
