@@ -65,6 +65,11 @@ static const struct PllConfig sysPllConfig = {
     .multiplier = 24
 };
 /*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
 #ifdef TEST_WRITE
 static char binToHex(uint8_t value)
 {
@@ -74,10 +79,31 @@ static char binToHex(uint8_t value)
 #endif
 /*----------------------------------------------------------------------------*/
 #ifdef TEST_WRITE
-static void numberToHex(uint8_t *output, uint32_t value)
+static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t size,
+    uint64_t position)
 {
-  for (int i = sizeof(value) * 2 - 1; i >= 0; --i)
-    *output++ = binToHex((uint8_t)(value >> 4 * i));
+  bool event;
+
+  markBuffer(buffer, size, position / size);
+
+  ifSetParam(card, IF_POSITION, &position);
+  ifSetCallback(card, onTimerOverflow, &event);
+
+  const size_t bytesWritten = ifWrite(card, buffer, size);
+  bool completed = false;
+
+  if (bytesWritten == size)
+  {
+    while (!event)
+      barrier();
+    event = false;
+
+    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
+      completed = true;
+  }
+
+  ifSetCallback(card, 0, 0);
+  return completed;
 }
 #endif
 /*----------------------------------------------------------------------------*/
@@ -99,6 +125,39 @@ static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
 }
 #endif
 /*----------------------------------------------------------------------------*/
+#ifdef TEST_WRITE
+static void numberToHex(uint8_t *output, uint32_t value)
+{
+  for (int i = sizeof(value) * 2 - 1; i >= 0; --i)
+    *output++ = binToHex((uint8_t)(value >> 4 * i));
+}
+#endif
+/*----------------------------------------------------------------------------*/
+static bool dataRead(struct Interface *card, uint8_t *buffer, size_t size,
+    uint64_t position)
+{
+  bool event;
+
+  ifSetParam(card, IF_POSITION, &position);
+  ifSetCallback(card, onTimerOverflow, &event);
+
+  const size_t bytesRead = ifRead(card, buffer, size);
+  bool completed = false;
+
+  if (bytesRead == size)
+  {
+    while (!event)
+      barrier();
+    event = false;
+
+    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
+      completed = true;
+  }
+
+  ifSetCallback(card, 0, 0);
+  return completed;
+}
+/*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
   clockEnable(MainClock, &initialClockConfig);
@@ -116,65 +175,6 @@ static void setupClock(void)
   while (!clockReady(SdioClock));
 
   clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
-static void onEvent(void *argument)
-{
-  *(bool *)argument = true;
-}
-/*----------------------------------------------------------------------------*/
-#ifdef TEST_WRITE
-static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t size,
-    uint64_t position)
-{
-  bool event;
-
-  markBuffer(buffer, size, position / size);
-
-  ifSetParam(card, IF_POSITION, &position);
-  ifSetCallback(card, onEvent, &event);
-
-  const size_t bytesWritten = ifWrite(card, buffer, size);
-  bool completed = false;
-
-  if (bytesWritten == size)
-  {
-    while (!event)
-      barrier();
-    event = false;
-
-    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
-      completed = true;
-  }
-
-  ifSetCallback(card, 0, 0);
-  return completed;
-}
-#endif
-/*----------------------------------------------------------------------------*/
-static bool dataRead(struct Interface *card, uint8_t *buffer, size_t size,
-    uint64_t position)
-{
-  bool event;
-
-  ifSetParam(card, IF_POSITION, &position);
-  ifSetCallback(card, onEvent, &event);
-
-  const size_t bytesRead = ifRead(card, buffer, size);
-  bool completed = false;
-
-  if (bytesRead == size)
-  {
-    while (!event)
-      barrier();
-    event = false;
-
-    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
-      completed = true;
-  }
-
-  ifSetCallback(card, 0, 0);
-  return completed;
 }
 /*----------------------------------------------------------------------------*/
 static uint8_t arena[BUFFER_SIZE];
@@ -210,7 +210,7 @@ int main(void)
   struct Timer * const eventTimer = init(GpTimer, &eventTimerConfig);
   assert(eventTimer);
   timerSetOverflow(eventTimer, 1000000);
-  timerSetCallback(eventTimer, onEvent, &event);
+  timerSetCallback(eventTimer, onTimerOverflow, &event);
 
   timerEnable(eventTimer);
 

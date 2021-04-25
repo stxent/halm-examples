@@ -26,12 +26,6 @@ static const struct RtcConfig rtcConfig = {
     .timestamp = RTC_INITIAL_TIME
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(RtcOsc, 0);
-  while (!clockReady(RtcOsc));
-}
-/*----------------------------------------------------------------------------*/
 static void onTimerAlarm(void *argument)
 {
   struct Context * const context = argument;
@@ -39,6 +33,12 @@ static void onTimerAlarm(void *argument)
 
   rtSetAlarm(context->rtc, currentTime + RTC_ALARM_PERIOD);
   pinToggle(context->led);
+}
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(RtcOsc, 0);
+  while (!clockReady(RtcOsc));
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

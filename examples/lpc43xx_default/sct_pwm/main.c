@@ -66,19 +66,6 @@ static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_IDIVB
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &initialClockConfig);
-
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(DividerB, &dividerConfig);
-  while (!clockReady(DividerB));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *arg __attribute__((unused)))
 {
   static uint32_t iteration = 0;
@@ -91,6 +78,19 @@ static void onTimerOverflow(void *arg __attribute__((unused)))
   pwmSetEdges(singleEdge, 0, iteration % (resolution + 1));
   pwmSetEdges(doubleEdge, iteration % resolution, trailing);
   ++iteration;
+}
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(MainClock, &initialClockConfig);
+
+  clockEnable(ExternalOsc, &extOscConfig);
+  while (!clockReady(ExternalOsc));
+
+  clockEnable(DividerB, &dividerConfig);
+  while (!clockReady(DividerB));
+
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

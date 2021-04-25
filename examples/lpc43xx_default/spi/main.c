@@ -24,13 +24,12 @@
 #define SPI_CLASS Spi
 #endif
 
-#define SPI_CHANNEL 1
+#define SPI_CHANNEL 0
 /*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
+static const struct GenericClockConfig initialClockConfig = {
+    .source = CLOCK_INTERNAL
 };
-/*----------------------------------------------------------------------------*/
+
 #ifdef TEST_DMA
 static const struct SpiDmaConfig spiConfig[] = {
     {
@@ -70,14 +69,15 @@ static const struct SpiConfig spiConfig[] = {
     }
 };
 #endif
-/*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig initialClockConfig = {
-    .source = CLOCK_INTERNAL
+
+static const struct GpTimerConfig timerConfig = {
+    .frequency = 1000,
+    .channel = 0
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
+static void onTimerOverflow(void *argument)
 {
-  clockEnable(MainClock, &initialClockConfig);
+  *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
 #ifdef TEST_ZEROCOPY
@@ -87,9 +87,9 @@ static void onTransferCompleted(void *argument)
 }
 #endif
 /*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *argument)
+static void setupClock(void)
 {
-  *(bool *)argument = true;
+  clockEnable(MainClock, &initialClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

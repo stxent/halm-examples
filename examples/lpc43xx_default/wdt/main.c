@@ -14,6 +14,10 @@
 #define FAIL_LED_PIN  PIN(6, 6)
 #define WORK_LED_PIN  PIN(6, 7)
 /*----------------------------------------------------------------------------*/
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_INTERNAL
+};
+
 static struct GpTimerConfig timerConfig = {
     .frequency = 1000,
     .channel = 0
@@ -22,19 +26,15 @@ static struct GpTimerConfig timerConfig = {
 static const struct WdtConfig wdtConfig = {
     .period = 1000
 };
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

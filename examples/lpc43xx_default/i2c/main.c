@@ -27,6 +27,27 @@
 #define DEVICE_CLOCK  100000
 #define LED_PIN       PIN(PORT_6, 6)
 /*----------------------------------------------------------------------------*/
+enum DeviceState
+{
+  DEVICE_IDLE,
+  DEVICE_PH1_ADDRESS,
+  DEVICE_PH1_DATA,
+  DEVICE_PH2_DATA
+};
+
+struct DeviceDriver
+{
+  struct Interface *interface;
+  struct Pin led;
+  enum DeviceState state;
+  uint32_t desiredRate;
+  uint32_t localAddress;
+  uint16_t deviceAddress;
+  uint8_t buffer[8 + MEMORY_ADDRESS_SIZE];
+
+  bool change; /* Change test string */
+};
+/*----------------------------------------------------------------------------*/
 static const struct I2CConfig i2cConfig = {
     .rate = 400000, /* Initial rate */
     .scl = PIN(PORT_I2C, PIN_I2C0_SCL),
@@ -34,39 +55,13 @@ static const struct I2CConfig i2cConfig = {
     .channel = 0
 };
 
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-
 static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_INTERNAL
 };
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
-enum deviceState
-{
-  DEVICE_IDLE,
-  DEVICE_PH1_ADDRESS,
-  DEVICE_PH1_DATA,
-  DEVICE_PH2_DATA
-};
-/*----------------------------------------------------------------------------*/
-struct DeviceDriver
-{
-  struct Interface *interface;
-  struct Pin led;
-  enum deviceState state;
-  uint32_t desiredRate;
-  uint32_t localAddress;
-  uint16_t deviceAddress;
-  uint8_t buffer[8 + MEMORY_ADDRESS_SIZE];
 
-  bool change; /* Change test string */
+static const struct GpTimerConfig timerConfig = {
+    .frequency = 1000,
+    .channel = 0
 };
 /*----------------------------------------------------------------------------*/
 static void deviceInit(struct DeviceDriver *device, struct Interface *interface,
@@ -202,6 +197,11 @@ static void deviceWrite(struct DeviceDriver *device)
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

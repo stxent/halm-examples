@@ -52,6 +52,15 @@ static const struct PllConfig sysPllConfig = {
 static uint16_t buffers[BUFFER_COUNT][BUFFER_SIZE];
 static bool event = true;
 /*----------------------------------------------------------------------------*/
+static void onConversionCompleted(void *argument)
+{
+  struct Interface * const adc = argument;
+  size_t count;
+
+  if (ifGetParam(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
+    event = true;
+}
+/*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
   clockEnable(MainClock, &initialClockConfig);
@@ -66,15 +75,6 @@ static void setupClock(void)
 
   clockEnable(Apb3Clock, &mainClockConfig);
   while (!clockReady(Apb3Clock));
-}
-/*----------------------------------------------------------------------------*/
-static void onConversionCompleted(void *argument)
-{
-  struct Interface * const adc = argument;
-  size_t count;
-
-  if (ifGetParam(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
-    event = true;
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

@@ -21,6 +21,18 @@ static struct Pwm *singleEdge;
 static struct Pwm *singleEdgeRef;
 static struct Interface *adc;
 /*----------------------------------------------------------------------------*/
+/* Should be sorted by ADC channel number */
+static const PinNumber adcBusPins[] = {
+    PIN(PORT_ADC, 0), PIN(PORT_ADC, 1), 0
+};
+
+static const struct AdcBusConfig adcBusConfig = {
+    .pins = adcBusPins,
+    .frequency = 2200,
+    .event = ADC_BURST,
+    .channel = 0
+};
+
 #ifdef TEST_UNIFIED
 static const struct SctPwmUnitConfig pwmUnitConfig = {
     .frequency = 1000,
@@ -44,18 +56,6 @@ static const struct SctPwmUnitConfig pwmUnitConfigs[] = {
     }
 };
 #endif
-
-/* Should be sorted by ADC channel number */
-static const PinNumber adcBusPins[] = {
-    PIN(PORT_ADC, 0), PIN(PORT_ADC, 1), 0
-};
-
-static const struct AdcBusConfig adcBusConfig = {
-    .pins = adcBusPins,
-    .frequency = 2200,
-    .event = ADC_BURST,
-    .channel = 0
-};
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
@@ -73,19 +73,6 @@ static const struct GenericClockConfig initialClockConfig = {
 static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_IDIVB
 };
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &initialClockConfig);
-
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(DividerB, &dividerConfig);
-  while (!clockReady(DividerB));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *arg __attribute__((unused)))
 {
@@ -117,6 +104,19 @@ static void onConversionCompleted(void *arg __attribute__((unused)))
 
     pwmSetEdges(doubleEdge, leading, trailing);
   }
+}
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(MainClock, &initialClockConfig);
+
+  clockEnable(ExternalOsc, &extOscConfig);
+  while (!clockReady(ExternalOsc));
+
+  clockEnable(DividerB, &dividerConfig);
+  while (!clockReady(DividerB));
+
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

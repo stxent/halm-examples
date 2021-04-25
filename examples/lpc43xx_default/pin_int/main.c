@@ -14,11 +14,6 @@
 #define EVENT_PIN   PIN(PORT_3, 1)
 #define OUTPUT_PIN  PIN(PORT_3, 2)
 /*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-
 static const struct PinIntConfig eventConfig = {
     .pin = EVENT_PIN,
     .event = PIN_RISING,
@@ -28,11 +23,11 @@ static const struct PinIntConfig eventConfig = {
 static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_INTERNAL
 };
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
+
+static const struct GpTimerConfig timerConfig = {
+    .frequency = 1000,
+    .channel = 0
+};
 /*----------------------------------------------------------------------------*/
 static void onExternalEvent(void *argument)
 {
@@ -42,6 +37,11 @@ static void onExternalEvent(void *argument)
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

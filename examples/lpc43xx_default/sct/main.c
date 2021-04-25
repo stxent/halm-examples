@@ -14,6 +14,10 @@
 
 #define TEST_UNIFIED
 /*----------------------------------------------------------------------------*/
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_INTERNAL
+};
+
 #ifdef TEST_UNIFIED
 static const struct SctTimerConfig timerConfig = {
     .frequency = 1000000,
@@ -34,19 +38,15 @@ static const struct SctTimerConfig timerConfigs[] = {
     }
 };
 #endif
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
   pinToggle(*(struct Pin *)argument);
+}
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

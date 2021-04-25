@@ -16,11 +16,6 @@ static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_INTERNAL
 };
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 static enum Result program(struct Interface *eeprom, const uint8_t *buffer,
     size_t length, uint32_t address)
 {
@@ -33,6 +28,11 @@ static enum Result program(struct Interface *eeprom, const uint8_t *buffer,
     return E_INTERFACE;
 
   return E_OK;
+}
+/*----------------------------------------------------------------------------*/
+static void setupClock(void)
+{
+  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static enum Result verify(struct Interface *eeprom, const uint8_t *pattern,
@@ -65,9 +65,6 @@ int main(void)
 
   setupClock();
 
-  for (size_t i = 0; i < sizeof(buffer); ++i)
-    buffer[i] = i;
-
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
@@ -83,6 +80,25 @@ int main(void)
   assert(res == E_OK);
 
   assert(address < size);
+
+  /* Fill memory with pseudorandom pattern */
+
+  for (size_t i = 0; i < sizeof(buffer); ++i)
+    buffer[i] = i;
+
+  pinSet(led);
+  if ((res = program(eeprom, buffer, sizeof(buffer), address)) == E_OK)
+    pinReset(led);
+  assert(res == E_OK);
+
+  pinSet(led);
+  if ((res = verify(eeprom, buffer, sizeof(buffer), address)) == E_OK)
+    pinReset(led);
+  assert(res == E_OK);
+
+  /* Reset memory to the default state */
+
+  memset(buffer, 0, sizeof(buffer));
 
   pinSet(led);
   if ((res = program(eeprom, buffer, sizeof(buffer), address)) == E_OK)

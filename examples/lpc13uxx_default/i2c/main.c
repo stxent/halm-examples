@@ -26,6 +26,27 @@
 #define DEVICE_CLOCK  100000
 #define LED_PIN       PIN(1, 13)
 /*----------------------------------------------------------------------------*/
+enum DeviceState
+{
+  DEVICE_IDLE,
+  DEVICE_PH1_ADDRESS,
+  DEVICE_PH1_DATA,
+  DEVICE_PH2_DATA
+};
+
+struct DeviceDriver
+{
+  struct Interface *interface;
+  struct Pin led;
+  enum DeviceState state;
+  uint32_t desiredRate;
+  uint32_t localAddress;
+  uint16_t deviceAddress;
+  uint8_t buffer[8 + MEMORY_ADDRESS_SIZE];
+
+  bool change; /* Change test string */
+};
+/*----------------------------------------------------------------------------*/
 static const struct I2CConfig i2cConfig = {
     .rate = 400000, /* Initial rate */
     .scl = PIN(0, 4),
@@ -36,27 +57,6 @@ static const struct I2CConfig i2cConfig = {
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
     .channel = GPTIMER_CT32B0
-};
-/*----------------------------------------------------------------------------*/
-enum deviceState
-{
-  DEVICE_IDLE,
-  DEVICE_PH1_ADDRESS,
-  DEVICE_PH1_DATA,
-  DEVICE_PH2_DATA
-};
-/*----------------------------------------------------------------------------*/
-struct DeviceDriver
-{
-  struct Interface *interface;
-  struct Pin led;
-  enum deviceState state;
-  uint32_t desiredRate;
-  uint32_t localAddress;
-  uint16_t deviceAddress;
-  uint8_t buffer[8 + MEMORY_ADDRESS_SIZE];
-
-  bool change; /* Change test string */
 };
 /*----------------------------------------------------------------------------*/
 static void deviceInit(struct DeviceDriver *device, struct Interface *interface,

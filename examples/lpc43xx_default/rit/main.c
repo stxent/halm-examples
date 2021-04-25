@@ -1,33 +1,18 @@
 /*
- * lpc43xx_default/dac/main.c
- * Copyright (C) 2014 xent
+ * lpc43xx_default/rit/main.c
+ * Copyright (C) 2021 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
 #include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/dac.h>
-#include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/rit.h>
+#include <halm/pin.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define DAC_PIN PIN(PORT_4, 4)
-#define LED_PIN PIN(PORT_6, 6)
-
-#define VOLTAGE_RANGE 65536
-#define VOLTAGE_STEP  4096
+#define LED_PIN PIN(6, 6)
 /*----------------------------------------------------------------------------*/
-static const struct DacConfig dacConfig = {
-    .value = VOLTAGE_RANGE / 2,
-    .pin = DAC_PIN
-};
-
 static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_INTERNAL
-};
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
 };
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -45,20 +30,15 @@ int main(void)
   setupClock();
 
   const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
+  pinOutput(led, true);
 
-  struct Interface * const dac = init(Dac, &dacConfig);
-  assert(dac);
-
-  struct Timer * const timer = init(GpTimer, &timerConfig);
+  struct Timer * const timer = init(Rit, 0);
   assert(timer);
-  timerSetOverflow(timer, 1000);
+  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
 
   bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
-
-  unsigned int step = 0;
 
   while (1)
   {
@@ -66,12 +46,7 @@ int main(void)
       barrier();
     event = false;
 
-    pinSet(led);
-    const uint16_t voltage =
-        step * (VOLTAGE_RANGE - 1) / (VOLTAGE_RANGE / VOLTAGE_STEP);
-    step = step < 16 ? step + 1 : 0;
-    ifWrite(dac, &voltage, sizeof(voltage));
-    pinReset(led);
+    pinToggle(led);
   }
 
   return 0;

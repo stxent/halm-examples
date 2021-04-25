@@ -66,6 +66,21 @@ static const struct BusClockConfig apbBusClockConfig = {
     .divisor = 2
 };
 /*----------------------------------------------------------------------------*/
+static void onBlinkTimeout(void *argument)
+{
+  void * const * const array = argument;
+  struct Timer * const timer = array[0];
+  const struct Pin * const led = array[1];
+
+  pinReset(*led);
+  timerDisable(timer);
+}
+/*----------------------------------------------------------------------------*/
+static void onEvent(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
 static void sendMessageGroup(struct Interface *interface,
     struct Timer *timer, uint8_t flags, size_t length, size_t count)
 {
@@ -115,21 +130,6 @@ static void setupClock(void)
   clockEnable(SystemClock, &systemClockConfig);
 
   clockEnable(MainClock, &ahbBusClockConfig);
-}
-/*----------------------------------------------------------------------------*/
-static void onBlinkTimeout(void *argument)
-{
-  void * const * const array = argument;
-  struct Timer * const timer = array[0];
-  const struct Pin * const led = array[1];
-
-  pinReset(*led);
-  timerDisable(timer);
-}
-/*----------------------------------------------------------------------------*/
-static void onEvent(void *argument)
-{
-  *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
