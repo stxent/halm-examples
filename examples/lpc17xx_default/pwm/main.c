@@ -10,9 +10,9 @@
 #include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define DOUBLE_EDGE_PIN     PIN(1, 24)
-#define SINGLE_EDGE_PIN     PIN(1, 20)
-#define SINGLE_EDGE_REF_PIN PIN(1, 18)
+#define DOUBLE_EDGE_PIN     PIN(1, 18)
+#define SINGLE_EDGE_PIN     PIN(1, 26)
+#define SINGLE_EDGE_REF_PIN PIN(1, 23)
 /*----------------------------------------------------------------------------*/
 static struct Pwm *doubleEdge;
 static struct Pwm *singleEdge;

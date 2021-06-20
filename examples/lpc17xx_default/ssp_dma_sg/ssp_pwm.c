@@ -71,6 +71,7 @@ static bool setupDataChannel(struct SspPwm *controller, uint8_t channel,
       .event = GPDMA_MAT0_0 + timer * 2,
       .type = GPDMA_TYPE_M2P,
       .channel = channel,
+      .oneshot = false,
       .silent = false
   };
 

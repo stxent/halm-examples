@@ -1,11 +1,11 @@
 /*
- * lpc43xx_default/adc_dma/main.c
- * Copyright (C) 2016 xent
+ * lpc43xx_default/adc_bus/main.c
+ * Copyright (C) 2021 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <halm/pin.h>
-#include <halm/platform/lpc/adc_dma.h>
+#include <halm/platform/lpc/adc_bus.h>
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/gptimer.h>
 #include <halm/platform/lpc/serial.h>
@@ -20,11 +20,10 @@ static const PinNumber adcPinArray[] = {
     PIN(PORT_ADC, 1), PIN(PORT_ADC, 2), PIN(PORT_ADC, 3), PIN(PORT_ADC, 5), 0
 };
 
-static const struct AdcDmaConfig adcConfig = {
+static const struct AdcBusConfig adcConfig = {
     .pins = adcPinArray,
     .event = ADC_CTOUT_15,
-    .channel = 0,
-    .dma = 0
+    .channel = 0
 };
 
 static const struct SerialConfig serialConfig = {
@@ -92,7 +91,7 @@ int main(void)
   struct Interface * const serial = init(Serial, &serialConfig);
   assert(serial);
 
-  struct Interface * const adc = init(AdcDma, &adcConfig);
+  struct Interface * const adc = init(AdcBus, &adcConfig);
   assert(adc);
 
   const enum Result res = ifSetParam(adc, IF_ZEROCOPY, 0);

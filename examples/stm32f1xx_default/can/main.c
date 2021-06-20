@@ -90,7 +90,7 @@ static void sendMessageGroup(struct Interface *interface,
 
   for (size_t i = 0; i < count; ++i)
   {
-    const struct CanStandardMessage message = {
+    const struct CANStandardMessage message = {
         .timestamp = 0,
         .id = (uint32_t)i,
         .flags = flags,
@@ -181,7 +181,7 @@ int main(void)
     {
       canEvent = false;
 
-      struct CanStandardMessage message;
+      struct CANStandardMessage message;
       ifRead(can, &message, sizeof(message));
 
       pinSet(led);

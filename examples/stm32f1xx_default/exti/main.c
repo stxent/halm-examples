@@ -1,32 +1,32 @@
 /*
- * lpc13xx_default/pin_int/main.c
- * Copyright (C) 2016 xent
+ * stm32f1xx_default/exti/main.c
+ * Copyright (C) 2021 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <halm/pin.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/pin_int.h>
+#include <halm/platform/stm32/exti.h>
+#include <halm/platform/stm32/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(3, 0)
-#define EVENT_PIN   PIN(1, 0)
-#define OUTPUT_PIN  PIN(0, 1)
+#define LED_PIN     PIN(PORT_C, 13)
+#define EVENT_PIN   PIN(PORT_B, 15)
+#define OUTPUT_PIN  PIN(PORT_A, 7)
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
-    .channel = GPTIMER_CT32B0
+    .channel = TIM2
 };
 
-static const struct PinIntConfig eventConfig = {
+static const struct ExtiConfig eventConfig = {
     .pin = EVENT_PIN,
     .event = PIN_RISING,
-    .pull = PIN_PULLDOWN
+    .pull = PIN_NOPULL
 };
 /*----------------------------------------------------------------------------*/
 static void onExternalEvent(void *argument)
 {
-  pinReset(*(const struct Pin *)argument);
+  pinSet(*(const struct Pin *)argument);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -37,9 +37,9 @@ static void onTimerOverflow(void *argument)
 int main(void)
 {
   struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
+  pinOutput(led, true);
 
-  struct Interrupt * const externalInterrupt = init(PinInt, &eventConfig);
+  struct Interrupt * const externalInterrupt = init(Exti, &eventConfig);
   assert(externalInterrupt);
   interruptSetCallback(externalInterrupt, onExternalEvent, &led);
 
@@ -63,7 +63,7 @@ int main(void)
       barrier();
     event = false;
 
-    pinSet(led);
+    pinReset(led);
     pinSet(output);
 
     /* Second phase */

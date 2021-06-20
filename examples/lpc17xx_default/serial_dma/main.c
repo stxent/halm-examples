@@ -11,7 +11,7 @@
 /*----------------------------------------------------------------------------*/
 #define BUFFER_LENGTH 32
 #define LED_PIN       PIN(1, 8)
-#define UART_CHANNEL  0
+#define UART_CHANNEL  1
 #define UART_RATE     19200
 /*----------------------------------------------------------------------------*/
 static const struct SerialDmaConfig serialConfig[] = {

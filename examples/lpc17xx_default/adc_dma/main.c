@@ -8,20 +8,32 @@
 #include <halm/platform/lpc/adc_dma.h>
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/serial.h>
 #include <assert.h>
+#include <stdio.h>
 /*----------------------------------------------------------------------------*/
-#define ADC_RATE      100000
-#define BUFFER_COUNT  2
-#define BUFFER_SIZE   2048
-#define INPUT_PIN     PIN(0, 25)
+#define ADC_RATE      50
+#define BUFFER_LENGTH 128
 #define LED_PIN       PIN(1, 8)
 /*----------------------------------------------------------------------------*/
+static const PinNumber adcPinArray[] = {
+    PIN(0, 25), PIN(1, 31), PIN(0, 3), PIN(0, 2), 0
+};
+
 static const struct AdcDmaConfig adcConfig = {
-    .frequency = 4000000,
+    .pins = adcPinArray,
     .event = ADC_TIMER1_MAT1,
-    .pin = INPUT_PIN,
     .channel = 0,
     .dma = 0
+};
+
+static const struct SerialConfig serialConfig = {
+    .rate = 19200,
+    .rxLength = BUFFER_LENGTH,
+    .txLength = BUFFER_LENGTH,
+    .rx = PIN(0, 16),
+    .tx = PIN(0, 15),
+    .channel = 1
 };
 
 static const struct GpTimerConfig timerConfig = {
@@ -34,84 +46,79 @@ static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
 
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 4,
-    .multiplier = 32
-};
-
 static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_PLL
+    .source = CLOCK_EXTERNAL
 };
 /*----------------------------------------------------------------------------*/
-static uint16_t buffers[BUFFER_COUNT][BUFFER_SIZE];
-static bool event = true;
+static void onConversionCompleted(void *argument)
+{
+  *(bool *)argument = false;
+}
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
-
   clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
-static void onConversionCompleted(void *argument)
-{
-  struct Interface * const adc = argument;
-  size_t count;
-
-  if (ifGetParam(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
-    event = true;
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
   setupClock();
 
+  pinOutput(pinInit(PIN(0, 2)), false);
+  pinOutput(pinInit(PIN(0, 3)), false);
+  pinOutput(pinInit(PIN(0, 26)), false);
+  pinOutput(pinInit(PIN(1, 30)), false);
+
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
+  /*
+  * The overflow frequency of the timer should be two times higher
+  * than that of the hardware events for ADC.
+  */
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer);
+
+  struct Interface * const serial = init(Serial, &serialConfig);
+  assert(serial);
+
   struct Interface * const adc = init(AdcDma, &adcConfig);
   assert(adc);
-  ifSetCallback(adc, onConversionCompleted, adc);
 
-  struct Timer * const conversionTimer = init(GpTimer, &timerConfig);
-  assert(conversionTimer);
-  /*
-   * The overflow frequency of the timer should be two times higher
-   * than that of the hardware events for ADC.
-   */
-  timerSetOverflow(conversionTimer, timerConfig.frequency / (ADC_RATE * 2));
+  const enum Result res = ifSetParam(adc, IF_ZEROCOPY, 0);
+  assert(res == E_OK);
+  (void)res;
 
-  unsigned int iteration = 0;
-  size_t count;
+  const size_t count = ARRAY_SIZE(adcPinArray) - 1;
+  uint16_t buffer[count];
+  bool busy = true;
 
-  /* Enqueue buffers */
-  while (ifGetParam(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
-  {
-    const size_t index = iteration++ % BUFFER_COUNT;
-    ifRead(adc, buffers[index], sizeof(buffers[index]));
-  }
+  ifSetCallback(adc, onConversionCompleted, &busy);
+  timerSetOverflow(timer, timerGetFrequency(timer) / (count * ADC_RATE * 2));
+  timerEnable(timer);
 
   /* Start conversion */
-  timerEnable(conversionTimer);
+  ifRead(adc, buffer, sizeof(buffer));
 
   while (1)
   {
-    while (!event)
+    while (busy)
       barrier();
-    event = false;
+    busy = true;
 
-    pinSet(led);
-    while (ifGetParam(adc, IF_AVAILABLE, &count) == E_OK && count > 0)
-    {
-      const size_t index = iteration++ % BUFFER_COUNT;
-      ifRead(adc, buffers[index], sizeof(buffers[index]));
-    }
-    pinReset(led);
+    char text[count * 6 + 3];
+    char *iter = text;
+
+    for (size_t index = 0; index < count; ++index)
+      iter += sprintf(iter, "%5u ", (unsigned int)buffer[index]);
+    iter += sprintf(iter, "\r\n");
+    ifWrite(serial, text, iter - text);
+
+    pinToggle(led);
+    ifRead(adc, buffer, sizeof(buffer));
   }
 
   return 0;

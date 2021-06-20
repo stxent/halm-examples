@@ -1,5 +1,5 @@
 /*
- * lpc13uxx_default/pin_interrupt/main.c
+ * lpc13uxx_default/pin_int/main.c
  * Copyright (C) 2020 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */

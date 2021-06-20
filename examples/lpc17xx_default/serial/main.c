@@ -16,9 +16,9 @@ static const struct SerialConfig serialConfig = {
     .rate = 19200,
     .rxLength = BUFFER_LENGTH,
     .txLength = BUFFER_LENGTH,
-    .rx = PIN(0, 3),
-    .tx = PIN(0, 2),
-    .channel = 0
+    .rx = PIN(0, 16),
+    .tx = PIN(0, 15),
+    .channel = 1
 };
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {

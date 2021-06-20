@@ -1,27 +1,21 @@
 /*
- * lpc43xx_default/pin_int/main.c
- * Copyright (C) 2016 xent
+ * lpc43xx_default/adc/main.c
+ * Copyright (C) 2021 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <halm/pin.h>
+#include <halm/platform/lpc/adc_oneshot.h>
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/pin_int.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(PORT_6, 6)
-#define EVENT_PIN   PIN(PORT_3, 1)
-#define OUTPUT_PIN  PIN(PORT_3, 2)
+#define INPUT_PIN PIN(PORT_ADC, 5)
+#define LED_PIN   PIN(7, 7)
 /*----------------------------------------------------------------------------*/
-static const struct PinIntConfig eventConfig = {
-    .pin = EVENT_PIN,
-    .event = PIN_RISING,
-    .pull = PIN_PULLDOWN
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_INTERNAL
+static const struct AdcOneShotConfig adcConfig = {
+    .pin = INPUT_PIN,
+    .channel = 0
 };
 
 static const struct GpTimerConfig timerConfig = {
@@ -29,10 +23,9 @@ static const struct GpTimerConfig timerConfig = {
     .channel = 0
 };
 /*----------------------------------------------------------------------------*/
-static void onExternalEvent(void *argument)
-{
-  pinReset(*(const struct Pin *)argument);
-}
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_INTERNAL
+};
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -42,48 +35,43 @@ static void onTimerOverflow(void *argument)
 static void setupClock(void)
 {
   clockEnable(MainClock, &mainClockConfig);
+
+  clockEnable(Apb3Clock, &mainClockConfig);
+  while (!clockReady(Apb3Clock));
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
   setupClock();
 
-  struct Pin led = pinInit(LED_PIN);
+  const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  struct Interrupt * const externalInterrupt = init(PinInt, &eventConfig);
-  assert(externalInterrupt);
-  interruptSetCallback(externalInterrupt, onExternalEvent, &led);
-
-  bool event = false;
+  struct Interface * const adc = init(AdcOneShot, &adcConfig);
+  assert(adc);
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
-  timerSetOverflow(timer, 100);
+  timerSetOverflow(timer, 1000);
+
+  bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);
-
-  const struct Pin output = pinInit(OUTPUT_PIN);
-  pinOutput(output, false);
-
-  interruptEnable(externalInterrupt);
   timerEnable(timer);
 
   while (1)
   {
-    /* First phase */
     while (!event)
       barrier();
     event = false;
 
     pinSet(led);
-    pinSet(output);
 
-    /* Second phase */
-    while (!event)
-      barrier();
-    event = false;
+    uint16_t voltage;
+    const size_t bytesRead = ifRead(adc, &voltage, sizeof(voltage));
+    assert(bytesRead == sizeof(voltage));
+    (void)bytesRead; /* Suppress warning */
 
-    pinReset(output);
+    pinReset(led);
   }
 
   return 0;

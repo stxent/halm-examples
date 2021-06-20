@@ -1,5 +1,5 @@
 /*
- * lpc17xx_default/pin_interrupt/main.c
+ * lpc17xx_default/pin_int/main.c
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
@@ -10,7 +10,7 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define LED_PIN     PIN(1, 8)
-#define EVENT_PIN   PIN(0, 3)
+#define EVENT_PIN   PIN(0, 16)
 #define OUTPUT_PIN  PIN(0, 2)
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig timerConfig = {
@@ -21,7 +21,7 @@ static const struct GpTimerConfig timerConfig = {
 static const struct PinIntConfig eventConfig = {
     .pin = EVENT_PIN,
     .event = PIN_RISING,
-    .pull = PIN_PULLDOWN
+    .pull = PIN_NOPULL
 };
 /*----------------------------------------------------------------------------*/
 static void onExternalEvent(void *argument)

@@ -41,7 +41,7 @@ static const struct GpTimerConfig busyTimerConfig = {
 static const struct SpiDmaConfig spiConfig[] = {
     {
         .rate = 12000000,
-        .sck = PIN(0, 15),
+        .sck = PIN(1, 20),
         .miso = PIN(0, 17),
         .mosi = PIN(0, 18),
         .dma = {0, 1},
@@ -61,7 +61,7 @@ static const struct SpiDmaConfig spiConfig[] = {
 static const struct SpiConfig spiConfig[] = {
     {
         .rate = 12000000,
-        .sck = PIN(0, 15),
+        .sck = PIN(1, 20),
         .miso = PIN(0, 17),
         .mosi = PIN(0, 18),
         .channel = 0,
