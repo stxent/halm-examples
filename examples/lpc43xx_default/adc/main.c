@@ -5,39 +5,73 @@
  */
 
 #include <halm/pin.h>
-#include <halm/platform/lpc/adc_oneshot.h>
+#include <halm/platform/lpc/adc.h>
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/serial.h>
 #include <assert.h>
+#include <stdio.h>
 /*----------------------------------------------------------------------------*/
-#define INPUT_PIN PIN(PORT_ADC, 5)
-#define LED_PIN   PIN(7, 7)
+#define ADC_RATE      1
+#define BUFFER_LENGTH 128
+#define LED_PIN       PIN(PORT_7, 7)
 /*----------------------------------------------------------------------------*/
-static const struct AdcOneShotConfig adcConfig = {
-    .pin = INPUT_PIN,
+static const PinNumber adcPinArray[] = {
+    PIN(PORT_ADC, 1), PIN(PORT_ADC, 2), PIN(PORT_ADC, 3), PIN(PORT_ADC, 5), 0
+};
+
+static const struct AdcConfig adcConfig = {
+    .pins = adcPinArray,
+    .event = ADC_CTOUT_15,
     .channel = 0
 };
 
+static const struct SerialConfig serialConfig = {
+    .rate = 19200,
+    .rxLength = BUFFER_LENGTH,
+    .txLength = BUFFER_LENGTH,
+    .rx = PIN(2, 4),
+    .tx = PIN(2, 3),
+    .channel = 3
+};
+
 static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
+    .frequency = 4000000,
+    .event = GPTIMER_MATCH3,
+    .channel = 3
 };
 /*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig mainClockConfig = {
+static const struct ExternalOscConfig extOscConfig = {
+    .frequency = 12000000
+};
+
+static const struct GenericClockConfig initialClockConfig = {
     .source = CLOCK_INTERNAL
 };
+
+static const struct GenericClockConfig mainClockConfig = {
+    .source = CLOCK_EXTERNAL
+};
 /*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *argument)
+static void onConversionCompleted(void *argument)
 {
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
+  clockEnable(MainClock, &initialClockConfig);
+
+  clockEnable(ExternalOsc, &extOscConfig);
+  while (!clockReady(ExternalOsc));
+
   clockEnable(MainClock, &mainClockConfig);
 
   clockEnable(Apb3Clock, &mainClockConfig);
   while (!clockReady(Apb3Clock));
+
+  clockEnable(Usart3Clock, &mainClockConfig);
+  while (!clockReady(Usart3Clock));
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -47,15 +81,24 @@ int main(void)
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  struct Interface * const adc = init(AdcOneShot, &adcConfig);
-  assert(adc);
-
+  /*
+  * The overflow frequency of the timer should be two times higher
+  * than that of the hardware events for ADC.
+  */
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
-  timerSetOverflow(timer, 1000);
 
+  struct Interface * const serial = init(Serial, &serialConfig);
+  assert(serial);
+
+  struct Interface * const adc = init(Adc, &adcConfig);
+  assert(adc);
+
+  const size_t count = ARRAY_SIZE(adcPinArray) - 1;
   bool event = false;
-  timerSetCallback(timer, onTimerOverflow, &event);
+
+  ifSetCallback(adc, onConversionCompleted, &event);
+  timerSetOverflow(timer, timerGetFrequency(timer) / (count * ADC_RATE * 2));
   timerEnable(timer);
 
   while (1)
@@ -64,14 +107,18 @@ int main(void)
       barrier();
     event = false;
 
-    pinSet(led);
+    uint16_t buffer[count];
+    char text[count * 6 + 3];
+    char *iter = text;
 
-    uint16_t voltage;
-    const size_t bytesRead = ifRead(adc, &voltage, sizeof(voltage));
-    assert(bytesRead == sizeof(voltage));
-    (void)bytesRead; /* Suppress warning */
+    ifRead(adc, buffer, sizeof(buffer));
 
-    pinReset(led);
+    for (size_t index = 0; index < count; ++index)
+      iter += sprintf(iter, "%5u ", (unsigned int)buffer[index]);
+    iter += sprintf(iter, "\r\n");
+    ifWrite(serial, text, iter - text);
+
+    pinToggle(led);
   }
 
   return 0;

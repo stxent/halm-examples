@@ -1,6 +1,6 @@
 /*
- * lpc13uxx_default/adc/main.c
- * Copyright (C) 2020 xent
+ * lpc17xx_default/adc_oneshot/main.c
+ * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -9,8 +9,8 @@
 #include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN   PIN(1, 13)
-#define INPUT_PIN PIN(0, 11)
+#define INPUT_PIN PIN(0, 25)
+#define LED_PIN   PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct AdcOneShotConfig adcConfig = {
     .pin = INPUT_PIN,
@@ -19,7 +19,7 @@ static const struct AdcOneShotConfig adcConfig = {
 
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,
-    .channel = GPTIMER_CT32B0
+    .channel = 0
 };
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)

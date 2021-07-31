@@ -16,7 +16,7 @@
 struct EventTuple
 {
   struct Interface *serial;
-  struct Stream *adc;
+  struct Stream *stream;
   struct Pin led;
 };
 
@@ -96,7 +96,7 @@ static void onConversionCompleted(void *argument, struct StreamRequest *request,
   }
 
   request->length = 0;
-  streamEnqueue(context->adc, request);
+  streamEnqueue(context->stream, request);
 }
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
@@ -141,7 +141,7 @@ int main(void)
 
   struct EventTuple context = {
       .serial = serial,
-      .adc = stream,
+      .stream = stream,
       .led = led
   };
 

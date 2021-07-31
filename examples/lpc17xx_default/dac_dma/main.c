@@ -7,16 +7,21 @@
 #include <halm/pin.h>
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/dac_dma.h>
-#include <xcore/bits.h>
 #include <assert.h>
 #include <stdlib.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_COUNT  2
-#define BUFFER_SIZE   512
+struct EventTuple
+{
+  struct Stream *stream;
+  struct Pin led;
+};
 
+#define BUFFER_COUNT  2
+#define BUFFER_LENGTH 512
 #define LED_PIN       PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct DacDmaConfig dacConfig = {
+    .size = 2,
     .rate = 96000,
     .value = 32768,
     .pin = PIN(0, 26),
@@ -35,7 +40,7 @@ static const uint16_t table[] = {
     65535
 };
 
-static uint16_t buffers[BUFFER_COUNT * BUFFER_SIZE];
+static uint16_t buffers[BUFFER_COUNT * BUFFER_LENGTH];
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
@@ -45,25 +50,11 @@ static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_EXTERNAL
 };
 /*----------------------------------------------------------------------------*/
-static unsigned int enqueue(struct Interface *dac, uint16_t *buffer,
-    unsigned int iteration)
-{
-  size_t number;
-
-  while (ifGetParam(dac, IF_PENDING, &number) == E_OK && number < BUFFER_COUNT)
-  {
-    const unsigned int index = iteration++ % BUFFER_COUNT;
-    ifWrite(dac, buffer + index * BUFFER_SIZE, BUFFER_SIZE * sizeof(uint16_t));
-  }
-
-  return iteration;
-}
-/*----------------------------------------------------------------------------*/
 static void fill(uint16_t *buffer)
 {
   const size_t width = (ARRAY_SIZE(table) - 1) * 2;
 
-  for (size_t index = 0; index < BUFFER_SIZE * 2; ++index)
+  for (size_t index = 0; index < BUFFER_LENGTH * 2; ++index)
     buffer[index] = table[abs(index % width - width / 2)];
 }
 /*----------------------------------------------------------------------------*/
@@ -75,9 +66,14 @@ static void setupClock(void)
   clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
-static void onConversionCompleted(void *argument)
+static void onConversionCompleted(void *argument, struct StreamRequest *request,
+    enum StreamRequestStatus status __attribute__((unused)))
 {
-  *(bool *)argument = true;
+  struct EventTuple * const context = argument;
+
+  request->length = request->capacity;
+  streamEnqueue(context->stream, request);
+  pinToggle(context->led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -87,28 +83,41 @@ int main(void)
 
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
+  const struct Pin auxpwr = pinInit(PIN(2, 8));
+  pinOutput(auxpwr, false);
 
-  struct Interface * const dac = init(DacDma, &dacConfig);
+  struct DacDma * const dac = init(DacDma, &dacConfig);
   assert(dac);
+  struct Stream * const stream = dacDmaGetOutput(dac);
+  assert(stream);
 
-  bool event = false;
-  ifSetCallback(dac, onConversionCompleted, &event);
+  struct EventTuple context = {
+      .stream = stream,
+      .led = led
+  };
 
-  unsigned int iteration = 0;
+  struct StreamRequest requests[2] = {
+      {
+          BUFFER_LENGTH * sizeof(uint16_t),
+          0,
+          onConversionCompleted,
+          &context,
+          buffers
+      }, {
+          BUFFER_LENGTH * sizeof(uint16_t),
+          0,
+          onConversionCompleted,
+          &context,
+          buffers + BUFFER_LENGTH
+      }
+  };
 
-  /* Initial buffer filling */
-  iteration = enqueue(dac, buffers, iteration);
+  /* Enqueue buffers */
+  requests[0].length = requests[0].capacity;
+  streamEnqueue(stream, &requests[0]);
+  requests[1].length = requests[1].capacity;
+  streamEnqueue(stream, &requests[1]);
 
-  while (1)
-  {
-    while (!event)
-      barrier();
-    event = false;
-
-    pinSet(led);
-    iteration = enqueue(dac, buffers, iteration);
-    pinReset(led);
-  }
-
+  while (1);
   return 0;
 }

@@ -6,6 +6,7 @@
 
 #include <halm/pin.h>
 #include <halm/platform/lpc/clocking.h>
+#include <halm/platform/lpc/gptimer.h>
 #include <halm/platform/lpc/serial_dma.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
@@ -13,6 +14,7 @@
 #define LED_PIN       PIN(1, 8)
 #define UART_CHANNEL  1
 #define UART_RATE     19200
+#define USE_TIMER
 /*----------------------------------------------------------------------------*/
 static const struct SerialDmaConfig serialConfig[] = {
     /* UART0 */
@@ -60,6 +62,11 @@ static const struct SerialDmaConfig serialConfig[] = {
         .dma = {7, 6}
     }
 };
+
+static const struct GpTimerConfig timerConfig = {
+    .frequency = 1000,
+    .channel = 0
+};
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
@@ -76,6 +83,11 @@ static const struct GenericClockConfig mainClockConfig = {
 };
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
 }
@@ -122,8 +134,16 @@ int main(void)
   struct Interface * const serial = init(SerialDma,
       &serialConfig[UART_CHANNEL]);
   assert(serial);
-  ifSetParam(serial, IF_ZEROCOPY, 0);
   ifSetCallback(serial, onSerialEvent, &event);
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer);
+  timerSetOverflow(timer, 100);
+  timerSetCallback(timer, onTimerOverflow, &event);
+
+#ifdef USE_TIMER
+  timerEnable(timer);
+#endif
 
   while (1)
   {

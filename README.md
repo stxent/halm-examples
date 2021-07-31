@@ -1,7 +1,7 @@
 Installation
 ------------
 
-Examples require GNU toolchain for ARM Cortex-M processors and CMake version 3.6 or newer.
+Examples require GNU toolchain for ARM Cortex-M processors and CMake version 3.13 or newer.
 
 Quickstart
 ----------
@@ -26,5 +26,5 @@ make
 Useful settings
 ---------------
 
-* CMAKE_BUILD_TYPE — specifies the build type. Possible values are empty, Debug and Release.
+* CMAKE_BUILD_TYPE — option specifies the build type.
 * USE_LTO — option enables Link Time Optimization.

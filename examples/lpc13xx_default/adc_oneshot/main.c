@@ -1,5 +1,5 @@
 /*
- * lpc13xx_default/adc/main.c
+ * lpc13xx_default/adc_oneshot/main.c
  * Copyright (C) 2016 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */

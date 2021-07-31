@@ -52,7 +52,7 @@ static const struct GenericClockConfig mainClockConfig = {
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument)
 {
-  *(bool *)argument = false;
+  *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
@@ -88,29 +88,24 @@ int main(void)
   struct Interface * const adc = init(AdcDma, &adcConfig);
   assert(adc);
 
-  const enum Result res = ifSetParam(adc, IF_ZEROCOPY, 0);
-  assert(res == E_OK);
-  (void)res;
-
   const size_t count = ARRAY_SIZE(adcPinArray) - 1;
-  uint16_t buffer[count];
-  bool busy = true;
+  bool event = false;
 
-  ifSetCallback(adc, onConversionCompleted, &busy);
+  ifSetCallback(adc, onConversionCompleted, &event);
   timerSetOverflow(timer, timerGetFrequency(timer) / (count * ADC_RATE * 2));
   timerEnable(timer);
 
-  /* Start conversion */
-  ifRead(adc, buffer, sizeof(buffer));
-
   while (1)
   {
-    while (busy)
+    while (!event)
       barrier();
-    busy = true;
+    event = false;
 
+    uint16_t buffer[count];
     char text[count * 6 + 3];
     char *iter = text;
+
+    ifRead(adc, buffer, sizeof(buffer));
 
     for (size_t index = 0; index < count; ++index)
       iter += sprintf(iter, "%5u ", (unsigned int)buffer[index]);
@@ -118,7 +113,6 @@ int main(void)
     ifWrite(serial, text, iter - text);
 
     pinToggle(led);
-    ifRead(adc, buffer, sizeof(buffer));
   }
 
   return 0;
