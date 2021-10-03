@@ -170,9 +170,8 @@ int main(void)
   /* Initialize Mass Storage Device */
   const struct MscConfig config = {
       .device = usb,
-      .storage = card,
 
-      .buffer = arena,
+      .arena = arena,
       .size = sizeof(arena),
 
       .endpoints = {
@@ -182,8 +181,8 @@ int main(void)
   };
   struct Msc * const msc = init(Msc, &config);
   assert(msc);
-  (void)msc;
 
+  mscAttachUnit(msc, 0, card);
   usbDevSetConnected(usb, true);
 
   while (1);

@@ -96,6 +96,7 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
 
   struct CdcAcmConfig config = {
       .device = parent,
+      .arena = 0,
       .rxBuffers = 4,
       .txBuffers = 4
   };
@@ -135,7 +136,7 @@ static void transferData(struct Interface *interface, struct Pin led)
       position += written;
     }
 
-    ifGetParam(interface, IF_AVAILABLE, &available);
+    ifGetParam(interface, IF_RX_AVAILABLE, &available);
   }
   while (available > 0);
 

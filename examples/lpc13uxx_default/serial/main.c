@@ -37,7 +37,7 @@ static void transferData(struct Interface *interface, struct Pin led)
     const size_t length = ifRead(interface, buffer, sizeof(buffer));
 
     ifWrite(interface, buffer, length);
-    ifGetParam(interface, IF_AVAILABLE, &available);
+    ifGetParam(interface, IF_RX_AVAILABLE, &available);
   }
   while (available > 0);
 

@@ -103,7 +103,7 @@ static void transferData(struct Interface *interface, struct Pin led)
       position += written;
     }
 
-    ifGetParam(interface, IF_AVAILABLE, &available);
+    ifGetParam(interface, IF_RX_AVAILABLE, &available);
   }
   while (available > 0);
 
@@ -122,6 +122,7 @@ int main(void)
 
   const struct CdcAcmConfig config = {
       .device = usb,
+      .arena = 0,
       .rxBuffers = 4,
       .txBuffers = 4,
 
