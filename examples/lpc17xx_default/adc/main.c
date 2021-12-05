@@ -27,9 +27,9 @@ static const struct AdcConfig adcConfig = {
 };
 
 static const struct SerialConfig serialConfig = {
-    .rate = 19200,
     .rxLength = BUFFER_LENGTH,
     .txLength = BUFFER_LENGTH,
+    .rate = 19200,
     .rx = PIN(0, 16),
     .tx = PIN(0, 15),
     .channel = 1

@@ -5,6 +5,7 @@
  */
 
 #include <halm/pin.h>
+#include <halm/platform/stm32/dma_base.h>
 #include <halm/platform/stm32/serial_dma.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
@@ -12,10 +13,10 @@
 #define LED_PIN       PIN(PORT_C, 13)
 /*----------------------------------------------------------------------------*/
 static const struct SerialDmaConfig serialConfig = {
-    .rate = 19200,
     .rxChunk = BUFFER_LENGTH / 4,
     .rxLength = BUFFER_LENGTH,
     .txLength = BUFFER_LENGTH,
+    .rate = 19200,
     .rx = PIN(PORT_B, 7),
     .tx = PIN(PORT_B, 6),
     .channel = 0,

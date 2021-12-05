@@ -2,7 +2,8 @@
 # Project is distributed under the terms of the GNU General Public License v3.0
 
 project(examples C)
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.13)
+cmake_policy(SET CMP0069 NEW)
 
 # Project platform must be set correctly
 set(PLATFORM "STM32F1XX")

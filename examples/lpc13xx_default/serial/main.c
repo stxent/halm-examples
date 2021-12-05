@@ -12,9 +12,9 @@
 #define LED_PIN       PIN(3, 0)
 /*----------------------------------------------------------------------------*/
 static const struct SerialConfig serialConfig = {
-    .rate = 19200,
     .rxLength = BUFFER_LENGTH,
     .txLength = BUFFER_LENGTH,
+    .rate = 19200,
     .rx = PIN(1, 6),
     .tx = PIN(1, 7),
     .channel = 0

@@ -16,9 +16,9 @@ static const struct OneWireSspConfig owConfig = {
 };
 
 static const struct SerialConfig serialConfig = {
-    .rate = 19200,
     .rxLength = 64,
     .txLength = 64,
+    .rate = 19200,
     .rx = PIN(1, 6),
     .tx = PIN(1, 7),
     .channel = 0
@@ -108,7 +108,7 @@ int main(void)
 
       uint64_t address;
 
-      res = ifGetParam(ow, IF_ADDRESS, &address);
+      res = ifGetParam(ow, IF_ADDRESS_64, &address);
       assert(res == E_OK);
 
       printAddress(serial, address);

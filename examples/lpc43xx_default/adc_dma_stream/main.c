@@ -36,9 +36,9 @@ static const struct AdcDmaStreamConfig adcConfig = {
 };
 
 static const struct SerialConfig serialConfig = {
-    .rate = 19200,
     .rxLength = 16,
     .txLength = ((ARRAY_SIZE(adcPinArray) - 1) * 6 + 4) * ADC_RATE,
+    .rate = 19200,
     .rx = PIN(2, 4),
     .tx = PIN(2, 3),
     .channel = 3

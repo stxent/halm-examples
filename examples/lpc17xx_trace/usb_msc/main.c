@@ -35,9 +35,9 @@ static const struct GpTimerConfig chronoTimerConfig = {
 };
 
 static const struct SerialConfig serialConfig = {
-    .rate = 1500000,
     .rxLength = 16,
     .txLength = 8192,
+    .rate = 1500000,
     .rx = PIN(0, 3),
     .tx = PIN(0, 2),
     .priority = 1,

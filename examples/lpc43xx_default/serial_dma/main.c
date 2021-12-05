@@ -1,6 +1,6 @@
 /*
- * lpc17xx_default/serial_dma/main.c
- * Copyright (C) 2016 xent
+ * lpc43xx_default/serial_dma/main.c
+ * Copyright (C) 2021 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -11,56 +11,19 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_LENGTH 32
-#define LED_PIN       PIN(1, 8)
-#define UART_CHANNEL  1
+#define LED_PIN       PIN(PORT_6, 6)
 #define UART_RATE     19200
 #define USE_TIMER
 /*----------------------------------------------------------------------------*/
-static const struct SerialDmaConfig serialConfig[] = {
-    /* UART0 */
-    {
-        .rxChunks = 8,
-        .rxLength = BUFFER_LENGTH * 8,
-        .txLength = BUFFER_LENGTH * 8,
-        .rate = UART_RATE,
-        .rx = PIN(0, 3),
-        .tx = PIN(0, 2),
-        .channel = 0,
-        .dma = {0, 1}
-    },
-    /* UART1 */
-    {
-        .rxChunks = 8,
-        .rxLength = BUFFER_LENGTH * 8,
-        .txLength = BUFFER_LENGTH * 8,
-        .rate = UART_RATE,
-        .rx = PIN(0, 16),
-        .tx = PIN(0, 15),
-        .channel = 1,
-        .dma = {3, 2}
-    },
-    /* UART2 */
-    {
-        .rxChunks = 8,
-        .rxLength = BUFFER_LENGTH * 8,
-        .txLength = BUFFER_LENGTH * 8,
-        .rate = UART_RATE,
-        .rx = PIN(0, 11),
-        .tx = PIN(0, 10),
-        .channel = 2,
-        .dma = {0, 1}
-    },
-    /* UART3 */
-    {
-        .rxChunks = 8,
-        .rxLength = BUFFER_LENGTH * 8,
-        .txLength = BUFFER_LENGTH * 8,
-        .rate = UART_RATE,
-        .rx = PIN(4, 29),
-        .tx = PIN(4, 28),
-        .channel = 3,
-        .dma = {7, 6}
-    }
+static const struct SerialDmaConfig serialConfig = {
+    .rxChunks = 8,
+    .rxLength = BUFFER_LENGTH * 8,
+    .txLength = BUFFER_LENGTH * 8,
+    .rate = UART_RATE,
+    .rx = PIN(PORT_F, 11),
+    .tx = PIN(PORT_F, 10),
+    .channel = 0,
+    .dma = {0, 1}
 };
 
 static const struct GpTimerConfig timerConfig = {
@@ -68,18 +31,23 @@ static const struct GpTimerConfig timerConfig = {
     .channel = 0
 };
 /*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 16,
-    .multiplier = 32
+static const struct GenericClockConfig initialClockConfig = {
+    .source = CLOCK_INTERNAL
 };
 
 static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_PLL
+};
+
+static const struct ExternalOscConfig extOscConfig = {
+    .frequency = 12000000,
+    .bypass = false
+};
+
+static const struct PllConfig sysPllConfig = {
+    .source = CLOCK_EXTERNAL,
+    .divisor = 2,
+    .multiplier = 16
 };
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
@@ -94,11 +62,16 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
+  clockEnable(MainClock, &initialClockConfig);
+
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
+
+  clockEnable(Usart0Clock, &mainClockConfig);
+  while (!clockReady(Usart0Clock));
 
   clockEnable(MainClock, &mainClockConfig);
 }
@@ -131,8 +104,7 @@ int main(void)
 
   bool event = false;
 
-  struct Interface * const serial = init(SerialDma,
-      &serialConfig[UART_CHANNEL]);
+  struct Interface * const serial = init(SerialDma, &serialConfig);
   assert(serial);
   ifSetCallback(serial, onSerialEvent, &event);
 
