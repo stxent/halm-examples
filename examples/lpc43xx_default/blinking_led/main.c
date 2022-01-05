@@ -9,7 +9,7 @@
 #include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(PORT_7, 7)
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig timerConfig = {
     .frequency = 1000,

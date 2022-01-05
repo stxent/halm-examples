@@ -9,8 +9,8 @@
 #include <halm/platform/lpc/sct_timer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN_A PIN(PORT_6, 6)
-#define LED_PIN_B PIN(PORT_6, 7)
+#define LED_PIN_A PIN(PORT_7, 7)
+#define LED_PIN_B PIN(PORT_C, 11)
 
 #define TEST_UNIFIED
 /*----------------------------------------------------------------------------*/

@@ -81,7 +81,8 @@ static void onSerialEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 static void initStreams(struct StreamDescriptor *streams, void *parent)
 {
-  enum {
+  enum
+  {
     EP_INT,
     EP_RX,
     EP_TX
@@ -92,8 +93,7 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
           [EP_INT] = 0x81,
           [EP_RX]  = 0x02,
           [EP_TX]  = 0x82
-      },
-      {
+      }, {
           [EP_INT] = 0x83,
           [EP_RX]  = 0x04,
           [EP_TX]  = 0x84
@@ -102,8 +102,8 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
   static_assert(ARRAY_SIZE(endpointAddressMap) == STREAM_COUNT, "Error");
 
   const struct Pin leds[] = {
-      pinInit(PIN(PORT_6, 6)),
-      pinInit(PIN(PORT_6, 7))
+      pinInit(PIN(PORT_7, 7)),
+      pinInit(PIN(PORT_C, 11))
   };
   static_assert(ARRAY_SIZE(leds) == STREAM_COUNT, "Error");
 

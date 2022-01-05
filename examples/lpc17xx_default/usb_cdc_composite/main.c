@@ -68,7 +68,8 @@ static void onSerialEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 static void initStreams(struct StreamDescriptor *streams, void *parent)
 {
-  enum {
+  enum
+  {
     EP_INT,
     EP_RX,
     EP_TX
@@ -79,8 +80,7 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
           [EP_INT] = 0x81,
           [EP_RX]  = 0x02,
           [EP_TX]  = 0x82
-      },
-      {
+      }, {
           [EP_INT] = 0x83,
           [EP_RX]  = 0x04,
           [EP_TX]  = 0x84

@@ -11,7 +11,7 @@
 #include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(PORT_7, 7)
 
 /* Period between message groups in milliseconds */
 #define GROUP_PERIOD 10000

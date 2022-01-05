@@ -2,15 +2,11 @@
 # Project is distributed under the terms of the GNU General Public License v3.0
 
 project(halm-examples NONE)
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.13)
 cmake_policy(SET CMP0054 NEW)
 include(ExternalProject)
 
 # Build options
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build: Debug Release." FORCE)
-endif()
-
 option(USE_LTO "Enable Link Time Optimization." OFF)
 
 set(PATH_XCORE "${PROJECT_SOURCE_DIR}/xcore")

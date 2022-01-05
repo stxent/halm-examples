@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(PORT_7, 7)
 /*----------------------------------------------------------------------------*/
 extern unsigned long _stext;
 extern unsigned long _sidata;

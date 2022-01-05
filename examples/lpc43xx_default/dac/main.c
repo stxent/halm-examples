@@ -11,7 +11,7 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define DAC_PIN PIN(PORT_4, 4)
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(PORT_7, 7)
 
 #define VOLTAGE_RANGE 65536
 #define VOLTAGE_STEP  4096

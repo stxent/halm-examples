@@ -10,7 +10,7 @@
 #include <halm/platform/lpc/pin_int.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(PORT_6, 6)
+#define LED_PIN     PIN(PORT_7, 7)
 #define EVENT_PIN   PIN(PORT_3, 1)
 #define OUTPUT_PIN  PIN(PORT_3, 2)
 /*----------------------------------------------------------------------------*/

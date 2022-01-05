@@ -13,7 +13,7 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define CS_PIN  PIN(PORT_5, 0)
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(PORT_7, 7)
 
 #define TEST_DMA
 #define TEST_ZEROCOPY

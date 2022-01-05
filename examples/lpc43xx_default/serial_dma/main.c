@@ -11,7 +11,7 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_LENGTH 32
-#define LED_PIN       PIN(PORT_6, 6)
+#define LED_PIN       PIN(PORT_7, 7)
 #define UART_RATE     19200
 #define USE_TIMER
 /*----------------------------------------------------------------------------*/

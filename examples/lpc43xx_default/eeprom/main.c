@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_6, 6)
+#define LED_PIN PIN(PORT_7, 7)
 /*----------------------------------------------------------------------------*/
 static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_INTERNAL

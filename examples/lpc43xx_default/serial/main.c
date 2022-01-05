@@ -10,7 +10,7 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_LENGTH 64
-#define LED_PIN       PIN(PORT_6, 6)
+#define LED_PIN       PIN(PORT_7, 7)
 /*----------------------------------------------------------------------------*/
 static const struct SerialConfig serialConfig = {
     .rxLength = BUFFER_LENGTH,

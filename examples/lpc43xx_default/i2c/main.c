@@ -25,7 +25,7 @@
 #endif
 
 #define DEVICE_CLOCK  100000
-#define LED_PIN       PIN(PORT_6, 6)
+#define LED_PIN       PIN(PORT_7, 7)
 /*----------------------------------------------------------------------------*/
 enum DeviceState
 {

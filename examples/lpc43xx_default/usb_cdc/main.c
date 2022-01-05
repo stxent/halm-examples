@@ -11,7 +11,7 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define BUFFER_LENGTH 512
-#define LED_PIN       PIN(PORT_6, 6)
+#define LED_PIN       PIN(PORT_7, 7)
 #define USB_PORT      0
 /*----------------------------------------------------------------------------*/
 static const struct UsbDeviceConfig usbConfig[] = {
