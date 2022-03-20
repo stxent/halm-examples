@@ -4,32 +4,21 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include <halm/delay.h>
 #include <halm/pin.h>
-#include <halm/platform/lpc/gptimer.h>
 #include <halm/platform/lpc/pin_int.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(3, 0)
-#define EVENT_PIN   PIN(1, 0)
-#define OUTPUT_PIN  PIN(0, 1)
+#define EVENT_PIN PIN(1, 0)
+#define LED_PIN   PIN(3, 0)
 /*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = GPTIMER_CT32B0
-};
-
-static const struct PinIntConfig eventConfig = {
+static const struct PinIntConfig interruptConfig = {
     .pin = EVENT_PIN,
-    .event = PIN_RISING,
-    .pull = PIN_PULLDOWN
+    .event = PIN_FALLING,
+    .pull = PIN_PULLUP
 };
 /*----------------------------------------------------------------------------*/
 static void onExternalEvent(void *argument)
-{
-  pinReset(*(const struct Pin *)argument);
-}
-/*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
 }
@@ -39,39 +28,21 @@ int main(void)
   struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  struct Interrupt * const externalInterrupt = init(PinInt, &eventConfig);
-  assert(externalInterrupt);
-  interruptSetCallback(externalInterrupt, onExternalEvent, &led);
-
   bool event = false;
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 100);
-  timerSetCallback(timer, onTimerOverflow, &event);
-
-  const struct Pin output = pinInit(OUTPUT_PIN);
-  pinOutput(output, false);
-
-  interruptEnable(externalInterrupt);
-  timerEnable(timer);
+  struct Interrupt * const interrupt = init(PinInt, &interruptConfig);
+  assert(interrupt);
+  interruptSetCallback(interrupt, onExternalEvent, &event);
+  interruptEnable(interrupt);
 
   while (1)
   {
-    /* First phase */
     while (!event)
       barrier();
+
+    pinToggle(led);
+    mdelay(10);
     event = false;
-
-    pinSet(led);
-    pinSet(output);
-
-    /* Second phase */
-    while (!event)
-      barrier();
-    event = false;
-
-    pinReset(output);
   }
 
   return 0;

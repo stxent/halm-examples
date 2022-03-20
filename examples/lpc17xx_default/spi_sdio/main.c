@@ -223,6 +223,7 @@ int main(void)
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
       .timer = busyTimer,
+      .wq = 0,
       .blocks = 0,
       .cs = CS_PIN
   };

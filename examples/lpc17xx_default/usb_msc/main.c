@@ -41,36 +41,38 @@ static const struct GpTimerConfig busyTimerConfig = {
 static const struct SpiDmaConfig spiConfig[] = {
     {
         .rate = 12000000,
-        .sck = PIN(1, 20),
         .miso = PIN(0, 17),
         .mosi = PIN(0, 18),
-        .dma = {0, 1},
+        .sck = PIN(1, 20),
         .channel = 0,
-        .mode = 3
+        .mode = 3,
+        .dma = {0, 1}
     }, {
         .rate = 12000000,
-        .sck = PIN(0, 7),
         .miso = PIN(0, 8),
         .mosi = PIN(0, 9),
-        .dma = {3, 2},
+        .sck = PIN(0, 7),
         .channel = 1,
-        .mode = 3
+        .mode = 3,
+        .dma = {3, 2}
     }
 };
 #else
 static const struct SpiConfig spiConfig[] = {
     {
         .rate = 12000000,
-        .sck = PIN(1, 20),
         .miso = PIN(0, 17),
         .mosi = PIN(0, 18),
+        .sck = PIN(1, 20),
+        .priority = 0,
         .channel = 0,
         .mode = 3
     }, {
         .rate = 12000000,
-        .sck = PIN(0, 7),
         .miso = PIN(0, 8),
         .mosi = PIN(0, 9),
+        .sck = PIN(0, 7),
+        .priority = 0,
         .channel = 1,
         .mode = 3
     }
@@ -135,6 +137,7 @@ int main(void)
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
       .timer = busyTimer,
+      .wq = 0,
       .blocks = 0,
       .cs = CS_PIN
   };
