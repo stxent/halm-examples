@@ -1,6 +1,6 @@
 /*
- * lpc17xx_default/bod/main.c
- * Copyright (C) 2018 xent
+ * lpc13xx_default/bod/main.c
+ * Copyright (C) 2022 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -8,11 +8,11 @@
 #include <halm/platform/lpc/bod.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN_1 PIN(1, 10)
-#define LED_PIN_2 PIN(1, 9)
+#define LED_PIN_1 PIN(2, 3)
+#define LED_PIN_2 PIN(3, 1)
 /*----------------------------------------------------------------------------*/
 static const struct BodConfig bodConfig = {
-    .eventLevel = BOD_EVENT_2V2,
+    .eventLevel = BOD_EVENT_2V87,
     .resetLevel = BOD_RESET_DISABLED
 };
 /*----------------------------------------------------------------------------*/

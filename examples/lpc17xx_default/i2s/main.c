@@ -16,24 +16,35 @@ struct EventTuple
   struct Pin led;
 };
 
-#define CHANNEL_COUNT 2
-
-#define BUFFER_COUNT  2
-#define BUFFER_LENGTH 128
-
 #define LED_RX_PIN    PIN(1, 9)
 #define LED_TX_PIN    PIN(1, 10)
 /*----------------------------------------------------------------------------*/
+static const int16_t pattern[] = {
+         0,   4663,   9231,  13611,
+     17715,  21457,  24763,  27565,
+     29805,  31439,  32433,  32767,
+     32433,  31439,  29805,  27565,
+     24763,  21457,  17715,  13611,
+      9231,   4663,
+         0,  -4663,  -9231, -13611,
+    -17715, -21457, -24763, -27565,
+    -29805, -31439, -32433, -32767,
+    -32433, -31439, -29805, -27565,
+    -24763, -21457, -17715, -13611,
+     -9231,  -4663
+};
+
+#define BUFFER_COUNT  2
+#define CHANNEL_COUNT 2
+#define BUFFER_LENGTH (ARRAY_SIZE(pattern) * 8)
+
 static int16_t rxBuffers[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
 static int16_t txBuffers[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
 /*----------------------------------------------------------------------------*/
 static const struct I2SDmaConfig i2sConfig = {
-    .rate = 8000,
     .size = 2,
+    .rate = 44100,
     .width = I2S_WIDTH_16,
-    .channel = 0,
-    .mono = false,
-    .slave = false,
     .tx = {
         .sda = PIN(0, 9),
         .sck = PIN(0, 7),
@@ -44,7 +55,10 @@ static const struct I2SDmaConfig i2sConfig = {
     .rx = {
         .sda = PIN(0, 6),
         .dma = 1
-    }
+    },
+    .channel = 0,
+    .mono = false,
+    .slave = false
 };
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
@@ -94,16 +108,13 @@ static void onDataSent(void *argument, struct StreamRequest *request,
 /*----------------------------------------------------------------------------*/
 static void fillBuffers(void)
 {
-  for (size_t index = 0; index < BUFFER_LENGTH; ++index)
+  for (size_t buffer = 0; buffer < BUFFER_COUNT; ++buffer)
   {
-    txBuffers[0][index * 2 + 0] = -100 - index;
-    txBuffers[0][index * 2 + 1] = +100 + index;
-  }
-
-  for (size_t index = 0; index < BUFFER_LENGTH; ++index)
-  {
-    txBuffers[1][index * 2 + 0] = -10000 - index;
-    txBuffers[1][index * 2 + 1] = +10000 + index;
+    for (size_t index = 0; index < BUFFER_LENGTH; ++index)
+    {
+      txBuffers[buffer][index * 2 + 0] = +pattern[index % ARRAY_SIZE(pattern)];
+      txBuffers[buffer][index * 2 + 1] = -pattern[index % ARRAY_SIZE(pattern)];
+    }
   }
 
   memset(rxBuffers, 0, sizeof(rxBuffers));

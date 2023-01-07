@@ -51,7 +51,7 @@ static const struct GenericClockConfig sdClockConfig = {
 
 static const struct GenericDividerConfig dividerConfig = {
     .source = CLOCK_PLL,
-    .divisor = 2
+    .divisor = 4
 };
 
 static const struct ExternalOscConfig extOscConfig = {
@@ -61,8 +61,8 @@ static const struct ExternalOscConfig extOscConfig = {
 
 static const struct PllConfig sysPllConfig = {
     .source = CLOCK_EXTERNAL,
-    .divisor = 3,
-    .multiplier = 24
+    .divisor = 1,
+    .multiplier = 17
 };
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)

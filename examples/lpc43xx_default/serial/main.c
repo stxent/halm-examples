@@ -16,8 +16,8 @@ static const struct SerialConfig serialConfig = {
     .rxLength = BUFFER_LENGTH,
     .txLength = BUFFER_LENGTH,
     .rate = 19200,
-    .rx = PIN(2, 4),
-    .tx = PIN(2, 3),
+    .rx = PIN(PORT_2, 4),
+    .tx = PIN(PORT_2, 3),
     .channel = 3
 };
 /*----------------------------------------------------------------------------*/

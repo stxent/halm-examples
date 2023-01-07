@@ -13,18 +13,12 @@
 /*----------------------------------------------------------------------------*/
 #define TEST_REPEATED_START
 #define TEST_ZEROCOPY
-/* #define TEST_SLAVE */
 
-#ifndef TEST_SLAVE
-#define DEVICE_ADDRESS      0x50
-#define MEMORY_ADDRESS_SIZE 2
-#else
 #define DEVICE_ADDRESS      0x60
 #define MEMORY_ADDRESS_SIZE 1
-#endif
 
-#define DEVICE_CLOCK  100000
-#define LED_PIN       PIN(1, 8)
+#define DEVICE_CLOCK        100000
+#define LED_PIN             PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 enum DeviceState
 {
@@ -129,17 +123,8 @@ static void deviceConfigIO(struct DeviceDriver *device, bool rw)
   ifSetCallback(device->interface, deviceCallback, device);
 #endif
 
-#ifdef TEST_REPEATED_START
-  const bool sendStop = !rw;
-#else
-  const bool sendStop = true;
-  (void)rw; /* Suppress warning */
-#endif
-
-  res = ifSetParam(device->interface, IF_I2C_SENDSTOP, &sendStop);
-  assert(res == E_OK);
-
   (void)res; /* Suppress warning */
+  (void)rw; /* Suppress warning */
 }
 /*----------------------------------------------------------------------------*/
 static void deviceRead(struct DeviceDriver *device)

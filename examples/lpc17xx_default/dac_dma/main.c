@@ -52,10 +52,10 @@ static const struct GenericClockConfig mainClockConfig = {
 /*----------------------------------------------------------------------------*/
 static void fill(uint16_t *buffer)
 {
-  const size_t width = (ARRAY_SIZE(table) - 1) * 2;
+  const int width = (ARRAY_SIZE(table) - 1) * 2;
 
   for (size_t index = 0; index < BUFFER_LENGTH * 2; ++index)
-    buffer[index] = table[abs(index % width - width / 2)];
+    buffer[index] = table[(size_t)abs((int)index % width - width / 2)];
 }
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)

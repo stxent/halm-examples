@@ -134,17 +134,8 @@ static void deviceConfigIO(struct DeviceDriver *device, bool rw)
   ifSetCallback(device->interface, deviceCallback, device);
 #endif
 
-#ifdef TEST_REPEATED_START
-  const bool sendStop = !rw;
-#else
-  const bool sendStop = true;
-  (void)rw; /* Suppress warning */
-#endif
-
-  res = ifSetParam(device->interface, IF_I2C_SENDSTOP, &sendStop);
-  assert(res == E_OK);
-
   (void)res; /* Suppress warning */
+  (void)rw; /* Suppress warning */
 }
 /*----------------------------------------------------------------------------*/
 static void deviceRead(struct DeviceDriver *device)

@@ -67,11 +67,6 @@ int main(void)
 {
   setupClock();
 
-  pinOutput(pinInit(PIN(0, 2)), false);
-  pinOutput(pinInit(PIN(0, 3)), false);
-  pinOutput(pinInit(PIN(0, 26)), false);
-  pinOutput(pinInit(PIN(1, 30)), false);
-
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
