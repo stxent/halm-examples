@@ -1,17 +1,32 @@
 /*
- * m03x_default/serial/main.c
+ * m03x_default/adc_dma/main.c
  * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include <halm/pin.h>
+#include <halm/platform/numicro/adc_dma.h>
 #include <halm/platform/numicro/clocking.h>
+#include <halm/platform/numicro/gptimer.h>
 #include <halm/platform/numicro/serial.h>
 #include <assert.h>
+#include <stdio.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_LENGTH 64
+#define ADC_RATE      10
+#define BUFFER_LENGTH 128
 #define LED_PIN       PIN(PORT_B, 14)
 /*----------------------------------------------------------------------------*/
+static const PinNumber adcPinArray[] = {
+    PIN(PORT_B, 0), PIN(PORT_B, 3), PIN(PORT_B, 6), PIN(PORT_B, 9), 0
+};
+
+static const struct AdcDmaConfig adcConfig = {
+    .pins = adcPinArray,
+    .event = ADC_TIMER,
+    .channel = 0,
+    .dma = 0
+};
+
 static const struct SerialConfig serialConfig = {
     .rxLength = BUFFER_LENGTH,
     .txLength = BUFFER_LENGTH,
@@ -20,7 +35,20 @@ static const struct SerialConfig serialConfig = {
     .tx = PIN(PORT_A, 1),
     .channel = 0
 };
+
+static const struct GpTimerConfig timerConfig = {
+    .frequency = 1000000,
+    .channel = 0,
+    .trigger = {
+        .adc = true
+    }
+};
 /*----------------------------------------------------------------------------*/
+static const struct ExtendedClockConfig adcClockConfig = {
+    .source = CLOCK_PLL,
+    .divisor = 4
+};
+
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 32000000
 };
@@ -35,51 +63,22 @@ static const struct PllConfig sysPllConfig = {
     .divisor = 4,
     .multiplier = 12
 };
-
-static const struct ExtendedClockConfig uartClockConfig = {
-    .source = CLOCK_PLL,
-    .divisor = 2
-};
 /*----------------------------------------------------------------------------*/
-static void onSerialEvent(void *argument)
+static void onConversionCompleted(void *argument)
 {
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
-  const void * const UART_CLOCKS[] = {
-      Uart0Clock, Uart1Clock, Uart2Clock, Uart3Clock,
-      Uart4Clock, Uart5Clock, Uart6Clock, Uart7Clock
-  };
-
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
 
-  clockEnable(UART_CLOCKS[serialConfig.channel], &uartClockConfig);
+  clockEnable(AdcClock, &adcClockConfig);
   clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
-static void transferData(struct Interface *interface, struct Pin led)
-{
-  size_t available = 0;
-
-  pinSet(led);
-
-  do
-  {
-    uint8_t buffer[BUFFER_LENGTH];
-    const size_t length = ifRead(interface, buffer, sizeof(buffer));
-
-    ifWrite(interface, buffer, length);
-    ifGetParam(interface, IF_RX_AVAILABLE, &available);
-  }
-  while (available > 0);
-
-  pinReset(led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -89,11 +88,21 @@ int main(void)
   const struct Pin led = pinInit(LED_PIN);
   pinOutput(led, false);
 
-  bool event = false;
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer);
 
   struct Interface * const serial = init(Serial, &serialConfig);
   assert(serial);
-  ifSetCallback(serial, onSerialEvent, &event);
+
+  struct Interface * const adc = init(AdcDma, &adcConfig);
+  assert(adc);
+
+  const size_t count = ARRAY_SIZE(adcPinArray) - 1;
+  bool event = false;
+
+  ifSetCallback(adc, onConversionCompleted, &event);
+  timerSetOverflow(timer, timerGetFrequency(timer) / ADC_RATE);
+  timerEnable(timer);
 
   while (1)
   {
@@ -101,7 +110,18 @@ int main(void)
       barrier();
     event = false;
 
-    transferData(serial, led);
+    uint16_t buffer[count];
+    char text[count * 6 + 3];
+    char *iter = text;
+
+    ifRead(adc, buffer, sizeof(buffer));
+
+    for (size_t index = 0; index < count; ++index)
+      iter += sprintf(iter, "%5u ", (unsigned int)buffer[index]);
+    iter += sprintf(iter, "\r\n");
+    ifWrite(serial, text, iter - text);
+
+    pinToggle(led);
   }
 
   return 0;

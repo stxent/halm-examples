@@ -10,7 +10,7 @@
 #include <halm/platform/lpc/serial_dma.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_LENGTH 32
+#define BUFFER_LENGTH 128
 #define LED_PIN       PIN(1, 8)
 #define UART_CHANNEL  1
 #define UART_RATE     19200
@@ -19,9 +19,9 @@
 static const struct SerialDmaConfig serialConfig[] = {
     /* UART0 */
     {
-        .rxChunks = 8,
-        .rxLength = BUFFER_LENGTH * 8,
-        .txLength = BUFFER_LENGTH * 8,
+        .rxChunks = 4,
+        .rxLength = BUFFER_LENGTH,
+        .txLength = BUFFER_LENGTH,
         .rate = UART_RATE,
         .rx = PIN(0, 3),
         .tx = PIN(0, 2),
@@ -30,9 +30,9 @@ static const struct SerialDmaConfig serialConfig[] = {
     },
     /* UART1 */
     {
-        .rxChunks = 8,
-        .rxLength = BUFFER_LENGTH * 8,
-        .txLength = BUFFER_LENGTH * 8,
+        .rxChunks = 4,
+        .rxLength = BUFFER_LENGTH,
+        .txLength = BUFFER_LENGTH,
         .rate = UART_RATE,
         .rx = PIN(0, 16),
         .tx = PIN(0, 15),
@@ -41,9 +41,9 @@ static const struct SerialDmaConfig serialConfig[] = {
     },
     /* UART2 */
     {
-        .rxChunks = 8,
-        .rxLength = BUFFER_LENGTH * 8,
-        .txLength = BUFFER_LENGTH * 8,
+        .rxChunks = 4,
+        .rxLength = BUFFER_LENGTH,
+        .txLength = BUFFER_LENGTH,
         .rate = UART_RATE,
         .rx = PIN(0, 11),
         .tx = PIN(0, 10),
@@ -52,9 +52,9 @@ static const struct SerialDmaConfig serialConfig[] = {
     },
     /* UART3 */
     {
-        .rxChunks = 8,
-        .rxLength = BUFFER_LENGTH * 8,
-        .txLength = BUFFER_LENGTH * 8,
+        .rxChunks = 4,
+        .rxLength = BUFFER_LENGTH,
+        .txLength = BUFFER_LENGTH,
         .rate = UART_RATE,
         .rx = PIN(4, 29),
         .tx = PIN(4, 28),
