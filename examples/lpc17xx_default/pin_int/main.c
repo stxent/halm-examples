@@ -4,13 +4,12 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/delay.h>
-#include <halm/pin.h>
 #include <halm/platform/lpc/pin_int.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define EVENT_PIN PIN(2, 10)
-#define LED_PIN   PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static const struct PinIntConfig interruptConfig = {
     .pin = EVENT_PIN,
@@ -25,7 +24,7 @@ static void onExternalEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Pin led = pinInit(LED_PIN);
+  struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
   bool event = false;

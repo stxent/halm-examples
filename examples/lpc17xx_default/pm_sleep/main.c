@@ -4,72 +4,35 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/delay.h>
 #include <halm/gpio_bus.h>
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
 #include <halm/pm.h>
+#include <halm/timer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN_0 PIN(1, 8)
-#define LED_PIN_1 PIN(1, 9)
-#define LED_PIN_2 PIN(1, 10)
-/*----------------------------------------------------------------------------*/
-static struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-
 static const struct SimpleGpioBusConfig busConfig = {
     .pins = (const PinNumber []){
-        LED_PIN_0, LED_PIN_1, LED_PIN_2, 0
+        BOARD_LED_0, BOARD_LED_1, BOARD_LED_2, 0
     },
     .initial = 0,
     .direction = PIN_OUTPUT
 };
-
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 18,
-    .multiplier = 30
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_PLL
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument __attribute__((unused)))
 {
-
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockPll();
 
   struct GpioBus * const leds = init(SimpleGpioBus, &busConfig);
   assert(leds);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) * 5);
   timerSetCallback(timer, onTimerOverflow, 0);
-  timerSetOverflow(timer, 5000);
   timerEnable(timer);
 
   uint32_t state = 1;

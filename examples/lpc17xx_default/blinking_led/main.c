@@ -4,11 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/core/cortex/systick.h>
-#include <halm/pin.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -17,7 +15,9 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
+  bool event = false;
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
   /*
@@ -26,9 +26,8 @@ int main(void)
    */
   struct Timer * const timer = init(SysTickTimer, 0);
   assert(timer);
-  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
 
-  bool event = false;
+  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 

@@ -4,7 +4,7 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
+#include "board.h"
 #include <halm/platform/lpc/rtc.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
@@ -12,8 +12,6 @@
 #define RTC_ALARM_PERIOD  5
 /* January 1, 2017, 00:00:00 */
 #define RTC_INITIAL_TIME  1483228800
-
-#define LED_PIN           PIN(1, 8)
 /*----------------------------------------------------------------------------*/
 struct Context
 {
@@ -38,7 +36,7 @@ int main(void)
 {
   struct Context context;
 
-  context.led = pinInit(LED_PIN);
+  context.led = pinInit(BOARD_LED);
   pinOutput(context.led, false);
 
   pinSet(context.led);

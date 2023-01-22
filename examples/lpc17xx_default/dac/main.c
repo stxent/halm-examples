@@ -4,26 +4,14 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/dac.h>
-#include <halm/platform/lpc/gptimer.h>
+#include "board.h"
+#include <halm/timer.h>
+#include <xcore/interface.h>
+#include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define DAC_PIN PIN(0, 26)
-#define LED_PIN PIN(1, 8)
-
 #define VOLTAGE_RANGE 65536
 #define VOLTAGE_STEP  4096
-/*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-
-static const struct DacConfig dacConfig = {
-    .pin = DAC_PIN,
-    .value = VOLTAGE_RANGE / 2
-};
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -32,15 +20,13 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  struct Interface * const dac = init(Dac, &dacConfig);
-  assert(dac);
+  struct Interface * const dac = boardSetupDac();
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 1000);
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer));
 
   bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);

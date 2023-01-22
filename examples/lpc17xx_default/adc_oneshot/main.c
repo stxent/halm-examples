@@ -4,23 +4,11 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/adc_oneshot.h>
-#include <halm/platform/lpc/gptimer.h>
+#include "board.h"
+#include <halm/timer.h>
+#include <xcore/interface.h>
+#include <xcore/memory.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define INPUT_PIN PIN(0, 25)
-#define LED_PIN   PIN(1, 8)
-/*----------------------------------------------------------------------------*/
-static const struct AdcOneShotConfig adcConfig = {
-    .pin = INPUT_PIN,
-    .channel = 0
-};
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -29,17 +17,15 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
+  bool event = false;
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  struct Interface * const adc = init(AdcOneShot, &adcConfig);
-  assert(adc);
+  struct Interface * const adc = boardSetupAdcOneShot();
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 1000);
-
-  bool event = false;
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer));
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 

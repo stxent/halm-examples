@@ -4,10 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
+#include "board.h"
 #include <halm/platform/lpc/gppwm.h>
-#include <halm/platform/lpc/gptimer.h>
+#include <halm/timer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 #define DOUBLE_EDGE_PIN     PIN(1, 18)
@@ -23,27 +22,6 @@ static const struct GpPwmUnitConfig pwmUnitConfig = {
     .resolution = 10,
     .channel = 0
 };
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_EXTERNAL
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *arg __attribute__((unused)))
 {
@@ -61,7 +39,7 @@ static void onTimerOverflow(void *arg __attribute__((unused)))
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockPll();
 
   struct GpPwmUnit * const pwmUnit = init(GpPwmUnit, &pwmUnitConfig);
   assert(pwmUnit);
@@ -81,9 +59,8 @@ int main(void)
   pwmSetEdges(doubleEdge, 0, 0);
   pwmEnable(doubleEdge);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 10);
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) / 100);
   timerSetCallback(timer, onTimerOverflow, 0);
   timerEnable(timer);
 

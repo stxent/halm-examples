@@ -4,83 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/serial_dma.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define BUFFER_LENGTH 128
-#define LED_PIN       PIN(1, 8)
-#define UART_CHANNEL  1
-#define UART_RATE     19200
-#define USE_TIMER
-/*----------------------------------------------------------------------------*/
-static const struct SerialDmaConfig serialConfig[] = {
-    /* UART0 */
-    {
-        .rxChunks = 4,
-        .rxLength = BUFFER_LENGTH,
-        .txLength = BUFFER_LENGTH,
-        .rate = UART_RATE,
-        .rx = PIN(0, 3),
-        .tx = PIN(0, 2),
-        .channel = 0,
-        .dma = {0, 1}
-    },
-    /* UART1 */
-    {
-        .rxChunks = 4,
-        .rxLength = BUFFER_LENGTH,
-        .txLength = BUFFER_LENGTH,
-        .rate = UART_RATE,
-        .rx = PIN(0, 16),
-        .tx = PIN(0, 15),
-        .channel = 1,
-        .dma = {3, 2}
-    },
-    /* UART2 */
-    {
-        .rxChunks = 4,
-        .rxLength = BUFFER_LENGTH,
-        .txLength = BUFFER_LENGTH,
-        .rate = UART_RATE,
-        .rx = PIN(0, 11),
-        .tx = PIN(0, 10),
-        .channel = 2,
-        .dma = {0, 1}
-    },
-    /* UART3 */
-    {
-        .rxChunks = 4,
-        .rxLength = BUFFER_LENGTH,
-        .txLength = BUFFER_LENGTH,
-        .rate = UART_RATE,
-        .rx = PIN(4, 29),
-        .tx = PIN(4, 28),
-        .channel = 3,
-        .dma = {7, 6}
-    }
-};
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 16,
-    .multiplier = 32
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_PLL
-};
+#include "board.h"
+#include <halm/timer.h>
+#include <xcore/interface.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
@@ -92,17 +19,6 @@ static void onTimerOverflow(void *argument)
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 static void transferData(struct Interface *interface, struct Pin led)
 {
   size_t available = 0;
@@ -111,7 +27,7 @@ static void transferData(struct Interface *interface, struct Pin led)
 
   do
   {
-    uint8_t buffer[BUFFER_LENGTH];
+    uint8_t buffer[BOARD_UART_BUFFER];
     const size_t length = ifRead(interface, buffer, sizeof(buffer));
 
     ifWrite(interface, buffer, length);
@@ -124,20 +40,17 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
-
-  const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
-
   bool event = false;
 
-  struct Interface * const serial = init(SerialDma,
-      &serialConfig[UART_CHANNEL]);
-  assert(serial);
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interface * const serial = boardSetupSerialDma();
   ifSetCallback(serial, onSerialEvent, &event);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
+  struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, 100);
   timerSetCallback(timer, onTimerOverflow, &event);
 

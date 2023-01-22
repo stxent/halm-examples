@@ -4,15 +4,12 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/core/cortex/nvic.h>
 #include <halm/delay.h>
-#include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN_A PIN(1, 8)
-#define LED_PIN_B PIN(1, 9)
-
 /* #define ENABLE_GROUPING */
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig lowPriTimerConfig = {
@@ -25,14 +22,6 @@ static const struct GpTimerConfig highPriTimerConfig = {
     .frequency = 1000,
     .channel = 1,
     .priority = 3
-};
-
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_EXTERNAL
 };
 /*----------------------------------------------------------------------------*/
 static void lowPriCallback(void *argument)
@@ -53,21 +42,13 @@ static void highPriCallback(void *argument)
   pinReset(*pin);
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockPll();
 
   struct Pin led[] = {
-      pinInit(LED_PIN_A),
-      pinInit(LED_PIN_B)
+      pinInit(BOARD_LED_0),
+      pinInit(BOARD_LED_1)
   };
 
   pinOutput(led[0], false);

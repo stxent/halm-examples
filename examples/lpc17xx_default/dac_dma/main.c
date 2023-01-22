@@ -4,8 +4,7 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
+#include "board.h"
 #include <halm/platform/lpc/dac_dma.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -18,15 +17,6 @@ struct EventTuple
 
 #define BUFFER_COUNT  2
 #define BUFFER_LENGTH 512
-#define LED_PIN       PIN(1, 8)
-/*----------------------------------------------------------------------------*/
-static const struct DacDmaConfig dacConfig = {
-    .size = 2,
-    .rate = 96000,
-    .value = 32768,
-    .pin = PIN(0, 26),
-    .dma = 0
-};
 /*----------------------------------------------------------------------------*/
 static const uint16_t table[] = {
     0,     157,   629,   1410,
@@ -42,28 +32,12 @@ static const uint16_t table[] = {
 
 static uint16_t buffers[BUFFER_COUNT * BUFFER_LENGTH];
 /*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_EXTERNAL
-};
-/*----------------------------------------------------------------------------*/
-static void fill(uint16_t *buffer)
+static void fillBuffers(uint16_t *buffer)
 {
   const int width = (ARRAY_SIZE(table) - 1) * 2;
 
   for (size_t index = 0; index < BUFFER_LENGTH * 2; ++index)
     buffer[index] = table[(size_t)abs((int)index % width - width / 2)];
-}
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument, struct StreamRequest *request,
@@ -78,16 +52,13 @@ static void onConversionCompleted(void *argument, struct StreamRequest *request,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
-  fill(buffers);
+  boardSetupClockPll();
+  fillBuffers(buffers);
 
-  const struct Pin led = pinInit(LED_PIN);
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
-  const struct Pin auxpwr = pinInit(PIN(2, 8));
-  pinOutput(auxpwr, false);
 
-  struct DacDma * const dac = init(DacDma, &dacConfig);
-  assert(dac);
+  struct DacDma * const dac = boardSetupDacDma();
   struct Stream * const stream = dacDmaGetOutput(dac);
   assert(stream);
 

@@ -59,11 +59,27 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
     set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 endif()
 
+# Gather shared objects
+if(EXISTS "${PROJECT_SOURCE_DIR}/${BUNDLE}/shared")
+    file(GLOB_RECURSE SHARED_SOURCES "${BUNDLE}/shared/*.c")
+    add_library(shared OBJECT ${SHARED_SOURCES})
+    target_include_directories(shared PUBLIC "${BUNDLE}/shared")
+    target_link_libraries(shared PRIVATE halm)
+endif()
+
 list_directories(EXAMPLES_LIST "${PROJECT_SOURCE_DIR}/${BUNDLE}")
 foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
+    if(${EXAMPLE_NAME} STREQUAL "shared")
+        continue()
+    endif()
+
     file(GLOB_RECURSE EXAMPLE_SOURCES "${BUNDLE}/${EXAMPLE_NAME}/*.c")
     add_executable("${EXAMPLE_NAME}" ${EXAMPLE_SOURCES})
     target_link_libraries("${EXAMPLE_NAME}" PRIVATE halm)
+
+    if(TARGET shared)
+        target_link_libraries("${EXAMPLE_NAME}" PRIVATE shared)
+    endif()
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
         if(USE_DFU)
