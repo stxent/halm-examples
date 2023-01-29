@@ -5,8 +5,9 @@
  */
 
 #include "board.h"
-#include <xcore/interface.h>
+#include <halm/generic/serial.h>
 #include <xcore/memory.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
@@ -34,7 +35,11 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const uint32_t UART_TEST_RATE = 19200;
+  static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
+
   bool event = false;
+  enum Result res;
 
   boardSetupClockPll();
 
@@ -43,6 +48,13 @@ int main(void)
 
   struct Interface * const serial = boardSetupSerial();
   ifSetCallback(serial, onSerialEvent, &event);
+  res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
+  assert(res == E_OK);
+  res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
+  assert(res == E_OK);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {

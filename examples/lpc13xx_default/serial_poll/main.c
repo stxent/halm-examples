@@ -4,29 +4,31 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/serial_poll.h>
+#include "board.h"
+#include <halm/generic/serial.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE 16
-#define LED_PIN     PIN(3, 0)
-/*----------------------------------------------------------------------------*/
-static const struct SerialPollConfig serialConfig = {
-    .rate = 19200,
-    .rx = PIN(1, 6),
-    .tx = PIN(1, 7),
-    .channel = 0
-};
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
+  static const uint32_t UART_TEST_RATE = 19200;
+  static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
+
+  char buffer[BOARD_UART_BUFFER];
+  enum Result res;
+
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  struct Interface * const serial = init(SerialPoll, &serialConfig);
-  assert(serial);
+  struct Interface * const serial = boardSetupSerialPoll();
+  res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
+  assert(res == E_OK);
+  res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
+  assert(res == E_OK);
 
-  char buffer[BUFFER_SIZE];
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {

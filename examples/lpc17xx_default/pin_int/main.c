@@ -6,16 +6,8 @@
 
 #include "board.h"
 #include <halm/delay.h>
-#include <halm/platform/lpc/pin_int.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define EVENT_PIN PIN(2, 10)
-/*----------------------------------------------------------------------------*/
-static const struct PinIntConfig interruptConfig = {
-    .pin = EVENT_PIN,
-    .event = PIN_FALLING,
-    .pull = PIN_PULLUP
-};
+#include <halm/interrupt.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onExternalEvent(void *argument)
 {
@@ -24,13 +16,14 @@ static void onExternalEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  bool event = false;
+
+  boardSetupClockExt();
+
   struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  bool event = false;
-
-  struct Interrupt * const interrupt = init(PinInt, &interruptConfig);
-  assert(interrupt);
+  struct Interrupt * const interrupt = boardSetupButton();
   interruptSetCallback(interrupt, onExternalEvent, &event);
   interruptEnable(interrupt);
 

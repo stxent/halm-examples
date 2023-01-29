@@ -10,8 +10,7 @@
 #include <xcore/memory.h>
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
-#define ADC_RATE      50
-#define BUFFER_LENGTH 128
+#define ADC_RATE 50
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument)
 {

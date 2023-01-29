@@ -5,62 +5,57 @@
  */
 
 #include "board.h"
+#include <halm/generic/spi.h>
 #include <halm/timer.h>
-#include <xcore/interface.h>
 #include <xcore/memory.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define TEST_DMA
-#define TEST_ZEROCOPY
-/*----------------------------------------------------------------------------*/
-#ifdef TEST_ZEROCOPY
-static void onTransferCompleted(void *argument)
-{
-  ++(*(unsigned int *)argument);
-}
-#endif
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
+static void onTransferCompleted(void *argument)
+{
+  ++(*(unsigned int *)argument);
+}
+/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t spiTestRate = 400000;
-  enum Result res;
-
-  const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
-
-  const struct Pin cs = pinInit(BOARD_SPI_CS);
-  pinOutput(cs, true);
-
-#ifdef TEST_DMA
-  struct Interface * const spi = boardSetupSpiDma();
-#else
-  struct Interface * const spi = boardSetupSpi();
-#endif
-  res = ifSetParam(spi, IF_RATE, &spiTestRate);
-  assert(res == E_OK);
-
-  struct Timer * const timer = boardSetupTimer();
-  timerSetOverflow(timer, timerGetFrequency(timer) / 4);
+  static const uint32_t SPI_TEST_RATE = 400000;
+  static const uint8_t SPI_TEST_MODE = 3;
+  static const bool USE_ZEROCOPY = true;
 
   unsigned int value = 0;
   bool event = false;
+  enum Result res;
 
-#ifdef TEST_ZEROCOPY
-  res = ifSetParam(spi, IF_ZEROCOPY, 0);
+  boardSetupClockPll();
+
+  const struct Pin cs = pinInit(BOARD_SPI_CS);
+  pinOutput(cs, true);
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interface * const spi = boardSetupSpi();
+  res = ifSetParam(spi, IF_RATE, &SPI_TEST_RATE);
   assert(res == E_OK);
-  ifSetCallback(spi, onTransferCompleted, &value);
-#endif
+  res = ifSetParam(spi, IF_SPI_MODE, &SPI_TEST_MODE);
+  assert(res == E_OK);
+
+  if (USE_ZEROCOPY)
+  {
+    ifSetParam(spi, IF_ZEROCOPY, 0);
+    ifSetCallback(spi, onTransferCompleted, &value);
+  }
+
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) / 4);
+  timerSetCallback(timer, onTimerOverflow, &event);
+  timerEnable(timer);
 
   /* Suppress warning */
   (void)res;
-
-  timerSetCallback(timer, onTimerOverflow, &event);
-  timerEnable(timer);
 
   while (1)
   {
@@ -76,9 +71,8 @@ int main(void)
     pinSet(cs);
     pinReset(led);
 
-#ifndef TEST_ZEROCOPY
-    ++value;
-#endif
+    if (!USE_ZEROCOPY)
+      ++value;
   }
 
   return 0;

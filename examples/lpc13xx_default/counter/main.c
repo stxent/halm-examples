@@ -4,50 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/gptimer_counter.h>
-#include <halm/platform/lpc/gptimer_pwm.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(3, 0)
-
-#define EVENT_PIN   PIN(1, 0)
-#define OUTPUT_PIN  PIN(0, 1)
-/*----------------------------------------------------------------------------*/
-static const struct GpTimerPwmUnitConfig pwmUnitConfig = {
-    .frequency = 1000,
-    .resolution = 10,
-    .channel = GPTIMER_CT32B0
-};
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = GPTIMER_CT16B0
-};
-
-static const struct GpTimerCounterConfig counterConfig = {
-    .edge = PIN_RISING,
-    .pin = EVENT_PIN,
-    .channel = GPTIMER_CT32B1
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_EXTERNAL
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
+#include "board.h"
+#include <halm/pwm.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -56,30 +16,28 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  bool event = false;
 
-  const struct Pin led = pinInit(LED_PIN);
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
-  struct GpTimerPwmUnit * const pwmUnit = init(GpTimerPwmUnit, &pwmUnitConfig);
-  assert(pwmUnit);
-  struct Pwm * const pwmOutput = gpTimerPwmCreate(pwmUnit, OUTPUT_PIN);
-  assert(pwmOutput);
-  pwmSetDuration(pwmOutput, pwmGetResolution(pwmOutput) / 2);
+  struct Timer * const counterTimer = boardSetupCounterTimer();
+  timerEnable(counterTimer);
 
-  struct Timer * const counter = init(GpTimerCounter, &counterConfig);
-  assert(counter);
+  struct Timer * const eventTimer = boardSetupTimer();
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
+  timerSetCallback(eventTimer, onTimerOverflow, &event);
+  timerEnable(eventTimer);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 1000);
+  struct PwmPackage pwm = boardSetupPwm();
+  pwmSetEdges(pwm.output, 0, timerGetOverflow(pwm.timer) / 2);
+  pwmEnable(pwm.output);
+  timerEnable(pwm.timer);
 
-  bool event = false;
-  timerSetCallback(timer, onTimerOverflow, &event);
-
-  timerEnable(counter);
-  pwmEnable(pwmOutput);
-  timerEnable(timer);
+  const uint32_t PWM_FREQUENCY =
+      timerGetFrequency(pwm.timer) / timerGetOverflow(pwm.timer);
 
   while (1)
   {
@@ -87,10 +45,10 @@ int main(void)
       barrier();
     event = false;
 
-    const uint32_t period = timerGetValue(counter);
-    timerSetValue(counter, 0);
+    const uint32_t period = timerGetValue(counterTimer);
+    timerSetValue(counterTimer, 0);
 
-    if (period >= 999 && period <= 1001)
+    if (period >= PWM_FREQUENCY - 1 && period <= PWM_FREQUENCY + 1)
       pinReset(led);
     else
       pinSet(led);

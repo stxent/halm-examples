@@ -5,22 +5,16 @@
  */
 
 #include "board.h"
-#include <halm/platform/lpc/rtc.h>
+#include <xcore/realtime.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */
 #define RTC_ALARM_PERIOD  5
-/* January 1, 2017, 00:00:00 */
-#define RTC_INITIAL_TIME  1483228800
 /*----------------------------------------------------------------------------*/
 struct Context
 {
   struct Pin led;
   struct RtClock *rtc;
-};
-/*----------------------------------------------------------------------------*/
-static const struct RtcConfig rtcConfig = {
-    .timestamp = RTC_INITIAL_TIME
 };
 /*----------------------------------------------------------------------------*/
 static void onTimerAlarm(void *argument)
@@ -36,12 +30,13 @@ int main(void)
 {
   struct Context context;
 
+  boardSetupClockExt();
+
   context.led = pinInit(BOARD_LED);
   pinOutput(context.led, false);
 
   pinSet(context.led);
-  context.rtc = init(Rtc, &rtcConfig);
-  assert(context.rtc);
+  context.rtc = boardSetupRtc();
   rtSetCallback(context.rtc, onTimerAlarm, &context);
   pinReset(context.led);
 

@@ -9,8 +9,6 @@
 #include <halm/watchdog.h>
 #include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
-#define INPUT_PIN PIN(1, 19)
-/*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
@@ -20,13 +18,14 @@ int main(void)
 {
   bool event = false;
 
-  const struct Pin input = pinInit(INPUT_PIN);
+  boardSetupClockExt();
+
+  const struct Pin input = pinInit(BOARD_BUTTON);
   pinInput(input);
   pinSetPull(input, PIN_PULLDOWN);
 
   const struct Pin failLed = pinInit(BOARD_LED_0);
   pinOutput(failLed, true);
-
   const struct Pin workLed = pinInit(BOARD_LED_1);
   pinOutput(workLed, true);
 

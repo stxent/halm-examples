@@ -4,25 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/stm32/dma_base.h>
-#include <halm/platform/stm32/serial_dma.h>
+#include "board.h"
+#include <halm/generic/serial.h>
+#include <xcore/memory.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define BUFFER_LENGTH 64
-#define LED_PIN       PIN(PORT_C, 13)
-/*----------------------------------------------------------------------------*/
-static const struct SerialDmaConfig serialConfig = {
-    .rxChunk = BUFFER_LENGTH / 4,
-    .rxLength = BUFFER_LENGTH,
-    .txLength = BUFFER_LENGTH,
-    .rate = 19200,
-    .rx = PIN(PORT_B, 7),
-    .tx = PIN(PORT_B, 6),
-    .channel = 0,
-    .rxDma = DMA1_STREAM5,
-    .txDma = DMA1_STREAM4
-};
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
@@ -37,7 +22,7 @@ static void transferData(struct Interface *interface, struct Pin led)
 
   do
   {
-    uint8_t buffer[BUFFER_LENGTH];
+    uint8_t buffer[BOARD_UART_BUFFER];
     const size_t length = ifRead(interface, buffer, sizeof(buffer));
 
     ifWrite(interface, buffer, length);
@@ -50,14 +35,26 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
+  static const uint32_t UART_TEST_RATE = 19200;
+  static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
 
   bool event = false;
+  enum Result res;
 
-  struct Interface * const serial = init(SerialDma, &serialConfig);
-  assert(serial);
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interface * const serial = boardSetupSerialDma();
   ifSetCallback(serial, onSerialEvent, &event);
+  res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
+  assert(res == E_OK);
+  res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
+  assert(res == E_OK);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {

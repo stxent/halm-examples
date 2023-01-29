@@ -8,74 +8,84 @@
 #include "interface_wrapper.h"
 #include <halm/generic/mmcsd.h>
 #include <halm/generic/sdio_spi.h>
+#include <halm/generic/spi.h>
 #include <halm/platform/lpc/gptimer.h>
 #include <halm/usb/msc.h>
 #include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE 8192
-#define TEST_DMA
-#define TEST_LED
-/*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig busyTimerConfig = {
-    .frequency = 100000,
-    .channel = 1
-};
+#define BUFFER_SIZE     8192
+#define SDIO_POLL_RATE  5000
 /*----------------------------------------------------------------------------*/
 static uint8_t arena[BUFFER_SIZE];
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t spiSdioRate = 12000000;
+  static const uint32_t SPI_SDIO_RATE = 12000000;
+  static const uint8_t SPI_SDIO_MODE = 3;
+  static const bool USE_BUSY_TIMER = true;
+  static const bool USE_INDICATION = true;
+  static const bool USE_SPI_DMA = true;
 
   boardSetupClockPll();
 
-  /* Helper timer */
-  struct Timer * const busyTimer = init(GpTimer, &busyTimerConfig);
-  assert(busyTimer);
-  /* Set 5 kHz update event rate */
-  timerSetOverflow(busyTimer, timerGetFrequency(busyTimer) / 5000);
+  /* Helper timer for SDIO status polling */
+  struct Timer * const timer = USE_BUSY_TIMER ? boardSetupAdcTimer() : 0;
+
+  if (timer)
+  {
+    /* Set 5 kHz update event rate */
+    assert(timerGetFrequency(timer) >= 10 * SDIO_POLL_RATE);
+    timerSetOverflow(timer, timerGetFrequency(timer) / SDIO_POLL_RATE);
+  }
+
+  struct Interface *card;
+  struct Interface *sdio;
+  struct Interface *spi;
+  struct Interface *wrapper;
+  enum Result res;
 
   /* Initialize SPI layer */
-#ifdef TEST_DMA
-  struct Interface * const spi = boardSetupSpiDma();
-#else
-  struct Interface * const spi = boardSetupSpi();
-#endif
-  ifSetParam(spi, IF_RATE, &spiSdioRate);
+  spi = USE_SPI_DMA ? boardSetupSdioSpiDma() : boardSetupSdioSpi();
+  res = ifSetParam(spi, IF_RATE, &SPI_SDIO_RATE);
+  assert(res == E_OK);
+  res = ifSetParam(spi, IF_SPI_MODE, &SPI_SDIO_MODE);
+  assert(res == E_OK);
 
   /* Initialize SDIO layer */
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
-      .timer = busyTimer,
+      .timer = timer,
       .wq = 0,
       .blocks = 0,
       .cs = BOARD_SDIO_CS
   };
-  struct Interface * const sdio = init(SdioSpi, &sdioConfig);
+  sdio = init(SdioSpi, &sdioConfig);
   assert(sdio);
 
-#ifdef TEST_LED
   /* Optional wrapper for R/W operations indication */
-  const struct InterfaceWrapperConfig wrapperConfig = {
-      .pipe = sdio,
-      .rx = BOARD_LED_0,
-      .tx = BOARD_LED_1
-  };
-  struct Interface * const wrapper = init(InterfaceWrapper, &wrapperConfig);
-  assert(wrapper);
-#else
-  struct Interface * const wrapper = sdio;
-#endif
+  if (USE_INDICATION)
+  {
+    const struct InterfaceWrapperConfig wrapperConfig = {
+        .pipe = sdio,
+        .rx = BOARD_LED_1,
+        .tx = BOARD_LED_0
+    };
+    wrapper = init(InterfaceWrapper, &wrapperConfig);
+    assert(wrapper);
+  }
+  else
+    wrapper = 0;
 
   /* Initialize SD Card layer */
   const struct MMCSDConfig cardConfig = {
       .interface = wrapper,
       .crc = false
   };
-  struct Interface * const card = init(MMCSD, &cardConfig);
+  card = init(MMCSD, &cardConfig);
   assert(card);
-  ifSetParam(card, IF_ZEROCOPY, 0);
+  res = ifSetParam(card, IF_ZEROCOPY, 0);
+  assert(res == E_OK);
 
   /* Initialize USB peripheral */
   struct Entity * const usb = boardSetupUsb();
@@ -97,6 +107,9 @@ int main(void)
 
   mscAttachUnit(msc, 0, card);
   usbDevSetConnected(usb, true);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1);
   return 0;

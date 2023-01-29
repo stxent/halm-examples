@@ -15,13 +15,15 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  bool event = false;
+
+  boardSetupClockExt();
+
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
   struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer) / 2);
-
-  bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 

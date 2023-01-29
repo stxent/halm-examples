@@ -4,75 +4,39 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/gptimer_pwm.h>
-#include <assert.h>
+#include "board.h"
+#include <halm/pwm.h>
+#include <halm/timer.h>
 /*----------------------------------------------------------------------------*/
-#define SINGLE_EDGE_PIN     PIN(1, 2)
-#define SINGLE_EDGE_REF_PIN PIN(1, 1)
-/*----------------------------------------------------------------------------*/
-static struct Pwm *singleEdgeRef;
-static struct Pwm *singleEdge;
-/*----------------------------------------------------------------------------*/
-static const struct GpTimerPwmUnitConfig pwmUnitConfig = {
-    .frequency = 1000,
-    .resolution = 10,
-    .channel = GPTIMER_CT32B1
-};
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = GPTIMER_CT32B0
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_EXTERNAL
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *arg __attribute__((unused)))
+static void onTimerOverflow(void *argument)
 {
   static uint32_t iteration = 0;
 
-  const uint32_t resolution = pwmGetResolution(singleEdgeRef);
-  pwmSetEdges(singleEdge, 0, iteration % (resolution + 1));
+  struct PwmPackage * const pwm = argument;
+  const uint32_t resolution = timerGetOverflow(pwm->timer);
+
+  pwmSetEdges(pwm->outputs[1], 0, iteration % (resolution + 1));
   ++iteration;
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockExt();
 
-  struct GpTimerPwmUnit * const pwmUnit = init(GpTimerPwmUnit, &pwmUnitConfig);
-  assert(pwmUnit);
+  struct PwmPackage pwm = boardSetupPwm();
 
-  singleEdgeRef = gpTimerPwmCreate(pwmUnit, SINGLE_EDGE_PIN);
-  assert(singleEdgeRef);
-  pwmSetEdges(singleEdgeRef, 0, pwmGetResolution(singleEdgeRef) / 2);
-  pwmEnable(singleEdgeRef);
+  timerSetFrequency(pwm.timer, 10000);
+  timerSetOverflow(pwm.timer, 10);
+  timerEnable(pwm.timer);
 
-  singleEdge = gpTimerPwmCreate(pwmUnit, SINGLE_EDGE_REF_PIN);
-  assert(singleEdge);
-  pwmSetEdges(singleEdge, 0, 0);
-  pwmEnable(singleEdge);
+  pwmSetEdges(pwm.outputs[0], 0, timerGetOverflow(pwm.timer) / 2);
+  pwmEnable(pwm.outputs[0]);
+  pwmSetEdges(pwm.outputs[1], 0, 0);
+  pwmEnable(pwm.outputs[1]);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 10);
-  timerSetCallback(timer, onTimerOverflow, 0);
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) / 100);
+  timerSetCallback(timer, onTimerOverflow, &pwm);
   timerEnable(timer);
 
   while (1);

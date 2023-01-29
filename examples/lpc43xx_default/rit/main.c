@@ -4,39 +4,26 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/rit.h>
-#include <halm/pin.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(6, 6)
-/*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_INTERNAL
-};
+#include "board.h"
+#include <halm/timer.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  bool event = false;
 
-  const struct Pin led = pinInit(LED_PIN);
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
-  struct Timer * const timer = init(Rit, 0);
-  assert(timer);
+  struct Timer * const timer = boardSetupRit();
   timerSetOverflow(timer, timerGetFrequency(timer) / 2);
-
-  bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 

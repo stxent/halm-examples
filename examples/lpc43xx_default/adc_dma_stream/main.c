@@ -4,74 +4,26 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/delay.h>
-#include <halm/pin.h>
-#include <halm/platform/lpc/adc_dma_stream.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/serial.h>
-#include <assert.h>
+#include <halm/timer.h>
+#include <xcore/interface.h>
+#include <xcore/stream.h>
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
+#define ADC_RATE 4
+
 struct EventTuple
 {
   struct Interface *serial;
   struct Stream *stream;
   struct Pin led;
 };
-
-#define ADC_RATE  8
-#define LED_PIN   PIN(PORT_7, 7)
-/*----------------------------------------------------------------------------*/
-static const PinNumber adcPinArray[] = {
-    PIN(PORT_ADC, 1), PIN(PORT_ADC, 2), PIN(PORT_ADC, 3), PIN(PORT_ADC, 5), 0
-};
-
-static const struct AdcDmaStreamConfig adcConfig = {
-    .pins = adcPinArray,
-    .size = 2,
-    .converter = {ADC_CTOUT_15, 0},
-    .memory = {GPDMA_MAT0_0, 1},
-    .channel = 0
-};
-
-static const struct SerialConfig serialConfig = {
-    .rxLength = 16,
-    .txLength = ((ARRAY_SIZE(adcPinArray) - 1) * 6 + 4) * ADC_RATE,
-    .rate = 19200,
-    .rx = PIN(2, 4),
-    .tx = PIN(2, 3),
-    .channel = 3
-};
-
-static const struct GpTimerConfig converterTimerConfig = {
-    .frequency = 4000000,
-    .event = GPTIMER_MATCH3,
-    .channel = 3
-};
-
-static const struct GpTimerConfig memoryTimerConfig = {
-    .frequency = 4000000,
-    .event = GPTIMER_MATCH0,
-    .channel = 0
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct GenericClockConfig initialClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_EXTERNAL
-};
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument, struct StreamRequest *request,
     enum StreamRequestStatus status __attribute__((unused)))
 {
-  const size_t count = ARRAY_SIZE(adcPinArray) - 1;
+  const size_t count = boardGetAdcPinCount();
   const size_t chunks = (request->length >> 1) / count;
 
   struct EventTuple * const context = argument;
@@ -99,64 +51,35 @@ static void onConversionCompleted(void *argument, struct StreamRequest *request,
   streamEnqueue(context->stream, request);
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &initialClockConfig);
-
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainClock, &mainClockConfig);
-
-  clockEnable(Apb3Clock, &mainClockConfig);
-  while (!clockReady(Apb3Clock));
-
-  clockEnable(Usart3Clock, &mainClockConfig);
-  while (!clockReady(Usart3Clock));
-}
-/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  const size_t count = ADC_RATE * boardGetAdcPinCount();
+  uint16_t buffers[count][2];
 
-  const struct Pin led = pinInit(LED_PIN);
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  /*
-  * The overflow frequency of the timer should be two times higher
-  * than that of the hardware events for ADC.
-  */
-  struct Timer * const converterTimer = init(GpTimer, &converterTimerConfig);
-  assert(converterTimer);
-  struct Timer * const memoryTimer = init(GpTimer, &memoryTimerConfig);
-  assert(memoryTimer);
+  struct Timer * const adcTimer = boardSetupAdcTimer();
+  struct Timer * const memTimer = boardSetupTimer();
+  struct Interface * const serial = boardSetupSerial();
 
-  struct Interface * const serial = init(Serial, &serialConfig);
-  assert(serial);
-
-  struct AdcDmaStream * const adc = init(AdcDmaStream, &adcConfig);
-  assert(adc);
-  struct Stream * const stream = adcDmaStreamGetInput(adc);
-  assert(stream);
-
+  struct StreamPackage adc = boardSetupAdcStream();
   struct EventTuple context = {
       .serial = serial,
-      .stream = stream,
+      .stream = adc.rx,
       .led = led
   };
-
-  const size_t count = ARRAY_SIZE(adcPinArray) - 1;
-  uint16_t buffers[count * ADC_RATE][2];
-
   struct StreamRequest requests[2] = {
       {
-          count * ADC_RATE * sizeof(uint16_t),
+          count * sizeof(uint16_t),
           0,
           onConversionCompleted,
           &context,
           &buffers[0]
       }, {
-          count * ADC_RATE * sizeof(uint16_t),
+          count * sizeof(uint16_t),
           0,
           onConversionCompleted,
           &context,
@@ -164,19 +87,20 @@ int main(void)
       }
   };
 
-  streamEnqueue(stream, &requests[0]);
-  streamEnqueue(stream, &requests[1]);
+  streamEnqueue(adc.rx, &requests[0]);
+  streamEnqueue(adc.rx, &requests[1]);
 
-  /* Start conversion */
-  timerSetOverflow(converterTimer,
-      timerGetFrequency(converterTimer) / (count * ADC_RATE * 2));
-  timerSetOverflow(memoryTimer,
-      timerGetFrequency(memoryTimer) / (count * ADC_RATE));
+  /*
+   * The overflow frequency of the timer should be two times higher
+   * than that of the hardware events for ADC.
+   */
+  timerSetOverflow(adcTimer, timerGetFrequency(adcTimer) / count / 2);
+  timerSetOverflow(memTimer, timerGetFrequency(memTimer) / count);
 
   /* ADC conversion takes 2.75 us at 4 MHz */
-  timerEnable(memoryTimer);
+  timerEnable(memTimer);
   udelay(3);
-  timerEnable(converterTimer);
+  timerEnable(adcTimer);
 
   while (1);
   return 0;

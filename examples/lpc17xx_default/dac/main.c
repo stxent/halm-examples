@@ -20,6 +20,11 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  unsigned int step = 0;
+  bool event = false;
+
+  boardSetupClockPll();
+
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
@@ -27,12 +32,8 @@ int main(void)
 
   struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer));
-
-  bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
-
-  unsigned int step = 0;
 
   while (1)
   {

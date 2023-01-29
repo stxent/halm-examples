@@ -54,6 +54,7 @@ int main(void)
   const uint32_t maxPeriod = frequency + frequency / 10000;
   const uint32_t minPeriod = frequency - frequency / 10000;
 
+  // TODO
   setupClock();
 
   const struct Pin led = pinInit(BOARD_LED);

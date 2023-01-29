@@ -10,7 +10,7 @@
 #include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define STREAM_COUNT  2
+#define STREAM_COUNT 2
 /*----------------------------------------------------------------------------*/
 struct StreamDescriptor
 {
@@ -109,7 +109,6 @@ int main(void)
   boardSetupClockPll();
 
   struct Entity * const usb = boardSetupUsb();
-  assert(usb);
 
   const struct CompositeDeviceConfig compositeConfig = {
       .device = usb
@@ -136,6 +135,7 @@ int main(void)
     {
       if (!streams[i].event)
         continue;
+      streams[i].event = false;
 
       transferData(streams[i].stream, streams[i].led);
     }

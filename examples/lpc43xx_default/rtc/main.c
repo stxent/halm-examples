@@ -4,26 +4,17 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/rtc.h>
+#include "board.h"
+#include <xcore/realtime.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */
-#define RTC_ALARM_PERIOD  5
-/* January 1, 2015, 00:00:00 */
-#define RTC_INITIAL_TIME  1483228800
-
-#define LED_PIN           PIN(PORT_7, 7)
+#define RTC_ALARM_PERIOD 5
 /*----------------------------------------------------------------------------*/
 struct Context
 {
   struct Pin led;
   struct RtClock *rtc;
-};
-/*----------------------------------------------------------------------------*/
-static const struct RtcConfig rtcConfig = {
-    .timestamp = RTC_INITIAL_TIME
 };
 /*----------------------------------------------------------------------------*/
 static void onTimerAlarm(void *argument)
@@ -35,24 +26,17 @@ static void onTimerAlarm(void *argument)
   pinToggle(context->led);
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(RtcOsc, 0);
-  while (!clockReady(RtcOsc));
-}
-/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
-
   struct Context context;
 
-  context.led = pinInit(LED_PIN);
+  boardSetupClockExt();
+
+  context.led = pinInit(BOARD_LED);
   pinOutput(context.led, false);
 
   pinSet(context.led);
-  context.rtc = init(Rtc, &rtcConfig);
-  assert(context.rtc);
+  context.rtc = boardSetupRtc();
   rtSetCallback(context.rtc, onTimerAlarm, &context);
   pinReset(context.led);
 

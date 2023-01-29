@@ -8,13 +8,6 @@
 #include <halm/platform/lpc/i2c_slave.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-static const struct I2CSlaveConfig i2cConfig = {
-    .size = 16,
-    .scl = PIN(0, 11),
-    .sda = PIN(0, 10),
-    .channel = 2
-};
-/*----------------------------------------------------------------------------*/
 static void onDeviceMemoryChanged(void *argument)
 {
   *(bool *)argument = true;
@@ -22,21 +15,23 @@ static void onDeviceMemoryChanged(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t deviceAddress = 0x60;
-  static const uint32_t internalOffset = 0;
+  static const uint32_t DEFAULT_OFFSET = 0;
+  static const uint32_t DEVICE_ADDRESS = 0x60;
+
+  bool event = false;
   enum Result res;
 
-  struct Interface * const i2c = init(I2CSlave, &i2cConfig);
-  assert(i2c);
-  ifSetParam(i2c, IF_ADDRESS, &deviceAddress);
-
-  (void)res; /* Suppress warning */
+  boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  bool event = false;
+  struct Interface * const i2c = boardSetupI2CSlave();
   ifSetCallback(i2c, onDeviceMemoryChanged, &event);
+
+  res = ifSetParam(i2c, IF_ADDRESS, &DEVICE_ADDRESS);
+  assert(res == E_OK);
+  (void)res; /* Suppress warning */
 
   while (1)
   {
@@ -46,9 +41,9 @@ int main(void)
 
     uint8_t state;
 
-    ifSetParam(i2c, IF_POSITION, &internalOffset);
+    ifSetParam(i2c, IF_POSITION, &DEFAULT_OFFSET);
     ifRead(i2c, &state, sizeof(state));
-    pinWrite(led, state > 0);
+    pinWrite(led, (state & 1) != 0);
   }
 
   return 0;

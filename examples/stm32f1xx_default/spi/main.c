@@ -4,86 +4,58 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/core/cortex/systick.h>
-#include <halm/platform/stm32/spi.h>
+#include "board.h"
+#include <halm/generic/spi.h>
+#include <halm/timer.h>
 #include <xcore/memory.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define CS_PIN      PIN(PORT_A, 4)
-#define LED_PIN     PIN(PORT_C, 13)
-#define SPI_CHANNEL 0
-
-#define TEST_ZEROCOPY
-/*----------------------------------------------------------------------------*/
-static const struct SpiConfig spiConfig[] = {
-    {
-        .rate = 2000000,
-        .miso = PIN(PORT_A, 6),
-        .mosi = PIN(PORT_A, 7),
-        .sck = PIN(PORT_A, 5),
-        .channel = 0,
-        .mode = 0,
-        .rxDma = DMA1_STREAM2,
-        .txDma = DMA1_STREAM3
-    }, {
-        .rate = 2000000,
-        .miso = PIN(PORT_B, 14),
-        .mosi = PIN(PORT_B, 15),
-        .sck = PIN(PORT_B, 13),
-        .channel = 1,
-        .mode = 0,
-        .rxDma = DMA1_STREAM4,
-        .txDma = DMA1_STREAM5
-    }
-};
-/*----------------------------------------------------------------------------*/
-#ifdef TEST_ZEROCOPY
-static void onTransferCompleted(void *argument)
-{
-  ++(*(unsigned int *)argument);
-}
-#endif
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
+static void onTransferCompleted(void *argument)
+{
+  ++(*(unsigned int *)argument);
+}
+/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
-
-  const struct Pin cs = pinInit(CS_PIN);
-  pinOutput(cs, true);
-
-  struct Interface * const spi = init(Spi, &spiConfig[SPI_CHANNEL]);
-  assert(spi);
-
-  static const uint32_t desiredRate = 1000000;
-  enum Result res;
-
-  res = ifSetParam(spi, IF_RATE, &desiredRate);
-  assert(res == E_OK);
-
-  struct Timer * const timer = init(SysTickTimer, 0);
-  assert(timer);
-  timerSetOverflow(timer, timerGetFrequency(timer) / 4);
+  static const uint32_t SPI_TEST_RATE = 400000;
+  static const uint8_t SPI_TEST_MODE = 3;
+  static const bool USE_ZEROCOPY = true;
 
   unsigned int value = 0;
   bool event = false;
+  enum Result res;
 
-#ifdef TEST_ZEROCOPY
-  res = ifSetParam(spi, IF_ZEROCOPY, 0);
+  boardSetupClockPll();
+
+  const struct Pin cs = pinInit(BOARD_SPI_CS);
+  pinOutput(cs, true);
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interface * const spi = boardSetupSpi();
+  res = ifSetParam(spi, IF_RATE, &SPI_TEST_RATE);
   assert(res == E_OK);
-  ifSetCallback(spi, onTransferCompleted, &value);
-#endif
+  res = ifSetParam(spi, IF_SPI_MODE, &SPI_TEST_MODE);
+  assert(res == E_OK);
 
-  (void)res; /* Suppress warning */
+  if (USE_ZEROCOPY)
+  {
+    ifSetParam(spi, IF_ZEROCOPY, 0);
+    ifSetCallback(spi, onTransferCompleted, &value);
+  }
 
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) / 4);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
-  pinReset(cs);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {
@@ -94,12 +66,13 @@ int main(void)
     const uint32_t buffer = toBigEndian32(value);
 
     pinSet(led);
+    pinReset(cs);
     ifWrite(spi, &buffer, sizeof(buffer));
+    pinSet(cs);
     pinReset(led);
 
-#ifndef TEST_ZEROCOPY
-    ++value;
-#endif
+    if (!USE_ZEROCOPY)
+      ++value;
   }
 
   return 0;

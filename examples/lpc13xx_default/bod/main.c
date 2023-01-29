@@ -4,12 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
+#include "board.h"
 #include <halm/platform/lpc/bod.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN_1 PIN(2, 3)
-#define LED_PIN_2 PIN(3, 1)
 /*----------------------------------------------------------------------------*/
 static const struct BodConfig bodConfig = {
     .eventLevel = BOD_EVENT_2V87,
@@ -26,9 +23,11 @@ static void onPowerEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  boardSetupClockExt();
+
   struct Pin leds[2] = {
-      pinInit(LED_PIN_1),
-      pinInit(LED_PIN_2)
+      pinInit(BOARD_LED_0),
+      pinInit(BOARD_LED_1)
   };
   pinOutput(leds[0], false);
   pinOutput(leds[1], false);

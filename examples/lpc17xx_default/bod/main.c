@@ -23,6 +23,8 @@ static void onPowerEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  boardSetupClockExt();
+
   struct Pin leds[2] = {
       pinInit(BOARD_LED_0),
       pinInit(BOARD_LED_1)

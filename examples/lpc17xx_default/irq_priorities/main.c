@@ -44,7 +44,7 @@ static void highPriCallback(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  boardSetupClockPll();
+  boardSetupClockExt();
 
   struct Pin led[] = {
       pinInit(BOARD_LED_0),

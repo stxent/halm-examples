@@ -4,185 +4,73 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/i2c.h>
+#include "board.h"
+#include <halm/delay.h>
+#include <halm/timer.h>
+#include <xcore/interface.h>
 #include <xcore/memory.h>
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-#define TEST_REPEATED_START
-#define TEST_ZEROCOPY
-/* #define TEST_SLAVE */
-
-#ifndef TEST_SLAVE
-#define DEVICE_ADDRESS      0x50
-#define MEMORY_ADDRESS_SIZE 2
-#else
-#define DEVICE_ADDRESS      0x60
-#define MEMORY_ADDRESS_SIZE 1
-#endif
-
-#define DEVICE_CLOCK  100000
-#define LED_PIN       PIN(PORT_7, 7)
+#define ADDRESS_SIZE    2
+#define DEVICE_ADDRESS  0x50
+#define DEVICE_RATE     400000
 /*----------------------------------------------------------------------------*/
-enum DeviceState
+static bool checkBuffer(uint8_t *buffer, size_t length, uint8_t iteration)
 {
-  DEVICE_IDLE,
-  DEVICE_PH1_ADDRESS,
-  DEVICE_PH1_DATA,
-  DEVICE_PH2_DATA
-};
-
-struct DeviceDriver
-{
-  struct Interface *interface;
-  struct Pin led;
-  enum DeviceState state;
-  uint32_t desiredRate;
-  uint32_t localAddress;
-  uint16_t deviceAddress;
-  uint8_t buffer[8 + MEMORY_ADDRESS_SIZE];
-
-  bool change; /* Change test string */
-};
-/*----------------------------------------------------------------------------*/
-static const struct I2CConfig i2cConfig = {
-    .rate = 400000, /* Initial rate */
-    .scl = PIN(PORT_I2C, PIN_I2C0_SCL),
-    .sda = PIN(PORT_I2C, PIN_I2C0_SDA),
-    .channel = 0
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-/*----------------------------------------------------------------------------*/
-static void deviceInit(struct DeviceDriver *device, struct Interface *interface,
-    PinNumber ledNumber, uint16_t address)
-{
-  device->interface = interface;
-  device->state = DEVICE_IDLE;
-  device->desiredRate = DEVICE_CLOCK;
-  device->localAddress = 0;
-  device->deviceAddress = address;
-  device->change = false;
-
-  static_assert(MEMORY_ADDRESS_SIZE && MEMORY_ADDRESS_SIZE <= 2,
-      "Incorrect address size");
-  if (MEMORY_ADDRESS_SIZE == 2)
-    device->localAddress = toBigEndian16(device->localAddress);
-
-  device->led = pinInit(ledNumber);
-  pinOutput(device->led, false);
-}
-/*----------------------------------------------------------------------------*/
-#ifdef TEST_ZEROCOPY
-static void deviceCallback(void *argument)
-{
-  struct DeviceDriver *device = argument;
-  enum Result status;
-
-  if ((status = ifGetParam(device->interface, IF_STATUS, 0)) != E_OK)
-    return;
-
-  switch (device->state)
+  for (size_t i = 0; i < length; ++i)
   {
-    case DEVICE_PH1_ADDRESS:
-      device->state = DEVICE_PH1_DATA;
-      ifRead(device->interface, device->buffer,
-          sizeof(device->buffer) - MEMORY_ADDRESS_SIZE);
-      break;
-
-    case DEVICE_PH1_DATA:
-      for (size_t i = 0; i < sizeof(device->buffer) - MEMORY_ADDRESS_SIZE; ++i)
-      {
-        if (device->buffer[i] != (uint8_t)(device->change ? ~i : i))
-          return;
-      }
-      /* Falls through */
-
-    case DEVICE_PH2_DATA:
-      device->state = DEVICE_IDLE;
-      pinReset(device->led);
-      break;
-
-    default:
-      break;
+    if (buffer[i] != (uint8_t)(iteration + i))
+      return false;
   }
+
+  return true;
 }
-#endif
 /*----------------------------------------------------------------------------*/
-static void deviceConfigIO(struct DeviceDriver *device, bool rw)
+static void fillBuffer(uint8_t *buffer, size_t length, uint8_t iteration)
 {
+  for (size_t i = 0; i < length; ++i)
+    buffer[i] = (uint8_t)(iteration + i);
+}
+/*----------------------------------------------------------------------------*/
+static void deviceConfigIO(struct Interface *interface)
+{
+  const uint32_t address = DEVICE_ADDRESS;
+  const uint32_t rate = DEVICE_RATE;
   enum Result res;
 
-  res = ifSetParam(device->interface, IF_RATE, &device->desiredRate);
+  res = ifSetParam(interface, IF_ADDRESS, &address);
   assert(res == E_OK);
-  res = ifSetParam(device->interface, IF_ADDRESS, &device->deviceAddress);
+  res = ifSetParam(interface, IF_RATE, &rate);
   assert(res == E_OK);
-
-#ifdef TEST_ZEROCOPY
-  res = ifSetParam(device->interface, IF_ZEROCOPY, 0);
-  assert(res == E_OK);
-  ifSetCallback(device->interface, deviceCallback, device);
-#endif
 
   (void)res; /* Suppress warning */
-  (void)rw; /* Suppress warning */
 }
 /*----------------------------------------------------------------------------*/
-static void deviceRead(struct DeviceDriver *device)
+static void deviceRead(struct Interface *interface, uint32_t position,
+    void *buffer, size_t length)
 {
-  deviceConfigIO(device, true);
+  uint8_t packet[ADDRESS_SIZE];
 
-  pinSet(device->led);
-  device->state = DEVICE_PH1_ADDRESS;
+  for (size_t i = 0; i < ADDRESS_SIZE; ++i)
+    packet[i] = position >> ((ADDRESS_SIZE - 1 - i) * 8);
 
-#ifdef TEST_ZEROCOPY
-  ifWrite(device->interface, &device->localAddress, MEMORY_ADDRESS_SIZE);
-#else
-  const size_t bytesWritten = ifWrite(device->interface,
-      &device->localAddress, MEMORY_ADDRESS_SIZE);
-
-  if (bytesWritten == MEMORY_ADDRESS_SIZE)
-  {
-    const size_t bytesRead = ifRead(device->interface, device->buffer,
-        sizeof(device->buffer) - MEMORY_ADDRESS_SIZE);
-
-    if (bytesRead == sizeof(device->buffer) - MEMORY_ADDRESS_SIZE)
-      pinReset(device->led);
-  }
-#endif
+  deviceConfigIO(interface);
+  if (ifWrite(interface, packet, sizeof(packet)) == sizeof(packet))
+    ifRead(interface, buffer, length);
 }
 /*----------------------------------------------------------------------------*/
-static void deviceWrite(struct DeviceDriver *device)
+static void deviceWrite(struct Interface *interface, uint32_t position,
+    const void *buffer, size_t length)
 {
-  deviceConfigIO(device, false);
+  uint8_t packet[length + ADDRESS_SIZE];
 
-  device->change = !device->change;
-  memcpy(device->buffer, &device->localAddress, MEMORY_ADDRESS_SIZE);
-  for (size_t i = 0; i < sizeof(device->buffer) - MEMORY_ADDRESS_SIZE; ++i)
-    device->buffer[i + MEMORY_ADDRESS_SIZE] = device->change ? ~i : i;
+  for (size_t i = 0; i < ADDRESS_SIZE; ++i)
+    packet[i] = position >> ((ADDRESS_SIZE - 1 - i) * 8);
+  memcpy(packet + ADDRESS_SIZE, buffer, length);
 
-  pinSet(device->led);
-  device->state = DEVICE_PH2_DATA;
-
-#ifdef TEST_ZEROCOPY
-  ifWrite(device->interface, device->buffer, sizeof(device->buffer));
-#else
-  const size_t bytesWritten = ifWrite(device->interface,
-      device->buffer, sizeof(device->buffer));
-
-  if (bytesWritten == sizeof(device->buffer))
-    pinReset(device->led);
-#endif
+  deviceConfigIO(interface);
+  ifWrite(interface, packet, sizeof(packet));
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -190,27 +78,21 @@ static void onTimerOverflow(void *argument)
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct DeviceDriver device;
-
-  setupClock();
-
-  struct Interface * const i2c = init(I2C, &i2cConfig);
-  assert(i2c);
-
-  deviceInit(&device, i2c, LED_PIN, DEVICE_ADDRESS);
-
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 1000);
-
+  uint8_t buffer[16];
+  uint8_t iteration = 0;
   bool event = false;
+
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interface * const i2c = boardSetupI2C();
+
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer));
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 
@@ -220,13 +102,23 @@ int main(void)
       barrier();
     event = false;
 
-    deviceWrite(&device);
+    pinSet(led);
 
-    while (!event)
-      barrier();
-    event = false;
+    /* Write memory page */
+    fillBuffer(buffer, sizeof(buffer), iteration);
+    deviceWrite(i2c, 0, buffer, sizeof(buffer));
 
-    deviceRead(&device);
+    /* Wait for page program operation */
+    mdelay(10);
+
+    /* Read and verify memory page */
+    memset(buffer, 0, sizeof(buffer));
+    deviceRead(i2c, 0, buffer, sizeof(buffer));
+
+    if (checkBuffer(buffer, sizeof(buffer), iteration))
+      pinReset(led);
+
+    iteration += sizeof(buffer);
   }
 
   return 0;

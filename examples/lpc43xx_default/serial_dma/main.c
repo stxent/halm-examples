@@ -4,51 +4,11 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/serial_dma.h>
+#include "board.h"
+#include <halm/generic/serial.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define BUFFER_LENGTH 128
-#define LED_PIN       PIN(PORT_7, 7)
-#define UART_RATE     19200
-#define USE_TIMER
-/*----------------------------------------------------------------------------*/
-static const struct SerialDmaConfig serialConfig = {
-    .rxChunks = 4,
-    .rxLength = BUFFER_LENGTH,
-    .txLength = BUFFER_LENGTH,
-    .rate = UART_RATE,
-    .rx = PIN(PORT_F, 11),
-    .tx = PIN(PORT_F, 10),
-    .channel = 0,
-    .dma = {0, 1}
-};
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = 0
-};
-/*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig initialClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000,
-    .bypass = false
-};
-
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 2,
-    .multiplier = 16
-};
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
@@ -60,22 +20,6 @@ static void onTimerOverflow(void *argument)
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &initialClockConfig);
-
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
-
-  clockEnable(Usart0Clock, &mainClockConfig);
-  while (!clockReady(Usart0Clock));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 static void transferData(struct Interface *interface, struct Pin led)
 {
   size_t available = 0;
@@ -84,7 +28,7 @@ static void transferData(struct Interface *interface, struct Pin led)
 
   do
   {
-    uint8_t buffer[BUFFER_LENGTH];
+    uint8_t buffer[BOARD_UART_BUFFER];
     const size_t length = ifRead(interface, buffer, sizeof(buffer));
 
     ifWrite(interface, buffer, length);
@@ -97,25 +41,34 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
-
-  const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
+  static const uint32_t UART_TEST_RATE = 19200;
+  static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
+  static const bool USE_IDLE_TIMER = true;
 
   bool event = false;
+  enum Result res;
 
-  struct Interface * const serial = init(SerialDma, &serialConfig);
-  assert(serial);
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interface * const serial = boardSetupSerialDma();
   ifSetCallback(serial, onSerialEvent, &event);
+  res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
+  assert(res == E_OK);
+  res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
+  assert(res == E_OK);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 100);
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) / 10);
   timerSetCallback(timer, onTimerOverflow, &event);
 
-#ifdef USE_TIMER
-  timerEnable(timer);
-#endif
+  if (USE_IDLE_TIMER)
+    timerEnable(timer);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {

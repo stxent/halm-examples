@@ -5,9 +5,10 @@
  */
 
 #include "board.h"
+#include <halm/generic/serial.h>
 #include <halm/timer.h>
-#include <xcore/interface.h>
 #include <xcore/memory.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
@@ -40,7 +41,12 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const uint32_t UART_TEST_RATE = 19200;
+  static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
+  static const bool USE_IDLE_TIMER = true;
+
   bool event = false;
+  enum Result res;
 
   boardSetupClockPll();
 
@@ -49,14 +55,20 @@ int main(void)
 
   struct Interface * const serial = boardSetupSerialDma();
   ifSetCallback(serial, onSerialEvent, &event);
+  res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
+  assert(res == E_OK);
+  res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
+  assert(res == E_OK);
 
   struct Timer * const timer = boardSetupTimer();
-  timerSetOverflow(timer, 100);
+  timerSetOverflow(timer, timerGetFrequency(timer) / 10);
   timerSetCallback(timer, onTimerOverflow, &event);
 
-#ifdef USE_TIMER
-  timerEnable(timer);
-#endif
+  if (USE_IDLE_TIMER)
+    timerEnable(timer);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {

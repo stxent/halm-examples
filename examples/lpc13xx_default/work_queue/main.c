@@ -4,12 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/core/cortex/systick.h>
+#include "board.h"
 #include <halm/generic/work_queue.h>
-#include <halm/pin.h>
+#include <halm/timer.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(3, 0)
 /*----------------------------------------------------------------------------*/
 static const struct WorkQueueConfig workQueueConfig = {
     .size = 4
@@ -17,8 +15,7 @@ static const struct WorkQueueConfig workQueueConfig = {
 /*----------------------------------------------------------------------------*/
 static void blinkTask(void *argument)
 {
-  const struct Pin * const pin = argument;
-  pinToggle(*pin);
+  pinToggle(*((struct Pin *)argument));
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -28,12 +25,13 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  boardSetupClockExt();
+
   /* Initialize peripherals */
-  struct Pin led = pinInit(LED_PIN);
+  struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  struct Timer * const timer = init(SysTickTimer, 0);
-  assert(timer);
+  struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer) / 2);
   timerSetCallback(timer, onTimerOverflow, &led);
 

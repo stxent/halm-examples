@@ -29,7 +29,7 @@ static const struct SimpleGpioBusConfig busConfig = {
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  boardSetupClockPll();
+  boardSetupClockExt();
 
   struct GpioBus * const leds = init(SimpleGpioBus, &busConfig);
   assert(leds);

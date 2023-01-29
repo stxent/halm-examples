@@ -4,63 +4,14 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/numicro/clocking.h>
-#include <halm/platform/numicro/serial.h>
+#include "board.h"
+#include <halm/generic/serial.h>
+#include <xcore/memory.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define BUFFER_LENGTH 64
-#define LED_PIN       PIN(PORT_B, 14)
-/*----------------------------------------------------------------------------*/
-static const struct SerialConfig serialConfig = {
-    .rxLength = BUFFER_LENGTH,
-    .txLength = BUFFER_LENGTH,
-    .rate = 19200,
-    .rx = PIN(PORT_A, 0),
-    .tx = PIN(PORT_A, 1),
-    .channel = 0
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 32000000
-};
-
-static const struct ExtendedClockConfig mainClockConfig = {
-    .source = CLOCK_PLL,
-    .divisor = 2
-};
-
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 4,
-    .multiplier = 12
-};
-
-static const struct ExtendedClockConfig uartClockConfig = {
-    .source = CLOCK_PLL,
-    .divisor = 2
-};
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
   *(bool *)argument = true;
-}
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  const void * const UART_CLOCKS[] = {
-      Uart0Clock, Uart1Clock, Uart2Clock, Uart3Clock,
-      Uart4Clock, Uart5Clock, Uart6Clock, Uart7Clock
-  };
-
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
-
-  clockEnable(UART_CLOCKS[serialConfig.channel], &uartClockConfig);
-  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static void transferData(struct Interface *interface, struct Pin led)
@@ -71,7 +22,7 @@ static void transferData(struct Interface *interface, struct Pin led)
 
   do
   {
-    uint8_t buffer[BUFFER_LENGTH];
+    uint8_t buffer[BOARD_UART_BUFFER];
     const size_t length = ifRead(interface, buffer, sizeof(buffer));
 
     ifWrite(interface, buffer, length);
@@ -84,16 +35,26 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
-
-  const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
+  static const uint32_t UART_TEST_RATE = 19200;
+  static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
 
   bool event = false;
+  enum Result res;
 
-  struct Interface * const serial = init(Serial, &serialConfig);
-  assert(serial);
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interface * const serial = boardSetupSerial();
   ifSetCallback(serial, onSerialEvent, &event);
+  res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
+  assert(res == E_OK);
+  res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
+  assert(res == E_OK);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {

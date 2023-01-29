@@ -4,6 +4,7 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/delay.h>
 #include <halm/generic/buffering_proxy.h>
 #include <halm/platform/lpc/clocking.h>
@@ -21,8 +22,6 @@
 #define PHY_BMSR_LINK_UP            0x0004
 #define PHY_BMSR_AUTO_NEG_COMPLETED 0x0020
 /*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(PORT_7, 7)
-
 #define ETHER_TYPE  0x9000
 #define OPCODE_BUF  0x0001
 #define OPCODE_REQ  0x0002
@@ -289,7 +288,7 @@ int main(void)
 {
   setupClock();
 
-  const struct Pin led = pinInit(LED_PIN);
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
   void * const eth = init(Ethernet, &ethConfig);

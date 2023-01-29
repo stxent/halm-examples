@@ -4,20 +4,13 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
+#include "board.h"
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/sct_timer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN_A PIN(PORT_7, 7)
-#define LED_PIN_B PIN(PORT_C, 11)
-
 #define TEST_UNIFIED
 /*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-
 #ifdef TEST_UNIFIED
 static const struct SctTimerConfig timerConfig = {
     .frequency = 1000000,
@@ -44,19 +37,14 @@ static void onTimerOverflow(void *argument)
   pinToggle(*(struct Pin *)argument);
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockExt();
 
-  struct Pin ledA = pinInit(LED_PIN_A);
+  struct Pin ledA = pinInit(BOARD_LED_0);
   pinOutput(ledA, false);
 
-  struct Pin ledB = pinInit(LED_PIN_B);
+  struct Pin ledB = pinInit(BOARD_LED_1);
   pinOutput(ledB, false);
 
 #ifdef TEST_UNIFIED

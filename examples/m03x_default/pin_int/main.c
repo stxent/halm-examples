@@ -4,19 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/delay.h>
-#include <halm/pin.h>
-#include <halm/platform/numicro/pin_int.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define EVENT_PIN PIN(PORT_B, 15)
-#define LED_PIN   PIN(PORT_B, 14)
-/*----------------------------------------------------------------------------*/
-static const struct PinIntConfig interruptConfig = {
-    .pin = EVENT_PIN,
-    .event = PIN_FALLING,
-    .pull = PIN_NOPULL
-};
+#include <halm/interrupt.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onExternalEvent(void *argument)
 {
@@ -25,13 +16,14 @@ static void onExternalEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
-
   bool event = false;
 
-  struct Interrupt * const interrupt = init(PinInt, &interruptConfig);
-  assert(interrupt);
+  boardSetupClockExt();
+
+  struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interrupt * const interrupt = boardSetupButton();
   interruptSetCallback(interrupt, onExternalEvent, &event);
   interruptEnable(interrupt);
 

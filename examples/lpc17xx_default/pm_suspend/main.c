@@ -8,14 +8,12 @@
 #include <halm/delay.h>
 #include <halm/gpio_bus.h>
 #include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/rtc.h>
 #include <halm/pm.h>
+#include <xcore/realtime.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */
-#define RTC_ALARM_PERIOD  5
-/* January 1, 2017, 00:00:00 */
-#define RTC_INITIAL_TIME  1483228800
+#define RTC_ALARM_PERIOD 5
 /*----------------------------------------------------------------------------*/
 static const struct SimpleGpioBusConfig busConfig = {
     .pins = (const PinNumber []){
@@ -23,10 +21,6 @@ static const struct SimpleGpioBusConfig busConfig = {
     },
     .initial = 0,
     .direction = PIN_OUTPUT
-};
-
-static const struct RtcConfig rtcConfig = {
-    .timestamp = RTC_INITIAL_TIME
 };
 
 static const struct ExternalOscConfig extOscConfig = {
@@ -68,16 +62,15 @@ static void enableClock(void)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  uint32_t state = 1;
+
   enableClock();
 
   struct GpioBus * const leds = init(SimpleGpioBus, &busConfig);
   assert(leds);
 
-  struct RtClock * const rtc = init(Rtc, &rtcConfig);
-  assert(rtc);
+  struct RtClock * const rtc = boardSetupRtc();
   rtSetAlarm(rtc, rtTime(rtc) + RTC_ALARM_PERIOD);
-
-  uint32_t state = 1;
 
   while (1)
   {

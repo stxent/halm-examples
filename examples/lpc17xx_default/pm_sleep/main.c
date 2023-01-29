@@ -25,7 +25,7 @@ static void onTimerOverflow(void *argument __attribute__((unused)))
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  boardSetupClockPll();
+  boardSetupClockExt();
 
   struct GpioBus * const leds = init(SimpleGpioBus, &busConfig);
   assert(leds);

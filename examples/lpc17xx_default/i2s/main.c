@@ -5,8 +5,7 @@
  */
 
 #include "board.h"
-#include <halm/platform/lpc/i2s_dma.h>
-#include <assert.h>
+#include <xcore/stream.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
 struct EventTuple
@@ -81,18 +80,14 @@ int main(void)
   struct Pin txLed = pinInit(BOARD_LED_1);
   pinOutput(txLed, false);
 
-  struct I2SDma * const audio = (struct I2SDma *)boardSetupI2S();
-  struct Stream * const rxStream = i2sDmaGetInput(audio);
-  assert(rxStream);
-  struct Stream * const txStream = i2sDmaGetOutput(audio);
-  assert(txStream);
+  struct StreamPackage audio = boardSetupI2S();
 
   struct EventTuple rxContext = {
-      .stream = rxStream,
+      .stream = audio.rx,
       .led = rxLed
   };
   struct EventTuple txContext = {
-      .stream = txStream,
+      .stream = audio.tx,
       .led = txLed
   };
 
@@ -129,14 +124,14 @@ int main(void)
 
   /* Enqueue buffers */
   rxRequests[0].length = 0;
-  streamEnqueue(rxStream, &rxRequests[0]);
+  streamEnqueue(audio.rx, &rxRequests[0]);
   txRequests[0].length = txRequests[0].capacity;
-  streamEnqueue(txStream, &txRequests[0]);
+  streamEnqueue(audio.tx, &txRequests[0]);
 
   rxRequests[1].length = 0;
-  streamEnqueue(rxStream, &rxRequests[1]);
+  streamEnqueue(audio.rx, &rxRequests[1]);
   txRequests[1].length = txRequests[1].capacity;
-  streamEnqueue(txStream, &txRequests[1]);
+  streamEnqueue(audio.tx, &txRequests[1]);
 
   while (1);
   return 0;

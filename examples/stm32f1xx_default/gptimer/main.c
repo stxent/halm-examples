@@ -4,16 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/stm32/gptimer.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_C, 13)
-/*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = TIM2
-};
+#include "board.h"
+#include <halm/timer.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -22,14 +15,15 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
+  bool event = false;
+
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 500);
-
-  bool event = false;
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 

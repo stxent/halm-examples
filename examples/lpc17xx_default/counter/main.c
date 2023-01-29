@@ -5,24 +5,9 @@
  */
 
 #include "board.h"
-#include <halm/platform/lpc/gptimer_counter.h>
-#include <halm/platform/lpc/gppwm.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define EVENT_PIN   PIN(1, 19)
-#define OUTPUT_PIN  PIN(1, 18)
-/*----------------------------------------------------------------------------*/
-static const struct GpPwmUnitConfig pwmUnitConfig = {
-    .frequency = 1000,
-    .resolution = 10,
-    .channel = 0
-};
-
-static const struct GpTimerCounterConfig counterConfig = {
-    .edge = PIN_RISING,
-    .pin = EVENT_PIN,
-    .channel = 1
-};
+#include <halm/pwm.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -33,27 +18,26 @@ int main(void)
 {
   bool event = false;
 
-  boardSetupClockPll();
+  boardSetupClockExt();
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
-  struct GpPwmUnit * const pwmUnit = init(GpPwmUnit, &pwmUnitConfig);
-  assert(pwmUnit);
-  struct Pwm * const pwmOutput = gpPwmCreate(pwmUnit, OUTPUT_PIN);
-  assert(pwmOutput);
-  pwmSetDuration(pwmOutput, pwmGetResolution(pwmOutput) / 2);
+  struct Timer * const counterTimer = boardSetupCounterTimer();
+  timerEnable(counterTimer);
 
-  struct Timer * const counter = init(GpTimerCounter, &counterConfig);
-  assert(counter);
+  struct Timer * const eventTimer = boardSetupTimer();
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
+  timerSetCallback(eventTimer, onTimerOverflow, &event);
+  timerEnable(eventTimer);
 
-  struct Timer * const timer = boardSetupTimer();
-  timerSetOverflow(timer, timerGetFrequency(timer));
-  timerSetCallback(timer, onTimerOverflow, &event);
+  struct PwmPackage pwm = boardSetupPwm();
+  pwmSetEdges(pwm.output, 0, timerGetOverflow(pwm.timer) / 2);
+  pwmEnable(pwm.output);
+  timerEnable(pwm.timer);
 
-  timerEnable(counter);
-  timerEnable(timer);
-  pwmEnable(pwmOutput);
+  const uint32_t PWM_FREQUENCY =
+      timerGetFrequency(pwm.timer) / timerGetOverflow(pwm.timer);
 
   while (1)
   {
@@ -61,10 +45,10 @@ int main(void)
       barrier();
     event = false;
 
-    const uint32_t period = timerGetValue(counter);
-    timerSetValue(counter, 0);
+    const uint32_t period = timerGetValue(counterTimer);
+    timerSetValue(counterTimer, 0);
 
-    if (period >= 999 && period <= 1001)
+    if (period >= PWM_FREQUENCY - 1 && period <= PWM_FREQUENCY + 1)
       pinReset(led);
     else
       pinSet(led);

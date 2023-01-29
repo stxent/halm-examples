@@ -20,7 +20,8 @@
 #define CS_PIN      PIN(0, 22)
 #define LED_R       PIN(1, 9)
 #define LED_W       PIN(1, 10)
-#define SPI_CHANNEL 0
+/*----------------------------------------------------------------------------*/
+static uint8_t arena[BUFFER_SIZE];
 /*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig busyTimerConfig = {
     .frequency = 100000,
@@ -44,24 +45,14 @@ static const struct SerialConfig serialConfig = {
     .channel = 0
 };
 
-static const struct SpiDmaConfig spiConfig[] = {
-    {
-        .rate = 12000000,
-        .sck = PIN(0, 15),
-        .miso = PIN(0, 17),
-        .mosi = PIN(0, 18),
-        .dma = {0, 1},
-        .channel = 0,
-        .mode = 3
-    }, {
-        .rate = 12000000,
-        .sck = PIN(0, 7),
-        .miso = PIN(0, 8),
-        .mosi = PIN(0, 9),
-        .dma = {3, 2},
-        .channel = 1,
-        .mode = 3
-    }
+static const struct SpiDmaConfig spiDmaConfig = {
+    .rate = 12000000,
+    .sck = PIN(0, 15),
+    .miso = PIN(0, 17),
+    .mosi = PIN(0, 18),
+    .dma = {0, 1},
+    .channel = 0,
+    .mode = 3
 };
 
 static const struct UsbDeviceConfig usbConfig = {
@@ -89,8 +80,6 @@ static const struct GenericClockConfig mainClockConfig = {
     .source = CLOCK_PLL
 };
 /*----------------------------------------------------------------------------*/
-static uint8_t arena[BUFFER_SIZE];
-/*----------------------------------------------------------------------------*/
 static void setupClock(void)
 {
   clockEnable(ExternalOsc, &extOscConfig);
@@ -117,13 +106,14 @@ int main(void)
   assert(chronoTimer);
   timerEnable(chronoTimer);
 
-  /* SDIO timer */
+  /* Helper timer for SDIO status polling */
   struct Timer * const busyTimer = init(GpTimer, &busyTimerConfig);
   assert(busyTimer);
-  timerSetOverflow(busyTimer, 20); /* 2 kHz event rate */
+  /* Set 2 kHz update event rate */
+  timerSetOverflow(busyTimer, timerGetFrequency(busyTimer) / 2000);
 
   /* Initialize SPI layer */
-  struct Interface * const spi = init(SpiDma, &spiConfig[SPI_CHANNEL]);
+  struct Interface * const spi = init(SpiDma, &spiDmaConfig);
   assert(spi);
 
   /* Initialize SDIO layer */

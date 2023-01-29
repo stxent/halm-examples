@@ -5,8 +5,8 @@
  */
 
 #include "board.h"
-#include <halm/platform/lpc/rit.h>
-#include <assert.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -15,14 +15,15 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  bool event = false;
+
+  boardSetupClockExt();
+
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
-  struct Timer * const timer = init(Rit, 0);
-  assert(timer);
+  struct Timer * const timer = boardSetupRit();
   timerSetOverflow(timer, timerGetFrequency(timer) / 2);
-
-  bool event = false;
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 

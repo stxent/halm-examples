@@ -4,16 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/gptimer.h>
+#include "board.h"
+#include <halm/core/cortex/systick.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(1, 13)
-/*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = GPTIMER_CT32B0
-};
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -22,14 +15,21 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
+  bool event = false;
+
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
+  /*
+   * Core frequency and SysTick resolution must be kept in mind
+   * when configuring timer overflow.
+   */
+  struct Timer * const timer = init(SysTickTimer, 0);
   assert(timer);
-  timerSetOverflow(timer, 500);
 
-  bool event = false;
+  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 

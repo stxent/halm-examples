@@ -4,15 +4,13 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/usb_device.h>
+#include "board.h"
 #include <halm/usb/cdc_acm.h>
 #include <halm/usb/composite_device.h>
+#include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_LENGTH 512
-#define STREAM_COUNT  2
+#define STREAM_COUNT 2
 /*----------------------------------------------------------------------------*/
 struct StreamDescriptor
 {
@@ -21,61 +19,9 @@ struct StreamDescriptor
   bool event;
 };
 /*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig initialClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000,
-    .bypass = false
-};
-
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 4,
-    .multiplier = 20
-};
-
-static const struct PllConfig usbPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 1,
-    .multiplier = 40
-};
-/*----------------------------------------------------------------------------*/
-static const struct UsbDeviceConfig usbConfig = {
-    .dm = PIN(PORT_USB, PIN_USB0_DM),
-    .dp = PIN(PORT_USB, PIN_USB0_DP),
-    .connect = 0,
-    .vbus = PIN(PORT_USB, PIN_USB0_VBUS),
-    .vid = 0x15A2,
-    .pid = 0x0044,
-    .channel = 0
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &initialClockConfig);
-
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
-
-  clockEnable(UsbPll, &usbPllConfig);
-  while (!clockReady(UsbPll));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
   struct StreamDescriptor * const descriptor = argument;
-
   descriptor->event = true;
 }
 /*----------------------------------------------------------------------------*/
@@ -102,8 +48,8 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
   static_assert(ARRAY_SIZE(endpointAddressMap) == STREAM_COUNT, "Error");
 
   const struct Pin leds[] = {
-      pinInit(PIN(PORT_7, 7)),
-      pinInit(PIN(PORT_C, 11))
+      pinInit(BOARD_LED_0),
+      pinInit(BOARD_LED_1)
   };
   static_assert(ARRAY_SIZE(leds) == STREAM_COUNT, "Error");
 
@@ -137,7 +83,7 @@ static void transferData(struct Interface *interface, struct Pin led)
 
   do
   {
-    uint8_t buffer[BUFFER_LENGTH];
+    uint8_t buffer[BOARD_UART_BUFFER];
     uint8_t *position = buffer;
     size_t length = ifRead(interface, buffer, sizeof(buffer));
 
@@ -158,12 +104,12 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const bool USE_HS_USB = true;
   struct StreamDescriptor streams[STREAM_COUNT];
 
-  setupClock();
+  boardSetupClockPll();
 
-  struct Entity * const usb = init(UsbDevice, &usbConfig);
-  assert(usb);
+  struct Entity * const usb = USE_HS_USB ? boardSetupUsb0() : boardSetupUsb1();
 
   const struct CompositeDeviceConfig compositeConfig = {
       .device = usb

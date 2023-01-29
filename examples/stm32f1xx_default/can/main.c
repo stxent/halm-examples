@@ -4,77 +4,15 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/generic/can.h>
-#include <halm/pin.h>
-#include <halm/platform/stm32/can.h>
-#include <halm/platform/stm32/clocking.h>
-#include <halm/platform/stm32/gptimer.h>
-#include <assert.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_C, 13)
-
-/* Period between message groups in milliseconds */
-#define GROUP_PERIOD 10000
+/* Period between message groups in seconds */
+#define GROUP_RATE  10
 /* Number of messages in each group */
-#define GROUP_SIZE   1000
-/*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig blinkTimerConfig = {
-    .frequency = 1000,
-    .channel = TIM2
-};
-
-static const struct GpTimerConfig eventTimerConfig = {
-    .frequency = 1000,
-    .channel = TIM3
-};
-
-static const struct GpTimerConfig chronoTimerConfig = {
-    .frequency = 1000,
-    .channel = TIM4
-};
-
-static struct CanConfig canConfig = {
-    .timer = 0,
-    .rate = 1000000,
-    .rxBuffers = 4,
-    .txBuffers = 4,
-    .rx = PIN(PORT_B, 8),
-    .tx = PIN(PORT_B, 9),
-    .priority = 0,
-    .channel = 0
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 8000000
-};
-
-static const struct MainPllConfig mainPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 1,
-    .multiplier = 6
-};
-
-static const struct SystemClockConfig systemClockConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct BusClockConfig ahbBusClockConfig = {
-    .divisor = 1
-};
-
-static const struct BusClockConfig apbBusClockConfig = {
-    .divisor = 2
-};
-/*----------------------------------------------------------------------------*/
-static void onBlinkTimeout(void *argument)
-{
-  void * const * const array = argument;
-  struct Timer * const timer = array[0];
-  const struct Pin * const led = array[1];
-
-  pinReset(*led);
-  timerDisable(timer);
-}
+#define GROUP_SIZE  1000
 /*----------------------------------------------------------------------------*/
 static void onEvent(void *argument)
 {
@@ -84,7 +22,8 @@ static void onEvent(void *argument)
 static void sendMessageGroup(struct Interface *interface,
     struct Timer *timer, uint8_t flags, size_t length, size_t count)
 {
-  static const uint32_t INTERFACE_TIMEOUT = 1000;
+  /* Timeout is set to 1 second */
+  const uint32_t timeout = timerGetFrequency(timer);
 
   timerSetValue(timer, 0);
 
@@ -100,7 +39,7 @@ static void sendMessageGroup(struct Interface *interface,
 
     while (ifWrite(interface, &message, sizeof(message)) != sizeof(message))
     {
-      if (timerGetValue(timer) >= INTERFACE_TIMEOUT)
+      if (timerGetValue(timer) >= timeout)
         return;
     }
   }
@@ -117,58 +56,31 @@ static void runTransmissionTest(struct Interface *interface,
   sendMessageGroup(interface, timer, CAN_EXT_ID | CAN_RTR, 0, GROUP_SIZE);
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainPll, &mainPllConfig);
-  while (!clockReady(MainPll));
-
-  clockEnable(Apb1Clock, &apbBusClockConfig);
-  clockEnable(Apb2Clock, &apbBusClockConfig);
-  clockEnable(SystemClock, &systemClockConfig);
-
-  clockEnable(MainClock, &ahbBusClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
-
-  struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
-
-  struct Timer * const blinkTimer = init(GpTimer, &blinkTimerConfig);
-  assert(blinkTimer);
-  timerSetOverflow(blinkTimer, 50);
-
-  void *onBlinkTimeoutArguments[] = {blinkTimer, &led};
-  timerSetCallback(blinkTimer, onBlinkTimeout, &onBlinkTimeoutArguments);
-
-  struct Timer * const eventTimer = init(GpTimer, &eventTimerConfig);
-  assert(eventTimer);
-  timerSetOverflow(eventTimer, GROUP_PERIOD);
-
-  struct Timer * const chronoTimer = init(GpTimer, &chronoTimerConfig);
-  assert(chronoTimer);
-  timerEnable(chronoTimer);
-
-  canConfig.timer = chronoTimer;
-  struct Interface * const can = init(Can, &canConfig);
-  assert(can);
-  ifSetParam(can, IF_CAN_ACTIVE, 0);
-
   bool canEvent = false;
   bool timerEvent = false;
 
-  ifSetCallback(can, onEvent, &canEvent);
+  boardSetupClockPll();
+
+  struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Timer * const chronoTimer = boardSetupTimer();
+  timerEnable(chronoTimer);
+
+  struct Timer * const eventTimer = boardSetupAdcTimer();
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer) * GROUP_RATE);
   timerSetCallback(eventTimer, onEvent, &timerEvent);
   timerEnable(eventTimer);
 
+  struct Interface * const can = boardSetupCan(chronoTimer);
+  ifSetCallback(can, onEvent, &canEvent);
+  ifSetParam(can, IF_CAN_ACTIVE, 0);
+
   while (1)
   {
-    while (!timerEvent && !canEvent)
+    while (!canEvent && !timerEvent)
       barrier();
 
     if (timerEvent)
@@ -182,10 +94,10 @@ int main(void)
       canEvent = false;
 
       struct CANStandardMessage message;
-      ifRead(can, &message, sizeof(message));
 
       pinSet(led);
-      timerEnable(blinkTimer);
+      ifRead(can, &message, sizeof(message));
+      pinReset(led);
     }
   }
 

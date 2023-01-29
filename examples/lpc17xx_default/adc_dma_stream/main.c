@@ -6,12 +6,12 @@
 
 #include "board.h"
 #include <halm/delay.h>
-#include <halm/platform/lpc/adc_dma_stream.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <assert.h>
+#include <halm/timer.h>
+#include <xcore/interface.h>
+#include <xcore/stream.h>
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
-#define ADC_RATE 8
+#define ADC_RATE 4
 
 struct EventTuple
 {
@@ -54,6 +54,7 @@ static void onConversionCompleted(void *argument, struct StreamRequest *request,
 int main(void)
 {
   const size_t count = ADC_RATE * boardGetAdcPinCount();
+  uint16_t buffers[count][2];
 
   boardSetupClockPll();
 
@@ -64,19 +65,12 @@ int main(void)
   struct Timer * const memTimer = boardSetupTimer();
   struct Interface * const serial = boardSetupSerial();
 
-  struct AdcDmaStream * const adc =
-      (struct AdcDmaStream *)boardSetupAdcStream();
-  struct Stream * const stream = adcDmaStreamGetInput(adc);
-  assert(stream);
-
+  struct StreamPackage adc = boardSetupAdcStream();
   struct EventTuple context = {
       .serial = serial,
-      .stream = stream,
+      .stream = adc.rx,
       .led = led
   };
-
-  uint16_t buffers[count][2];
-
   struct StreamRequest requests[2] = {
       {
           count * sizeof(uint16_t),
@@ -93,8 +87,8 @@ int main(void)
       }
   };
 
-  streamEnqueue(stream, &requests[0]);
-  streamEnqueue(stream, &requests[1]);
+  streamEnqueue(adc.rx, &requests[0]);
+  streamEnqueue(adc.rx, &requests[1]);
 
   /*
    * The overflow frequency of the timer should be two times higher

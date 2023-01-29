@@ -4,36 +4,9 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/generic/software_timer.h>
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define OUTPUT_PIN_0 PIN(1, 0)
-#define OUTPUT_PIN_1 PIN(1, 1)
-#define OUTPUT_PIN_2 PIN(1, 2)
-/*----------------------------------------------------------------------------*/
-static struct GpTimerConfig tickTimerConfig = {
-    .frequency = 1000000,
-    .channel = GPTIMER_CT32B0
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_EXTERNAL
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
 /*----------------------------------------------------------------------------*/
 static void onTimer0Overflow(void *argument)
 {
@@ -61,18 +34,17 @@ static void onTimer2Overflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockPll();
 
-  struct Pin output0 = pinInit(OUTPUT_PIN_0);
+  struct Pin output0 = pinInit(BOARD_LED_0);
   pinOutput(output0, false);
-  struct Pin output1 = pinInit(OUTPUT_PIN_1);
+  struct Pin output1 = pinInit(BOARD_LED_1);
   pinOutput(output1, false);
-  struct Pin output2 = pinInit(OUTPUT_PIN_2);
+  struct Pin output2 = pinInit(BOARD_LED_2);
   pinOutput(output2, false);
 
-  struct Timer * const tickTimer = init(GpTimer, &tickTimerConfig);
-  assert(tickTimer);
-  timerSetOverflow(tickTimer, 1000);
+  struct Timer * const tickTimer = boardSetupTimer();
+  timerSetOverflow(tickTimer, timerGetFrequency(tickTimer) / 1000);
 
   const struct SoftwareTimerFactoryConfig factoryConfig = {
       .timer = tickTimer

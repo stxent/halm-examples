@@ -4,14 +4,12 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/generic/flash.h>
-#include <halm/pin.h>
 #include <halm/platform/lpc/flash.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(1, 13)
 /*----------------------------------------------------------------------------*/
 extern unsigned long _stext;
 extern unsigned long _sidata;
@@ -69,14 +67,17 @@ static enum Result verify(struct Interface *flash, const uint8_t *pattern,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const struct Pin led = pinInit(LED_PIN);
+  size_t flashSize;
+  size_t pageSize;
+  enum Result res;
+
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
   struct Interface * const flash = init(Flash, 0);
   assert(flash);
-
-  size_t flashSize, pageSize;
-  enum Result res;
 
   pinSet(led);
   if ((res = ifGetParam(flash, IF_SIZE, &flashSize)) == E_OK)

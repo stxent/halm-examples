@@ -4,46 +4,26 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/delay.h>
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/pin_int.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define EVENT_PIN PIN(PORT_3, 1)
-#define LED_PIN   PIN(PORT_7, 7)
-/*----------------------------------------------------------------------------*/
-static const struct PinIntConfig interruptConfig = {
-    .pin = EVENT_PIN,
-    .event = PIN_FALLING,
-    .pull = PIN_PULLUP
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_INTERNAL
-};
+#include <halm/interrupt.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onExternalEvent(void *argument)
 {
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
-
-  struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
-
   bool event = false;
 
-  struct Interrupt * const interrupt = init(PinInt, &interruptConfig);
-  assert(interrupt);
+  boardSetupClockExt();
+
+  struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, false);
+
+  struct Interrupt * const interrupt = boardSetupButton();
   interruptSetCallback(interrupt, onExternalEvent, &event);
   interruptEnable(interrupt);
 

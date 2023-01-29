@@ -8,7 +8,10 @@
 #include <halm/timer.h>
 #include <xcore/interface.h>
 #include <xcore/memory.h>
-#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+/*----------------------------------------------------------------------------*/
+#define ADC_RATE 50
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -19,14 +22,17 @@ int main(void)
 {
   bool event = false;
 
+  boardSetupClockPll();
+
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
   struct Interface * const adc = boardSetupAdcOneShot();
+  struct Interface * const serial = boardSetupSerial();
 
   struct Timer * const timer = boardSetupTimer();
-  timerSetOverflow(timer, timerGetFrequency(timer));
   timerSetCallback(timer, onTimerOverflow, &event);
+  timerSetOverflow(timer, timerGetFrequency(timer) / ADC_RATE);
   timerEnable(timer);
 
   while (1)
@@ -35,14 +41,15 @@ int main(void)
       barrier();
     event = false;
 
-    pinSet(led);
+    uint16_t buffer;
+    char text[8];
 
-    uint16_t voltage;
-    const size_t bytesRead = ifRead(adc, &voltage, sizeof(voltage));
-    assert(bytesRead == sizeof(voltage));
-    (void)bytesRead; /* Suppress warning */
+    ifRead(adc, &buffer, sizeof(buffer));
 
-    pinReset(led);
+    sprintf(text, "%5u\r\n", (unsigned int)buffer);
+    ifWrite(serial, text, strlen(text));
+
+    pinToggle(led);
   }
 
   return 0;

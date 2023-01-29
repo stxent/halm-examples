@@ -4,64 +4,11 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/stm32/clocking.h>
-#include <halm/platform/stm32/usb_device.h>
+#include "board.h"
 #include <halm/usb/cdc_acm.h>
+#include <halm/usb/usb.h>
+#include <xcore/memory.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define BUFFER_LENGTH 64
-#define LED_PIN       PIN(PORT_C, 13)
-/*----------------------------------------------------------------------------*/
-static const struct UsbDeviceConfig usbConfig = {
-    .dm = PIN(PORT_A, 11),
-    .dp = PIN(PORT_A, 12),
-    .vid = 0x15A2,
-    .pid = 0x0044,
-    .channel = 0
-};
-
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 8000000
-};
-
-static const struct MainPllConfig mainPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 1,
-    .multiplier = 6
-};
-
-static const struct SystemClockConfig systemClockConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct UsbClockConfig usbClockConfig = {
-    .divisor = USB_CLK_DIV_1
-};
-
-static const struct BusClockConfig ahbBusClockConfig = {
-    .divisor = 1
-};
-
-static const struct BusClockConfig apbBusClockConfig = {
-    .divisor = 2
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainPll, &mainPllConfig);
-  while (!clockReady(MainPll));
-
-  clockEnable(Apb1Clock, &apbBusClockConfig);
-  clockEnable(Apb2Clock, &apbBusClockConfig);
-  clockEnable(SystemClock, &systemClockConfig);
-  clockEnable(UsbClock, &usbClockConfig);
-
-  clockEnable(MainClock, &ahbBusClockConfig);
-}
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
 {
@@ -76,7 +23,7 @@ static void transferData(struct Interface *interface, struct Pin led)
 
   do
   {
-    uint8_t buffer[BUFFER_LENGTH];
+    uint8_t buffer[BOARD_UART_BUFFER];
     uint8_t *position = buffer;
     size_t length = ifRead(interface, buffer, sizeof(buffer));
 
@@ -97,13 +44,14 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  bool event = false;
 
-  const struct Pin led = pinInit(LED_PIN);
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  struct Entity * const usb = init(UsbDevice, &usbConfig);
-  assert(usb);
+  struct Entity * const usb = boardSetupUsb();
 
   const struct CdcAcmConfig config = {
       .device = usb,
@@ -117,8 +65,6 @@ int main(void)
           .tx = 0x83
       }
   };
-
-  bool event = false;
 
   struct Interface * const serial = init(CdcAcm, &config);
   assert(serial);

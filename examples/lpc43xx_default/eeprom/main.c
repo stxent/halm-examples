@@ -4,17 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
-#include <halm/platform/lpc/clocking.h>
+#include "board.h"
 #include <halm/platform/lpc/eeprom.h>
 #include <assert.h>
 #include <string.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(PORT_7, 7)
-/*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_INTERNAL
-};
 /*----------------------------------------------------------------------------*/
 static enum Result program(struct Interface *eeprom, const uint8_t *buffer,
     size_t length, uint32_t address)
@@ -28,11 +21,6 @@ static enum Result program(struct Interface *eeprom, const uint8_t *buffer,
     return E_INTERFACE;
 
   return E_OK;
-}
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 static enum Result verify(struct Interface *eeprom, const uint8_t *pattern,
@@ -60,26 +48,25 @@ static enum Result verify(struct Interface *eeprom, const uint8_t *pattern,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t address = 64;
+  static const uint32_t EEPROM_ADDRESS = 64;
   uint8_t buffer[384];
 
-  setupClock();
+  boardSetupClockExt();
 
-  const struct Pin led = pinInit(LED_PIN);
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
   struct Interface * const eeprom = init(Eeprom, 0);
   assert(eeprom);
 
-  uint32_t size;
+  uint32_t capacity;
   enum Result res;
 
   pinSet(led);
-  if ((res = ifGetParam(eeprom, IF_SIZE, &size)) == E_OK)
+  if ((res = ifGetParam(eeprom, IF_SIZE, &capacity)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
-
-  assert(address < size);
+  assert(EEPROM_ADDRESS < capacity);
 
   /* Fill memory with pseudorandom pattern */
 
@@ -87,12 +74,12 @@ int main(void)
     buffer[i] = i;
 
   pinSet(led);
-  if ((res = program(eeprom, buffer, sizeof(buffer), address)) == E_OK)
+  if ((res = program(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
   pinSet(led);
-  if ((res = verify(eeprom, buffer, sizeof(buffer), address)) == E_OK)
+  if ((res = verify(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
@@ -101,12 +88,12 @@ int main(void)
   memset(buffer, 0, sizeof(buffer));
 
   pinSet(led);
-  if ((res = program(eeprom, buffer, sizeof(buffer), address)) == E_OK)
+  if ((res = program(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 
   pinSet(led);
-  if ((res = verify(eeprom, buffer, sizeof(buffer), address)) == E_OK)
+  if ((res = verify(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
     pinReset(led);
   assert(res == E_OK);
 

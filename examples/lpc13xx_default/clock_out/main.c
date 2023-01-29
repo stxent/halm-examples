@@ -4,52 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
-#include <halm/pin.h>
+#include "board.h"
 #include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/gptimer.h>
-#include <halm/platform/lpc/gptimer_counter.h>
-#include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN     PIN(3, 0)
-
-#define EVENT_PIN   PIN(1, 0)
-#define OUTPUT_PIN  PIN(0, 1)
-/*----------------------------------------------------------------------------*/
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 1000,
-    .channel = GPTIMER_CT16B0
-};
-
-static const struct GpTimerCounterConfig counterConfig = {
-    .edge = PIN_RISING,
-    .pin = EVENT_PIN,
-    .channel = GPTIMER_CT32B1
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_EXTERNAL
-};
-
-static const struct ClockOutputConfig outputClockConfig = {
-    .source = CLOCK_MAIN,
-    .divisor = 200,
-    .pin = OUTPUT_PIN
-};
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(MainClock, &mainClockConfig);
-
-  clockEnable(ClockOutput, &outputClockConfig);
-  while (!clockReady(ClockOutput));
-}
+#include <halm/timer.h>
+#include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -58,27 +16,25 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const uint32_t frequency = extOscConfig.frequency / outputClockConfig.divisor;
-  const uint32_t maxPeriod = frequency + frequency / 1000;
-  const uint32_t minPeriod = frequency - frequency / 1000;
+  bool event = false;
 
-  setupClock();
+  boardSetupClockExt();
 
-  const struct Pin led = pinInit(LED_PIN);
+  const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, true);
 
-  struct Timer * const counter = init(GpTimerCounter, &counterConfig);
-  assert(counter);
+  struct Timer * const counterTimer = boardSetupCounterTimer();
+  timerEnable(counterTimer);
 
-  struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
-  timerSetOverflow(timer, 1000);
+  struct Timer * const eventTimer = boardSetupTimer();
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
+  timerSetCallback(eventTimer, onTimerOverflow, &event);
 
-  bool event = false;
-  timerSetCallback(timer, onTimerOverflow, &event);
+  boardSetupClockOutput(clockFrequency(MainClock) / 100000);
+  const uint32_t CLOCK_FREQUENCY = clockFrequency(ClockOutput);
 
-  timerEnable(counter);
-  timerEnable(timer);
+  /* Start counting */
+  timerEnable(eventTimer);
 
   while (1)
   {
@@ -86,10 +42,10 @@ int main(void)
       barrier();
     event = false;
 
-    const uint32_t period = timerGetValue(counter);
-    timerSetValue(counter, 0);
+    const uint32_t period = timerGetValue(counterTimer);
+    timerSetValue(counterTimer, 0);
 
-    if (period >= minPeriod && period <= maxPeriod)
+    if (period >= CLOCK_FREQUENCY - 1 && period <= CLOCK_FREQUENCY + 1)
       pinReset(led);
     else
       pinSet(led);
