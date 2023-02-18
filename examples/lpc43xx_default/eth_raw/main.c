@@ -84,7 +84,7 @@ static const struct EthernetConfig ethConfig = {
         0
     },
     .txen = PIN(PORT_0, 1),
-    .mdc = PIN(PORT_C, 1),
+    .mdc = PIN(PORT_2, 0),
     .mdio = PIN(PORT_1, 17)
 };
 
@@ -178,7 +178,7 @@ static void handleEthFrame(struct Interface *eth, const uint8_t *frame,
 /*----------------------------------------------------------------------------*/
 static bool phyInit(struct Interface *mdio)
 {
-  static const uint32_t PHY_ADDRESS = 0x01;
+  static const uint32_t PHY_ADDRESS = 0x00;
   static const uint32_t PHY_TIMEOUT = 1000;
 
   ifSetParam(mdio, IF_ADDRESS, &PHY_ADDRESS);
@@ -290,6 +290,8 @@ int main(void)
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
+  const struct Pin rst = pinInit(BOARD_PHY_RESET);
+  pinOutput(rst, true);
 
   void * const eth = init(Ethernet, &ethConfig);
   assert(eth);

@@ -36,10 +36,13 @@ int main(void)
   pinOutput(context.led, false);
 
   pinSet(context.led);
+  /* Non-blocking initialization */
   context.rtc = boardSetupRtc();
-  rtSetCallback(context.rtc, onTimerAlarm, &context);
+  /* Wait for RTC registers update */
+  while (rtTime(context.rtc) == 0);
   pinReset(context.led);
 
+  rtSetCallback(context.rtc, onTimerAlarm, &context);
   rtSetAlarm(context.rtc, rtTime(context.rtc) + RTC_ALARM_PERIOD);
 
   while (1);

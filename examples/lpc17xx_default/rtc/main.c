@@ -37,9 +37,9 @@ int main(void)
 
   pinSet(context.led);
   context.rtc = boardSetupRtc();
-  rtSetCallback(context.rtc, onTimerAlarm, &context);
   pinReset(context.led);
 
+  rtSetCallback(context.rtc, onTimerAlarm, &context);
   rtSetAlarm(context.rtc, rtTime(context.rtc) + RTC_ALARM_PERIOD);
 
   while (1);

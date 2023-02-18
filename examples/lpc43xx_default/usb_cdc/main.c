@@ -15,17 +15,14 @@ static void onSerialEvent(void *argument)
   *(bool *)argument = true;
 }
 /*----------------------------------------------------------------------------*/
-static void transferData(struct Interface *interface, struct Pin led)
+static void transferData(struct Interface *interface)
 {
-  size_t available = 0;
+  uint8_t buffer[BOARD_UART_BUFFER];
+  size_t length;
 
-  pinSet(led);
-
-  do
+  while ((length = ifRead(interface, buffer, sizeof(buffer))))
   {
-    uint8_t buffer[BOARD_UART_BUFFER];
-    uint8_t *position = buffer;
-    size_t length = ifRead(interface, buffer, sizeof(buffer));
+    const uint8_t *position = buffer;
 
     while (length)
     {
@@ -34,12 +31,7 @@ static void transferData(struct Interface *interface, struct Pin led)
       length -= written;
       position += written;
     }
-
-    ifGetParam(interface, IF_RX_AVAILABLE, &available);
   }
-  while (available > 0);
-
-  pinReset(led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -49,8 +41,12 @@ int main(void)
 
   boardSetupClockPll();
 
-  const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  const struct Pin dataLed = pinInit(BOARD_LED_0);
+  pinOutput(dataLed, false);
+  const struct Pin indLed0 = pinInit(BOARD_USB0_IND0);
+  pinOutput(indLed0, false);
+  const struct Pin indLed1 = pinInit(BOARD_USB0_IND1);
+  pinOutput(indLed1, false);
 
   struct Entity * const usb = USE_HS_USB ? boardSetupUsb0() : boardSetupUsb1();
 
@@ -79,7 +75,20 @@ int main(void)
       barrier();
     event = false;
 
-    transferData(serial, led);
+    size_t available;
+    uint8_t status;
+
+    if (ifGetParam(serial, IF_CDC_ACM_STATUS, &status) == E_OK)
+    {
+      pinWrite(indLed0, (status & CDC_ACM_SUSPENDED) == 0);
+      pinWrite(indLed1, usbDevGetSpeed(usb) == USB_HS);
+    }
+
+    if (ifGetParam(serial, IF_RX_AVAILABLE, &available) == E_OK && available)
+    {
+      transferData(serial);
+      pinToggle(dataLed);
+    }
   }
 
   return 0;

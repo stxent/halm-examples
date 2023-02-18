@@ -25,11 +25,22 @@
 #include <halm/platform/lpc/serial_dma.h>
 #include <halm/platform/lpc/spi.h>
 #include <halm/platform/lpc/spi_dma.h>
+#include <halm/platform/lpc/spifi.h>
 #include <halm/platform/lpc/sct_pwm.h>
 #include <halm/platform/lpc/usb_device.h>
 #include <halm/platform/lpc/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2C(void)
+    __attribute__((alias("boardSetupI2C1")));
+struct Interface *boardSetupI2CSlave(void)
+    __attribute__((alias("boardSetupI2CSlave1")));
+
+struct Interface *boardSetupSpi(void)
+    __attribute__((alias("boardSetupSpi0")));
+struct Interface *boardSetupSpiDma(void)
+    __attribute__((alias("boardSetupSpiDma0")));
+
 static void enablePeriphClock(const void *);
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
@@ -102,18 +113,32 @@ static const struct DacDmaConfig dacDmaConfig = {
     .dma = 5
 };
 
-static const struct I2CConfig i2cConfig = {
+static const struct I2CConfig i2c0Config = {
     .rate = 100000,
     .scl = PIN(PORT_I2C, PIN_I2C0_SCL),
     .sda = PIN(PORT_I2C, PIN_I2C0_SDA),
     .channel = 0
 };
 
-static const struct I2CSlaveConfig i2cSlaveConfig = {
+static const struct I2CConfig i2c1Config = {
+    .rate = 100000,
+    .scl = PIN(PORT_2, 4),
+    .sda = PIN(PORT_2, 3),
+    .channel = 1
+};
+
+static const struct I2CSlaveConfig i2cSlave0Config = {
     .size = 16,
     .scl = PIN(PORT_I2C, PIN_I2C0_SCL),
     .sda = PIN(PORT_I2C, PIN_I2C0_SDA),
     .channel = 0
+};
+
+static const struct I2CSlaveConfig i2cSlave1Config = {
+    .size = 16,
+    .scl = PIN(PORT_2, 4),
+    .sda = PIN(PORT_2, 3),
+    .channel = 1
 };
 
 static const struct I2SDmaConfig i2sConfig = {
@@ -198,24 +223,56 @@ static const struct SerialDmaConfig serialDmaConfig = {
     .dma = {2, 3}
 };
 
-static const struct SpiConfig spiConfig = {
+static const struct SpiConfig spi0Config = {
     .rate = 2000000,
-    .sck = PIN(PORT_3, 3),
-    .miso = PIN(PORT_3, 6),
-    .mosi = PIN(PORT_3, 8),
+    .sck = PIN(PORT_3, 0),
+    .miso = PIN(PORT_1, 1),
+    .mosi = PIN(PORT_1, 2),
     .priority = 0,
     .channel = 0,
     .mode = 3
 };
 
-static const struct SpiDmaConfig spiDmaConfig = {
+static const struct SpiConfig spi1Config = {
     .rate = 2000000,
-    .sck = PIN(PORT_3, 3),
-    .miso = PIN(PORT_3, 6),
-    .mosi = PIN(PORT_3, 8),
+    .sck = PIN(PORT_F, 4),
+    .miso = PIN(PORT_1, 3),
+    .mosi = PIN(PORT_1, 4),
+    .priority = 0,
+    .channel = 1,
+    .mode = 3
+};
+
+static const struct SpiDmaConfig spiDma0Config = {
+    .rate = 2000000,
+    .sck = PIN(PORT_3, 0),
+    .miso = PIN(PORT_1, 1),
+    .mosi = PIN(PORT_1, 2),
     .channel = 0,
     .mode = 3,
     .dma = {0, 1}
+};
+
+static const struct SpiDmaConfig spiDma1Config = {
+    .rate = 2000000,
+    .sck = PIN(PORT_F, 4),
+    .miso = PIN(PORT_1, 3),
+    .mosi = PIN(PORT_1, 4),
+    .channel = 1,
+    .mode = 3,
+    .dma = {0, 1}
+};
+
+static const struct SpifiConfig spifiConfig = {
+    .cs = PIN(PORT_3, 8),
+    .io0 = PIN(PORT_3, 7),
+    .io1 = PIN(PORT_3, 6),
+    .io2 = PIN(PORT_3, 5),
+    .io3 = PIN(PORT_3, 4),
+    .sck = PIN(PORT_3, 3),
+    .channel = 0,
+    .mode = 0,
+    .dma = 0
 };
 
 static const struct GpTimerConfig timerConfig = {
@@ -250,8 +307,8 @@ static const struct WdtConfig wdtConfig = {
 /*----------------------------------------------------------------------------*/
 static const struct PllConfig audioPllConfig = {
     .source = CLOCK_EXTERNAL,
-    .divisor = 2,
-    .multiplier = 20
+    .divisor = 4,
+    .multiplier = 40
 };
 
 static const struct GenericDividerConfig divBConfig = {
@@ -293,8 +350,8 @@ static const struct PllConfig sysPllConfig = {
 
 static const struct PllConfig usbPllConfig = {
     .source = CLOCK_EXTERNAL,
-    .divisor = 4,
-    .multiplier = 16
+    .divisor = 1,
+    .multiplier = 40
 };
 
 static const struct GenericClockConfig mainClockConfigExt = {
@@ -429,11 +486,8 @@ struct Interface *boardSetupCan(struct Timer *timer)
   }
 
   /* Make 40 MHz clock for CAN, clock should be less than 50 MHz */
-  if (!clockReady(DividerB))
-  {
-    clockEnable(DividerB, &divBConfig);
-    while (!clockReady(DividerB));
-  }
+  clockEnable(DividerB, &divBConfig);
+  while (!clockReady(DividerB));
 
   /* Override default config */
   struct CanConfig config = canConfig;
@@ -441,16 +495,12 @@ struct Interface *boardSetupCan(struct Timer *timer)
 
   if (config.channel == 0)
   {
-    assert(!clockReady(Apb3Clock));
-
     /* CAN0 is connected to the APB3 bus */
     clockEnable(Apb3Clock, &divBClockSource);
     while (!clockReady(Apb3Clock));
   }
   else
   {
-    assert(!clockReady(Apb1Clock));
-
     /* CAN1 is connected to the APB1 bus */
     clockEnable(Apb1Clock, &divBClockSource);
     while (!clockReady(Apb1Clock));
@@ -485,38 +535,42 @@ struct StreamPackage boardSetupDacDma(void)
   return (struct StreamPackage){(struct Interface *)interface, 0, stream};
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupI2C(void)
+struct Interface *boardSetupI2C0(void)
 {
-  if (i2cConfig.channel == 0)
-  {
-    /* I2C0 is connected to the APB1 bus */
-    enablePeriphClock(Apb1Clock);
-  }
-  else
-  {
-    /* I2C1 is connected to the APB3 bus */
-    enablePeriphClock(Apb3Clock);
-  }
+  /* I2C0 is connected to the APB1 bus */
+  enablePeriphClock(Apb1Clock);
 
-  struct Interface * const interface = init(I2C, &i2cConfig);
+  struct Interface * const interface = init(I2C, &i2c0Config);
   assert(interface);
   return(interface);
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupI2CSlave(void)
+struct Interface *boardSetupI2C1(void)
 {
-  if (i2cSlaveConfig.channel == 0)
-  {
-    /* I2C0 is connected to the APB1 bus */
-    enablePeriphClock(Apb1Clock);
-  }
-  else
-  {
-    /* I2C1 is connected to the APB3 bus */
-    enablePeriphClock(Apb3Clock);
-  }
+  /* I2C1 is connected to the APB3 bus */
+  enablePeriphClock(Apb3Clock);
 
-  struct Interface * const interface = init(I2CSlave, &i2cSlaveConfig);
+  struct Interface * const interface = init(I2C, &i2c1Config);
+  assert(interface);
+  return(interface);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2CSlave0(void)
+{
+  /* I2C0 is connected to the APB1 bus */
+  enablePeriphClock(Apb1Clock);
+
+  struct Interface * const interface = init(I2CSlave, &i2cSlave0Config);
+  assert(interface);
+  return(interface);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2CSlave1(void)
+{
+  /* I2C1 is connected to the APB3 bus */
+  enablePeriphClock(Apb3Clock);
+
+  struct Interface * const interface = init(I2CSlave, &i2cSlave1Config);
   assert(interface);
   return(interface);
 }
@@ -567,11 +621,8 @@ struct Timer *boardSetupRit(void)
 /*----------------------------------------------------------------------------*/
 struct RtClock *boardSetupRtc(void)
 {
-  if (!clockReady(RtcOsc))
-  {
-    clockEnable(RtcOsc, 0);
-    while (!clockReady(RtcOsc));
-  }
+  clockEnable(RtcOsc, 0);
+  while (!clockReady(RtcOsc));
 
   struct RtClock * const timer = init(Rtc, &rtcConfig);
   assert(timer);
@@ -627,26 +678,68 @@ struct Interface *boardSetupSerialDma(void)
   return(interface);
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSpi(void)
+struct Interface *boardSetupSpi0(void)
 {
-  if (spiConfig.channel == 0)
-    enablePeriphClock(Ssp0Clock);
-  else
-    enablePeriphClock(Ssp1Clock);
+  enablePeriphClock(Ssp0Clock);
 
-  struct Interface * const interface = init(Spi, &spiConfig);
+  struct Interface * const interface = init(Spi, &spi0Config);
   assert(interface);
   return(interface);
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSpiDma(void)
+struct Interface *boardSetupSpi1(void)
 {
-  if (spiDmaConfig.channel == 0)
-    enablePeriphClock(Ssp0Clock);
-  else
-    enablePeriphClock(Ssp1Clock);
+  enablePeriphClock(Ssp1Clock);
 
-  struct Interface * const interface = init(SpiDma, &spiDmaConfig);
+  struct Interface * const interface = init(Spi, &spi1Config);
+  assert(interface);
+  return(interface);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSpiDma0(void)
+{
+  enablePeriphClock(Ssp0Clock);
+
+  struct Interface * const interface = init(SpiDma, &spiDma0Config);
+  assert(interface);
+  return(interface);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSpiDma1(void)
+{
+  enablePeriphClock(Ssp1Clock);
+
+  struct Interface * const interface = init(SpiDma, &spiDma1Config);
+  assert(interface);
+  return(interface);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSpifi(void)
+{
+  static const struct GenericClockConfig source = {
+      .source = CLOCK_IDIVA
+  };
+
+  /* Maximum possible frequency for SPIFI is 104 MHz */
+  struct GenericDividerConfig config;
+
+  if (clockReady(SystemPll))
+  {
+    config.divisor = 2;
+    config.source = CLOCK_PLL;
+  }
+  else
+  {
+    config.divisor = 1;
+    config.source = clockReady(ExternalOsc) ? CLOCK_EXTERNAL : CLOCK_INTERNAL;
+  }
+
+  clockEnable(DividerA, &config);
+  while (!clockReady(DividerA));
+  clockEnable(SpifiClock, &source);
+  while (!clockReady(SpifiClock));
+
+  struct Interface * const interface = init(Spifi, &spifiConfig);
   assert(interface);
   return(interface);
 }
@@ -673,8 +766,6 @@ struct Entity *boardSetupUsb0(void)
 /*----------------------------------------------------------------------------*/
 struct Entity *boardSetupUsb1(void)
 {
-  assert(!clockReady(DividerC));
-
   /* Make 120 MHz clock on AUDIO PLL */
   if (!clockReady(AudioPll))
   {

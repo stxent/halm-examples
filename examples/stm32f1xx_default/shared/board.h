@@ -11,6 +11,7 @@
 /*----------------------------------------------------------------------------*/
 #define BOARD_BUTTON      PIN(PORT_B, 15)
 #define BOARD_LED_0       PIN(PORT_C, 13)
+#define BOARD_LED_1       PIN(PORT_C, 14)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_SDIO_CS     PIN(PORT_A, 4)
 #define BOARD_SPI_CS      PIN(PORT_A, 4)
