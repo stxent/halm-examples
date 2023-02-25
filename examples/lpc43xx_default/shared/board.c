@@ -230,7 +230,7 @@ static const struct SpiConfig spi0Config = {
     .mosi = PIN(PORT_1, 2),
     .priority = 0,
     .channel = 0,
-    .mode = 3
+    .mode = 0
 };
 
 static const struct SpiConfig spi1Config = {
@@ -240,7 +240,7 @@ static const struct SpiConfig spi1Config = {
     .mosi = PIN(PORT_1, 4),
     .priority = 0,
     .channel = 1,
-    .mode = 3
+    .mode = 0
 };
 
 static const struct SpiDmaConfig spiDma0Config = {
@@ -249,7 +249,7 @@ static const struct SpiDmaConfig spiDma0Config = {
     .miso = PIN(PORT_1, 1),
     .mosi = PIN(PORT_1, 2),
     .channel = 0,
-    .mode = 3,
+    .mode = 0,
     .dma = {0, 1}
 };
 
@@ -259,7 +259,7 @@ static const struct SpiDmaConfig spiDma1Config = {
     .miso = PIN(PORT_1, 3),
     .mosi = PIN(PORT_1, 4),
     .channel = 1,
-    .mode = 3,
+    .mode = 0,
     .dma = {0, 1}
 };
 

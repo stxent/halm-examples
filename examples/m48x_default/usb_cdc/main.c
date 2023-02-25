@@ -1,6 +1,6 @@
 /*
- * lpc43xx_default/usb_cdc/main.c
- * Copyright (C) 2016 xent
+ * m48x_default/usb_cdc/main.c
+ * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -42,13 +42,13 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin dataLed = pinInit(BOARD_LED_0);
-  pinOutput(dataLed, false);
-  const struct Pin indLed0 = pinInit(BOARD_USB0_IND0);
-  pinOutput(indLed0, false);
-  const struct Pin indLed1 = pinInit(BOARD_USB0_IND1);
-  pinOutput(indLed1, false);
+  pinOutput(dataLed, true);
+  const struct Pin indLed0 = pinInit(BOARD_LED_1);
+  pinOutput(indLed0, true);
+  const struct Pin indLed1 = pinInit(BOARD_LED_2);
+  pinOutput(indLed1, true);
 
-  struct Entity * const usb = USE_HS_USB ? boardSetupUsb0() : boardSetupUsb1();
+  struct Entity * const usb = USE_HS_USB ? boardSetupHsUsb() : boardSetupUsb();
 
   const struct CdcAcmConfig config = {
       .device = usb,
@@ -82,13 +82,13 @@ int main(void)
     {
       if (status & CDC_ACM_SUSPENDED)
       {
-        pinReset(indLed0);
-        pinReset(indLed1);
+        pinSet(indLed0);
+        pinSet(indLed1);
       }
       else
       {
-        pinSet(indLed0);
-        pinWrite(indLed1, usbDevGetSpeed(usb) == USB_HS);
+        pinReset(indLed0);
+        pinWrite(indLed1, usbDevGetSpeed(usb) != USB_HS);
       }
     }
 

@@ -1,6 +1,6 @@
 /*
- * lpc17xx_default/serial_dma/main.c
- * Copyright (C) 2016 xent
+ * m48x_default/serial_dma/main.c
+ * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -51,7 +51,7 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, true);
 
   struct Interface * const serial = boardSetupSerialDma();
   ifSetCallback(serial, onSerialEvent, &event);

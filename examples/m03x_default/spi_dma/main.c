@@ -35,7 +35,7 @@ int main(void)
   const struct Pin cs = pinInit(BOARD_SPI_CS);
   pinOutput(cs, true);
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, true);
 
   struct Interface * const spi = boardSetupSpiDma();
   res = ifSetParam(spi, IF_RATE, &SPI_TEST_RATE);
@@ -65,11 +65,11 @@ int main(void)
 
     const uint32_t buffer = toBigEndian32(value);
 
-    pinSet(led);
+    pinToggle(led);
     pinReset(cs);
     ifWrite(spi, &buffer, sizeof(buffer));
     pinSet(cs);
-    pinReset(led);
+    pinToggle(led);
 
     if (!USE_ZEROCOPY)
       ++value;

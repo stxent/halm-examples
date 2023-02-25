@@ -26,7 +26,7 @@ static const struct SpiConfig spiConfig = {
     .mosi = PIN(PORT_A, 7),
     .sck = PIN(PORT_A, 5),
     .channel = SPI1,
-    .mode = 3,
+    .mode = 0,
     .rxDma = DMA1_STREAM2,
     .txDma = DMA1_STREAM3
 };

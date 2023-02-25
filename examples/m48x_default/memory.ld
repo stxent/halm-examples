@@ -8,12 +8,13 @@ EXTERN(vectorTable)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128K
-  RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 16K
+  FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 512K
+  RAM (rwx)   : ORIGIN = 0x20000000, LENGTH = 128K
 
-  CONFIG (r) : ORIGIN = 0x00300000, LENGTH = 12
-  AHB (rw)   : ORIGIN = 0x40000000, LENGTH = 1M
-  PPB (rw)   : ORIGIN = 0xE0000000, LENGTH = 1M
+  CONFIG (r)  : ORIGIN = 0x00300000, LENGTH = 16
+  AHB (rw)    : ORIGIN = 0x40000000, LENGTH = 1M
+  CRYPTO (rw) : ORIGIN = 0x50000000, LENGTH = 1M
+  PPB (rw)    : ORIGIN = 0xE0000000, LENGTH = 1M
 }
 
 SECTIONS
@@ -67,6 +68,11 @@ SECTIONS
   {
     AHB_APB_DOMAIN = .;
   } >AHB
+
+  .crypto :
+  {
+    CRYPTO_DOMAIN = .;
+  } >CRYPTO
 
   .ppb :
   {

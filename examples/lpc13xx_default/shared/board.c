@@ -103,7 +103,7 @@ static const struct SpiConfig spiConfig = {
     .sck = PIN(2, 11),
     .priority = 0,
     .channel = 0,
-    .mode = 3
+    .mode = 0
 };
 
 static const struct GpTimerConfig timerConfig = {

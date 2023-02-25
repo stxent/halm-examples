@@ -52,7 +52,7 @@ static const struct SpiDmaConfig spiDmaConfig = {
     .mosi = PIN(0, 18),
     .dma = {0, 1},
     .channel = 0,
-    .mode = 3
+    .mode = 0
 };
 
 static const struct UsbDeviceConfig usbConfig = {

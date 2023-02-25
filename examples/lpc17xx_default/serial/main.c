@@ -18,7 +18,7 @@ static void transferData(struct Interface *interface, struct Pin led)
 {
   size_t available = 0;
 
-  pinSet(led);
+  pinToggle(led);
 
   do
   {
@@ -30,7 +30,7 @@ static void transferData(struct Interface *interface, struct Pin led)
   }
   while (available > 0);
 
-  pinReset(led);
+  pinToggle(led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

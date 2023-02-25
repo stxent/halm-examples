@@ -65,11 +65,11 @@ int main(void)
 
     const uint32_t buffer = toBigEndian32(value);
 
-    pinSet(led);
+    pinToggle(led);
     pinReset(cs);
     ifWrite(spi, &buffer, sizeof(buffer));
     pinSet(cs);
-    pinReset(led);
+    pinToggle(led);
 
     if (!USE_ZEROCOPY)
       ++value;

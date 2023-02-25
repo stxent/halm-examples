@@ -1,6 +1,6 @@
 /*
- * lpc17xx_default/spi/main.c
- * Copyright (C) 2016 xent
+ * m48x_default/spi/main.c
+ * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -35,7 +35,7 @@ int main(void)
   const struct Pin cs = pinInit(BOARD_SPI_CS);
   pinOutput(cs, true);
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, true);
 
   struct Interface * const spi = boardSetupSpi();
   res = ifSetParam(spi, IF_RATE, &SPI_TEST_RATE);
