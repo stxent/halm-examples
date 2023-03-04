@@ -5,54 +5,24 @@
  */
 
 #include "board.h"
-// #include <halm/platform/numicro/adc.h>
-// #include <halm/platform/numicro/adc_dma.h>
 #include <halm/platform/numicro/clocking.h>
 #include <halm/platform/numicro/gptimer.h>
 #include <halm/platform/numicro/hsusb_device.h>
-// #include <halm/platform/numicro/pin_int.h>
+#include <halm/platform/numicro/pin_int.h>
 #include <halm/platform/numicro/serial.h>
 #include <halm/platform/numicro/serial_dma.h>
 #include <halm/platform/numicro/spi.h>
 #include <halm/platform/numicro/spi_dma.h>
 #include <halm/platform/numicro/qspi.h>
 #include <halm/platform/numicro/usb_device.h>
+#include <halm/platform/numicro/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-// const PinNumber adcPinArray[] = {
-//     PIN(PORT_B, 0),
-//     PIN(PORT_B, 3),
-//     PIN(PORT_B, 6),
-//     PIN(PORT_B, 9),
-//     0
-// };
-
-// static const struct AdcConfig adcConfig = {
-//     .pins = adcPinArray,
-//     .event = ADC_TIMER,
-//     .channel = 0
-// };
-
-// static const struct AdcDmaConfig adcDmaConfig = {
-//     .pins = adcPinArray,
-//     .event = ADC_TIMER,
-//     .channel = 0,
-//     .dma = DMA0_CHANNEL0
-// };
-
-// static const struct GpTimerConfig adcTimerConfig = {
-//     .frequency = 1000000,
-//     .channel = 1,
-//     .trigger = {
-//         .adc = true
-//     }
-// };
-
-// static const struct PinIntConfig buttonIntConfig = {
-//     .pin = BOARD_BUTTON,
-//     .event = PIN_FALLING,
-//     .pull = PIN_NOPULL
-// };
+static const struct PinIntConfig buttonIntConfig = {
+    .pin = BOARD_BUTTON,
+    .event = PIN_FALLING,
+    .pull = PIN_NOPULL
+};
 
 static const struct UsbDeviceConfig hsUsbConfig = {
     .dm = PIN(PORT_HSUSB, PIN_HSUSB_DM),
@@ -129,26 +99,21 @@ static const struct UsbDeviceConfig usbConfig = {
     .pid = 0x0044,
     .channel = 0
 };
+
+static const struct WdtConfig wdtConfig = {
+    .period = 5000
+};
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
 
-// static const struct PllConfig sysPllConfig = {
-//     .source = CLOCK_EXTERNAL,
-//     .divisor = 2,
-//     .multiplier = 32
-// };
 static const struct PllConfig sysPllConfig = {
     .source = CLOCK_EXTERNAL,
     .divisor = 1,
     .multiplier = 40
 };
 
-// static const struct ExtendedClockConfig adcClockConfig = {
-//     .source = CLOCK_INTERNAL,
-//     .divisor = 2
-// };
 
 static const struct ApbClockConfig apbClockConfigDirect = {
     .divisor = 1
@@ -167,10 +132,11 @@ static const struct ExtendedClockConfig mainClockConfigPll = {
     .source = CLOCK_PLL,
     .divisor = 3
 };
-// static const struct ExtendedClockConfig mainClockConfigPll = {
-//     .source = CLOCK_PLL,
-//     .divisor = 1
-// };
+
+static const struct ExtendedClockConfig qspiClockConfig = {
+    .source = CLOCK_APB,
+    .divisor = 1
+};
 
 static const struct ExtendedClockConfig spiClockConfig = {
     .source = CLOCK_APB,
@@ -182,13 +148,13 @@ static const struct ExtendedClockConfig uartClockConfig = {
     .divisor = 1
 };
 
-// static const struct ExtendedClockConfig usbClockConfig = {
-//     .source = CLOCK_PLL,
-//     .divisor = 4
-// };
 static const struct ExtendedClockConfig usbClockConfig = {
     .source = CLOCK_PLL,
     .divisor = 10
+};
+
+static const struct GenericClockConfig wdtClockConfig = {
+    .source = CLOCK_INTERNAL_LS
 };
 /*----------------------------------------------------------------------------*/
 // size_t boardGetAdcPinCount(void)
@@ -251,6 +217,13 @@ void boardSetupClockPll(void)
 //   return(interrupt);
 // }
 /*----------------------------------------------------------------------------*/
+struct Interrupt *boardSetupButton(void)
+{
+  struct Interrupt * const interrupt = init(PinInt, &buttonIntConfig);
+  assert(interrupt);
+  return(interrupt);
+}
+/*----------------------------------------------------------------------------*/
 struct Entity *boardSetupHsUsb(void)
 {
   assert(clockReady(ExternalOsc));
@@ -262,6 +235,8 @@ struct Entity *boardSetupHsUsb(void)
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupQspi(void)
 {
+  clockEnable(qspiConfig.channel ? Qspi1Clock : Qspi0Clock, &qspiClockConfig);
+
   struct Interface * const interface = init(Qspi, &qspiConfig);
   assert(interface);
   return(interface);
@@ -328,4 +303,17 @@ struct Entity *boardSetupUsb(void)
   struct Entity * const usb = init(UsbDevice, &usbConfig);
   assert(usb);
   return(usb);
+}
+/*----------------------------------------------------------------------------*/
+struct Watchdog *boardSetupWdt(bool disarmed)
+{
+  clockEnable(WdtClock, &wdtClockConfig);
+
+  /* Override default config */
+  struct WdtConfig config = wdtConfig;
+  config.disarmed = disarmed;
+
+  struct Watchdog * const timer = init(Wdt, &config);
+  assert(timer);
+  return(timer);
 }

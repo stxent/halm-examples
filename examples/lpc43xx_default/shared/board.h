@@ -19,6 +19,7 @@
 #define BOARD_LED_1       PIN(PORT_5, 5)
 #define BOARD_LED_2       PIN(PORT_4, 0)
 #define BOARD_LED         BOARD_LED_0
+#define BOARD_LED_INV     false
 #define BOARD_PWM_0       PIN(PORT_4, 1)
 #define BOARD_PWM_1       PIN(PORT_7, 7)
 #define BOARD_PWM_2       PIN(PORT_7, 6)
@@ -102,5 +103,6 @@ struct Timer *boardSetupTimer(void);
 struct Entity *boardSetupUsb0(void);
 struct Entity *boardSetupUsb1(void);
 struct Watchdog *boardSetupWdt(void);
+struct Watchdog *boardSetupWwdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC43XX_DEFAULT_SHARED_BOARD_H_ */

@@ -35,7 +35,9 @@ static enum Result interfaceInit(void *object, const void *configBase)
 
   struct InterfaceWrapper * const interface = object;
 
+  interface->inversion = config->inversion;
   interface->pipe = config->pipe;
+
   interface->rx = pinInit(config->rx);
   assert(pinValid(interface->rx));
   pinOutput(interface->rx, false);
@@ -71,8 +73,8 @@ static enum Result interfaceSetParam(void *object, int parameter,
   switch ((enum IfParameter)parameter)
   {
     case IF_RELEASE:
-      pinReset(interface->rx);
-      pinReset(interface->tx);
+      pinWrite(interface->rx, interface->inversion);
+      pinWrite(interface->tx, interface->inversion);
       break;
 
     default:
@@ -86,7 +88,7 @@ static size_t interfaceRead(void *object, void *buffer, size_t length)
 {
   struct InterfaceWrapper * const interface = object;
 
-  pinSet(interface->rx);
+  pinWrite(interface->rx, interface->inversion);
   return ifRead(interface->pipe, buffer, length);
 }
 /*----------------------------------------------------------------------------*/
@@ -94,6 +96,6 @@ static size_t interfaceWrite(void *object, const void *buffer, size_t length)
 {
   struct InterfaceWrapper * const interface = object;
 
-  pinSet(interface->tx);
+  pinWrite(interface->tx, interface->inversion);
   return ifWrite(interface->pipe, buffer, length);
 }

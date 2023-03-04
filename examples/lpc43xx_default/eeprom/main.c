@@ -62,9 +62,9 @@ int main(void)
   uint32_t capacity;
   enum Result res;
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = ifGetParam(eeprom, IF_SIZE, &capacity)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
   assert(EEPROM_ADDRESS < capacity);
 
@@ -73,28 +73,28 @@ int main(void)
   for (size_t i = 0; i < sizeof(buffer); ++i)
     buffer[i] = i;
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = program(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = verify(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
   /* Reset memory to the default state */
 
   memset(buffer, 0, sizeof(buffer));
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = program(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = verify(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
   while (1);

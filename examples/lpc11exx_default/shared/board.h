@@ -9,8 +9,9 @@
 /*----------------------------------------------------------------------------*/
 #include <halm/pin.h>
 /*----------------------------------------------------------------------------*/
-#define BOARD_LED_0 PIN(0, 12)
-#define BOARD_LED   BOARD_LED_0
+#define BOARD_LED_0   PIN(0, 12)
+#define BOARD_LED     BOARD_LED_0
+#define BOARD_LED_INV false
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);

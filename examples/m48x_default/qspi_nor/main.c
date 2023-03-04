@@ -138,10 +138,10 @@ int main(void)
 
   boardSetupClockExt();
 
-  const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, true);
   const struct Pin cs = pinInit(BOARD_QSPI_CS);
   pinOutput(cs, true);
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const qspi = boardSetupQspi();
 
@@ -156,9 +156,9 @@ int main(void)
       barrier();
     event = false;
 
-    pinReset(led);
+    pinWrite(led, !BOARD_LED_INV);
     if (memoryTestSequence(qspi, cs))
-      pinSet(led);
+      pinWrite(led, BOARD_LED_INV);
   }
 
   return 0;

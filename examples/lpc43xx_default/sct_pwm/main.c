@@ -43,7 +43,7 @@ int main(void)
   pwmEnable(pwm.outputs[2]);
 
   struct Timer * const timer = boardSetupTimer();
-  timerSetOverflow(timer, timerGetFrequency(timer) / 100);
+  timerSetOverflow(timer, timerGetFrequency(timer));
   timerSetCallback(timer, onTimerOverflow, &pwm);
   timerEnable(timer);
 

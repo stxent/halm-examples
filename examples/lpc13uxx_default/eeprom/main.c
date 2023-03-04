@@ -60,25 +60,25 @@ int main(void)
     buffer[i] = i;
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const eeprom = init(Eeprom, 0);
   assert(eeprom);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = ifGetParam(eeprom, IF_SIZE, &capacity)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
   assert(EEPROM_ADDRESS < capacity);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = program(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = verify(eeprom, buffer, sizeof(buffer), EEPROM_ADDRESS)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
   while (1);

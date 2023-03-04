@@ -71,7 +71,7 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
     ifSetCallback(streams[i].stream, onSerialEvent, streams + i);
     streams[i].event = false;
     streams[i].led = leds[i];
-    pinOutput(streams[i].led, false);
+    pinOutput(streams[i].led, BOARD_LED_INV);
   }
 }
 /*----------------------------------------------------------------------------*/
@@ -79,7 +79,7 @@ static void transferData(struct Interface *interface, struct Pin led)
 {
   size_t available = 0;
 
-  pinSet(led);
+  pinToggle(led);
 
   do
   {
@@ -99,7 +99,7 @@ static void transferData(struct Interface *interface, struct Pin led)
   }
   while (available > 0);
 
-  pinReset(led);
+  pinToggle(led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

@@ -21,7 +21,7 @@ int main(void)
   boardSetupClockExt();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, true);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Timer * const counterTimer = boardSetupCounterTimer();
   timerEnable(counterTimer);
@@ -49,9 +49,9 @@ int main(void)
     timerSetValue(counterTimer, 0);
 
     if (period >= PWM_FREQUENCY - 1 && period <= PWM_FREQUENCY + 1)
-      pinReset(led);
+      pinWrite(led, BOARD_LED_INV);
     else
-      pinSet(led);
+      pinWrite(led, !BOARD_LED_INV);
   }
 
   return 0;

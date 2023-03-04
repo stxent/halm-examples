@@ -29,9 +29,9 @@ int main(void)
   boardSetupClockExt();
 
   const struct Pin ledCapture = pinInit(BOARD_LED_0);
-  pinOutput(ledCapture, false);
+  pinOutput(ledCapture, BOARD_LED_INV);
   const struct Pin ledOverflow = pinInit(BOARD_LED_1);
-  pinOutput(ledOverflow, false);
+  pinOutput(ledOverflow, BOARD_LED_INV);
 
   struct CapturePackage capture = boardSetupCapture();
   captureSetCallback(capture.input, onCaptureEvent, &captureEvent);

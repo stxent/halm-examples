@@ -289,7 +289,7 @@ int main(void)
   setupClock();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
   const struct Pin rst = pinInit(BOARD_PHY_RESET);
   pinOutput(rst, true);
 
@@ -331,10 +331,10 @@ int main(void)
     uint8_t buffer[BUFFER_SIZE];
     size_t count;
 
-    pinSet(led);
+    pinToggle(led);
     while ((count = ifRead(proxy, buffer, sizeof(buffer))) > 0)
       handleEthFrame(proxy, buffer, count);
-    pinReset(led);
+    pinToggle(led);
   }
 
   return 0;

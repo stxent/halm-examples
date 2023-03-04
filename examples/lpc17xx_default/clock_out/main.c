@@ -58,7 +58,7 @@ int main(void)
   setupClock();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, true);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Timer * const counter = init(GpTimerCounter, &counterConfig);
   assert(counter);
@@ -82,9 +82,9 @@ int main(void)
     timerSetValue(counter, 0);
 
     if (period >= minPeriod && period <= maxPeriod)
-      pinReset(led);
+      pinWrite(led, BOARD_LED_INV);
     else
-      pinSet(led);
+      pinWrite(led, !BOARD_LED_INV);
   }
 
   return 0;

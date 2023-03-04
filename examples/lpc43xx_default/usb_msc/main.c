@@ -38,7 +38,8 @@ int main(void)
     const struct InterfaceWrapperConfig wrapperConfig = {
         .pipe = sdmmc,
         .rx = BOARD_LED_0,
-        .tx = BOARD_LED_1
+        .tx = BOARD_LED_1,
+        .inversion = BOARD_LED_INV
     };
     wrapper = init(InterfaceWrapper, &wrapperConfig);
     assert(wrapper);

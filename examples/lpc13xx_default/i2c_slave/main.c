@@ -4,11 +4,10 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include "board.h"
 #include <halm/pin.h>
 #include <halm/platform/lpc/i2c_slave.h>
 #include <assert.h>
-/*----------------------------------------------------------------------------*/
-#define LED_PIN PIN(3, 0)
 /*----------------------------------------------------------------------------*/
 static const struct I2CSlaveConfig i2cConfig = {
     .size = 16,
@@ -34,8 +33,8 @@ int main(void)
 
   (void)res; /* Suppress warning */
 
-  const struct Pin led = pinInit(LED_PIN);
-  pinOutput(led, false);
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
 
   bool event = false;
   ifSetCallback(i2c, onDeviceMemoryChanged, &event);
@@ -50,7 +49,7 @@ int main(void)
 
     ifSetParam(i2c, IF_POSITION, &internalOffset);
     ifRead(i2c, &state, sizeof(state));
-    pinWrite(led, state > 0);
+    pinWrite(led, (state & 1) ? !BOARD_LED_INV : BOARD_LED_INV);
   }
 
   return 0;

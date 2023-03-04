@@ -68,7 +68,7 @@ static enum Result verify(struct Interface *flash, const uint8_t *pattern,
 int main(void)
 {
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const flash = init(Flash, 0);
   assert(flash);
@@ -76,14 +76,14 @@ int main(void)
   size_t flashSize, pageSize;
   enum Result res;
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = ifGetParam(flash, IF_SIZE, &flashSize)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = ifGetParam(flash, IF_FLASH_PAGE_SIZE, &pageSize)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
   uint8_t * const buffer = malloc(pageSize);
@@ -95,19 +95,19 @@ int main(void)
   const size_t address = findNearestSector();
   assert(address < flashSize);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = ifSetParam(flash, IF_FLASH_ERASE_SECTOR, &address)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = program(flash, buffer, pageSize, address)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
-  pinSet(led);
+  pinWrite(led, !BOARD_LED_INV);
   if ((res = verify(flash, buffer, pageSize, address)) == E_OK)
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   assert(res == E_OK);
 
   while (1);

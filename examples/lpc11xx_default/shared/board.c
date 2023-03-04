@@ -77,7 +77,7 @@ static const struct GpTimerConfig timerConfig = {
 };
 
 static const struct WdtConfig wdtConfig = {
-    .period = 1000
+    .period = 5000
 };
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
@@ -124,14 +124,8 @@ void boardSetupClockPll(void)
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(WdtOsc, &wdtOscConfig);
-  while (!clockReady(WdtOsc));
-
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
-
-  clockEnable(WdtClock, &wdtClockConfig);
-  while (!clockReady(WdtClock));
 
   clockEnable(MainClock, &mainClockConfigPll);
 }
@@ -194,6 +188,12 @@ struct Timer *boardSetupTimer(void)
 /*----------------------------------------------------------------------------*/
 struct Watchdog *boardSetupWdt(void)
 {
+  clockEnable(WdtOsc, &wdtOscConfig);
+  while (!clockReady(WdtOsc));
+
+  clockEnable(WdtClock, &wdtClockConfig);
+  while (!clockReady(WdtClock));
+
   struct Watchdog * const timer = init(Wdt, &wdtConfig);
   assert(timer);
   return(timer);

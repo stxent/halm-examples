@@ -131,7 +131,7 @@ int main(void)
   boardSetupClockExt();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const spifi = boardSetupSpifi();
 
@@ -146,9 +146,9 @@ int main(void)
       barrier();
     event = false;
 
-    pinSet(led);
+    pinWrite(led, !BOARD_LED_INV);
     memoryTestSequence(spifi);
-    pinReset(led);
+    pinWrite(led, BOARD_LED_INV);
   }
 
   return 0;

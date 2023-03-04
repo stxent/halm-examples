@@ -24,7 +24,7 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const i2c = boardSetupI2CSlave();
   ifSetCallback(i2c, onDeviceMemoryChanged, &event);
@@ -43,7 +43,7 @@ int main(void)
 
     ifSetParam(i2c, IF_POSITION, &DEFAULT_OFFSET);
     ifRead(i2c, &state, sizeof(state));
-    pinWrite(led, (state & 1) != 0);
+    pinWrite(led, (state & 1) ? !BOARD_LED_INV : BOARD_LED_INV);
   }
 
   return 0;

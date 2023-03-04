@@ -109,7 +109,7 @@ int main(void)
   setupClock();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct EmcSram * const memory = init(EmcSram, &emcSramConfig);
   assert(memory);
@@ -122,23 +122,23 @@ int main(void)
 
     /* Fill with all ones */
     passed = test(address, MEMORY_SIZE, patternOnes);
-    pinWrite(led, !passed);
+    pinWrite(led, passed ? BOARD_LED_INV : !BOARD_LED_INV);
 
     /* Fill with all zeros */
     passed = test(address, MEMORY_SIZE, patternZeros);
-    pinWrite(led, !passed);
+    pinWrite(led, passed ? BOARD_LED_INV : !BOARD_LED_INV);
 
     /* Fill with 0xAA pattern */
     passed = test(address, MEMORY_SIZE, patternOnesOdd);
-    pinWrite(led, !passed);
+    pinWrite(led, passed ? BOARD_LED_INV : !BOARD_LED_INV);
 
     /* Fill with 0x55 pattern */
     passed = test(address, MEMORY_SIZE, patternOnesEven);
-    pinWrite(led, !passed);
+    pinWrite(led, passed ? BOARD_LED_INV : !BOARD_LED_INV);
 
     /* Fill with pseudorandom pattern */
     passed = test(address, MEMORY_SIZE, patternSequential);
-    pinWrite(led, !passed);
+    pinWrite(led, passed ? BOARD_LED_INV : !BOARD_LED_INV);
   }
 
   return 0;

@@ -55,7 +55,7 @@ int main(void)
   fillBuffers(buffers);
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct StreamPackage dac = boardSetupDacDma();
   struct EventTuple context = {

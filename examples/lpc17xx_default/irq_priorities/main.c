@@ -28,18 +28,18 @@ static void lowPriCallback(void *argument)
 {
   struct Pin * const pin = argument;
 
-  pinSet(*pin);
+  pinToggle(*pin);
   mdelay(1000);
-  pinReset(*pin);
+  pinToggle(*pin);
 }
 /*----------------------------------------------------------------------------*/
 static void highPriCallback(void *argument)
 {
   struct Pin * const pin = argument;
 
-  pinSet(*pin);
+  pinToggle(*pin);
   mdelay(100);
-  pinReset(*pin);
+  pinToggle(*pin);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -51,8 +51,8 @@ int main(void)
       pinInit(BOARD_LED_1)
   };
 
-  pinOutput(led[0], false);
-  pinOutput(led[1], false);
+  pinOutput(led[0], BOARD_LED_INV);
+  pinOutput(led[1], BOARD_LED_INV);
 
   const uint8_t groups = nvicGetPriorityGrouping();
 

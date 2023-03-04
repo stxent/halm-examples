@@ -118,7 +118,7 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   /* Helper timer for SDIO status polling */
   struct Timer * const busyTimer = USE_BUSY_TIMER ? boardSetupAdcTimer() : 0;
@@ -177,14 +177,14 @@ int main(void)
 
     if (ENABLE_WRITE_TEST)
     {
-      pinSet(led);
+      pinWrite(led, !BOARD_LED_INV);
       if (dataWrite(card, arena, sizeof(arena), position))
-        pinReset(led);
+        pinWrite(led, BOARD_LED_INV);
     }
 
-    pinSet(led);
+    pinWrite(led, !BOARD_LED_INV);
     if (dataRead(card, arena, sizeof(arena), position))
-      pinReset(led);
+      pinWrite(led, BOARD_LED_INV);
 
     /* Increment position */
     position += sizeof(arena);

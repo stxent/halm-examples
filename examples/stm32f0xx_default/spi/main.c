@@ -35,7 +35,7 @@ int main(void)
   const struct Pin cs = pinInit(BOARD_SPI_CS);
   pinOutput(cs, true);
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const spi = boardSetupSpi();
   res = ifSetParam(spi, IF_RATE, &SPI_TEST_RATE);

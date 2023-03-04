@@ -26,7 +26,7 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const dac = boardSetupDac();
 
@@ -41,12 +41,14 @@ int main(void)
       barrier();
     event = false;
 
-    pinSet(led);
+    pinToggle(led);
+
     const uint16_t voltage =
         step * (VOLTAGE_RANGE - 1) / (VOLTAGE_RANGE / VOLTAGE_STEP);
     step = step < 16 ? step + 1 : 0;
     ifWrite(dac, &voltage, sizeof(voltage));
-    pinReset(led);
+
+    pinToggle(led);
   }
 
   return 0;

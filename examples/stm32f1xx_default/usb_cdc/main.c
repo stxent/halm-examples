@@ -41,9 +41,9 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin dataLed = pinInit(BOARD_LED_0);
-  pinOutput(dataLed, true);
+  pinOutput(dataLed, BOARD_LED_INV);
   const struct Pin workLed = pinInit(BOARD_LED_1);
-  pinOutput(workLed, true);
+  pinOutput(workLed, BOARD_LED_INV);
 
   struct Entity * const usb = boardSetupUsb();
 
@@ -77,7 +77,10 @@ int main(void)
 
     if (ifGetParam(serial, IF_CDC_ACM_STATUS, &status) == E_OK)
     {
-      pinWrite(workLed, (status & CDC_ACM_SUSPENDED) != 0);
+      if (status & CDC_ACM_SUSPENDED)
+        pinWrite(workLed, BOARD_LED_INV);
+      else
+        pinWrite(workLed, !BOARD_LED_INV);
     }
 
     if (ifGetParam(serial, IF_RX_AVAILABLE, &available) == E_OK && available)

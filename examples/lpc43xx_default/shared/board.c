@@ -29,6 +29,7 @@
 #include <halm/platform/lpc/sct_pwm.h>
 #include <halm/platform/lpc/usb_device.h>
 #include <halm/platform/lpc/wdt.h>
+#include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C(void)
@@ -302,7 +303,13 @@ static const struct UsbDeviceConfig usb1Config = {
 };
 
 static const struct WdtConfig wdtConfig = {
-    .period = 1000
+    .period = 5000
+};
+
+static const struct WwdtConfig wwdtConfig = {
+    .period = 5000,
+    .window = 1000,
+    .disarmed = false
 };
 /*----------------------------------------------------------------------------*/
 static const struct PllConfig audioPllConfig = {
@@ -788,6 +795,22 @@ struct Entity *boardSetupUsb1(void)
 struct Watchdog *boardSetupWdt(void)
 {
   struct Watchdog * const timer = init(Wdt, &wdtConfig);
+  assert(timer);
+  return(timer);
+}
+/*----------------------------------------------------------------------------*/
+struct Watchdog *boardSetupWwdt(bool disarmed)
+{
+  /* Override default config */
+  struct WwdtConfig config = wwdtConfig;
+
+  if (disarmed)
+  {
+    config.window = 0;
+    config.disarmed = true;
+  }
+
+  struct Watchdog * const timer = init(Wwdt, &config);
   assert(timer);
   return(timer);
 }

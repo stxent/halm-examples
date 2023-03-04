@@ -13,6 +13,7 @@
 #define BOARD_BUTTON      PIN(1, 8)
 #define BOARD_LED_0       PIN(1, 2)
 #define BOARD_LED         BOARD_LED_0
+#define BOARD_LED_INV     false
 #define BOARD_SPI_CS      PIN(0, 3)
 #define BOARD_UART_BUFFER 128
 /*----------------------------------------------------------------------------*/

@@ -20,6 +20,8 @@ struct InterfaceWrapperConfig
   PinNumber rx;
   /** Mandatory: transmission indication. */
   PinNumber tx;
+  /** Optional: enable output inversion. */
+  bool inversion;
 };
 
 struct InterfaceWrapper
@@ -29,6 +31,7 @@ struct InterfaceWrapper
   struct Interface *pipe;
   struct Pin rx;
   struct Pin tx;
+  bool inversion;
 };
 /*----------------------------------------------------------------------------*/
 #endif /* LPC43XX_DEFAULT_USB_MSC_INTERFACE_WRAPPER_H_ */

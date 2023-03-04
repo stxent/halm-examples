@@ -19,7 +19,7 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const serial = boardSetupSerialPoll();
   res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
@@ -36,9 +36,9 @@ int main(void)
 
     if (bytesRead)
     {
-      pinSet(led);
+      pinToggle(led);
       ifWrite(serial, buffer, bytesRead);
-      pinReset(led);
+      pinToggle(led);
     }
   }
 

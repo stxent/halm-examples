@@ -64,7 +64,7 @@ int main(void)
   boardSetupClockPll();
 
   struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Timer * const chronoTimer = boardSetupTimer();
   timerEnable(chronoTimer);
@@ -95,9 +95,9 @@ int main(void)
 
       struct CANStandardMessage message;
 
-      pinSet(led);
+      pinToggle(led);
       ifRead(can, &message, sizeof(message));
-      pinReset(led);
+      pinToggle(led);
     }
   }
 

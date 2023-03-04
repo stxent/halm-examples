@@ -15,12 +15,15 @@
 #include <halm/platform/numicro/spi.h>
 #include <halm/platform/numicro/spi_dma.h>
 #include <halm/platform/numicro/usb_device.h>
+#include <halm/platform/numicro/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
     PIN(PORT_B, 0),
+    PIN(PORT_B, 1),
+    PIN(PORT_B, 2),
     PIN(PORT_B, 3),
-    PIN(PORT_B, 6),
+    PIN(PORT_B, 8),
     PIN(PORT_B, 9),
     0
 };
@@ -105,6 +108,10 @@ static const struct UsbDeviceConfig usbConfig = {
     .pid = 0x0044,
     .channel = 0
 };
+
+static const struct WdtConfig wdtConfig = {
+    .period = 5000
+};
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 32000000
@@ -144,6 +151,10 @@ static const struct ExtendedClockConfig uartClockConfig = {
 static const struct ExtendedClockConfig usbClockConfig = {
     .source = CLOCK_PLL,
     .divisor = 2
+};
+
+static const struct GenericClockConfig wdtClockConfig = {
+    .source = CLOCK_INTERNAL_LS
 };
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void)
@@ -263,4 +274,17 @@ struct Entity *boardSetupUsb(void)
   struct Entity * const usb = init(UsbDevice, &usbConfig);
   assert(usb);
   return(usb);
+}
+/*----------------------------------------------------------------------------*/
+struct Watchdog *boardSetupWdt(bool disarmed)
+{
+  clockEnable(WdtClock, &wdtClockConfig);
+
+  /* Override default config */
+  struct WdtConfig config = wdtConfig;
+  config.disarmed = disarmed;
+
+  struct Watchdog * const timer = init(Wdt, &config);
+  assert(timer);
+  return(timer);
 }

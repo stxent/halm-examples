@@ -21,7 +21,7 @@ int main(void)
   boardSetupClockExt();
 
   struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interrupt * const interrupt = boardSetupButton();
   interruptSetCallback(interrupt, onExternalEvent, &event);

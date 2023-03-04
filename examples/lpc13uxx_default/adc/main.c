@@ -10,7 +10,7 @@
 #include <xcore/memory.h>
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
-#define ADC_RATE 50
+#define ADC_RATE 10
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument)
 {
@@ -19,14 +19,13 @@ static void onConversionCompleted(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  // TODO Fix zero samples
   const size_t count = boardGetAdcPinCount();
   bool event = false;
 
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const adc = boardSetupAdc();
   ifSetCallback(adc, onConversionCompleted, &event);

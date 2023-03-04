@@ -17,7 +17,7 @@ static void onPowerEvent(void *argument)
 {
   struct Pin * const leds = argument;
 
-  pinSet(leds[0]);
+  pinWrite(leds[0], !BOARD_LED_INV);
   pinToggle(leds[1]);
 }
 /*----------------------------------------------------------------------------*/
@@ -29,8 +29,8 @@ int main(void)
       pinInit(BOARD_LED_0),
       pinInit(BOARD_LED_1)
   };
-  pinOutput(leds[0], false);
-  pinOutput(leds[1], false);
+  pinOutput(leds[0], BOARD_LED_INV);
+  pinOutput(leds[1], BOARD_LED_INV);
 
   struct Interrupt * const bod = init(Bod, &bodConfig);
   assert(bod);

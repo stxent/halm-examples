@@ -76,9 +76,9 @@ int main(void)
   fillBuffers();
 
   struct Pin rxLed = pinInit(BOARD_LED_0);
-  pinOutput(rxLed, false);
+  pinOutput(rxLed, BOARD_LED_INV);
   struct Pin txLed = pinInit(BOARD_LED_1);
-  pinOutput(txLed, false);
+  pinOutput(txLed, BOARD_LED_INV);
 
   struct StreamPackage audio = boardSetupI2S();
 

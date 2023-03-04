@@ -11,6 +11,7 @@
 /*----------------------------------------------------------------------------*/
 #define BOARD_LED_0       PIN(PORT_C, 9)
 #define BOARD_LED         BOARD_LED_0
+#define BOARD_LED_INV     true
 #define BOARD_SPI_CS      PIN(PORT_A, 4)
 #define BOARD_UART_BUFFER 128
 /*----------------------------------------------------------------------------*/

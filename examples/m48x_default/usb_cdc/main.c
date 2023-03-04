@@ -42,11 +42,11 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin dataLed = pinInit(BOARD_LED_0);
-  pinOutput(dataLed, true);
+  pinOutput(dataLed, BOARD_LED_INV);
   const struct Pin indLed0 = pinInit(BOARD_LED_1);
-  pinOutput(indLed0, true);
+  pinOutput(indLed0, BOARD_LED_INV);
   const struct Pin indLed1 = pinInit(BOARD_LED_2);
-  pinOutput(indLed1, true);
+  pinOutput(indLed1, BOARD_LED_INV);
 
   struct Entity * const usb = USE_HS_USB ? boardSetupHsUsb() : boardSetupUsb();
 
@@ -82,13 +82,14 @@ int main(void)
     {
       if (status & CDC_ACM_SUSPENDED)
       {
-        pinSet(indLed0);
-        pinSet(indLed1);
+        pinWrite(indLed0, BOARD_LED_INV);
+        pinWrite(indLed1, BOARD_LED_INV);
       }
       else
       {
-        pinReset(indLed0);
-        pinWrite(indLed1, usbDevGetSpeed(usb) != USB_HS);
+        pinWrite(indLed0, !BOARD_LED_INV);
+        pinWrite(indLed1, usbDevGetSpeed(usb) == USB_HS ?
+            !BOARD_LED_INV : BOARD_LED_INV);
       }
     }
 

@@ -123,7 +123,7 @@ static const struct UsbDeviceConfig usbConfig = {
 };
 
 static const struct WdtConfig wdtConfig = {
-    .period = 1000
+    .period = 5000
 };
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {

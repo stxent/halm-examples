@@ -33,7 +33,7 @@ int main(void)
   boardSetupClockExt();
 
   context.led = pinInit(BOARD_LED);
-  pinOutput(context.led, false);
+  pinOutput(context.led, BOARD_LED_INV);
 
   pinSet(context.led);
   /* Non-blocking initialization */

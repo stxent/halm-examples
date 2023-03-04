@@ -87,7 +87,7 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const i2c = boardSetupI2C();
 
@@ -102,7 +102,7 @@ int main(void)
       barrier();
     event = false;
 
-    pinSet(led);
+    pinWrite(led, !BOARD_LED_INV);
 
     /* Write memory page */
     fillBuffer(buffer, sizeof(buffer), iteration);
@@ -116,7 +116,7 @@ int main(void)
     deviceRead(i2c, 0, buffer, sizeof(buffer));
 
     if (checkBuffer(buffer, sizeof(buffer), iteration))
-      pinReset(led);
+      pinWrite(led, BOARD_LED_INV);
 
     iteration += sizeof(buffer);
   }

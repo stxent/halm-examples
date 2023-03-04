@@ -11,7 +11,7 @@
 #include <xcore/stream.h>
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
-#define ADC_RATE 4
+#define ADC_RATE 10
 
 struct EventTuple
 {
@@ -59,7 +59,7 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Timer * const adcTimer = boardSetupAdcTimer();
   struct Timer * const memTimer = boardSetupTimer();

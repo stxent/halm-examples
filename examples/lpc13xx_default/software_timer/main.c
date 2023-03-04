@@ -37,11 +37,11 @@ int main(void)
   boardSetupClockPll();
 
   struct Pin output0 = pinInit(BOARD_LED_0);
-  pinOutput(output0, false);
+  pinOutput(output0, BOARD_LED_INV);
   struct Pin output1 = pinInit(BOARD_LED_1);
-  pinOutput(output1, false);
+  pinOutput(output1, BOARD_LED_INV);
   struct Pin output2 = pinInit(BOARD_LED_2);
-  pinOutput(output2, false);
+  pinOutput(output2, BOARD_LED_INV);
 
   struct Timer * const tickTimer = boardSetupTimer();
   timerSetOverflow(tickTimer, timerGetFrequency(tickTimer) / 1000);

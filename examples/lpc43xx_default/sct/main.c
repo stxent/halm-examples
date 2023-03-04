@@ -42,10 +42,10 @@ int main(void)
   boardSetupClockExt();
 
   struct Pin ledA = pinInit(BOARD_LED_0);
-  pinOutput(ledA, false);
+  pinOutput(ledA, BOARD_LED_INV);
 
   struct Pin ledB = pinInit(BOARD_LED_1);
-  pinOutput(ledB, false);
+  pinOutput(ledB, BOARD_LED_INV);
 
 #ifdef TEST_UNIFIED
   struct Timer * const timerA = init(SctUnifiedTimer, &timerConfig);

@@ -51,7 +51,7 @@ int main(void)
   boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const serial = boardSetupSerialDma();
   ifSetCallback(serial, onSerialEvent, &event);

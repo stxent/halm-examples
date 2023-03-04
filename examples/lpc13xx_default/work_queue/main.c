@@ -15,7 +15,7 @@ static const struct WorkQueueConfig workQueueConfig = {
 /*----------------------------------------------------------------------------*/
 static void blinkTask(void *argument)
 {
-  pinToggle(*((struct Pin *)argument));
+  pinToggle(*(struct Pin *)argument);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -29,7 +29,7 @@ int main(void)
 
   /* Initialize peripherals */
   struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, false);
+  pinOutput(led, BOARD_LED_INV);
 
   struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer) / 2);

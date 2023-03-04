@@ -33,11 +33,11 @@ int main(void)
   boardSetupClockExt();
 
   context.led = pinInit(BOARD_LED);
-  pinOutput(context.led, false);
+  pinOutput(context.led, BOARD_LED_INV);
 
-  pinSet(context.led);
+  pinToggle(context.led);
   context.rtc = boardSetupRtc();
-  pinReset(context.led);
+  pinToggle(context.led);
 
   rtSetCallback(context.rtc, onTimerAlarm, &context);
   rtSetAlarm(context.rtc, rtTime(context.rtc) + RTC_ALARM_PERIOD);

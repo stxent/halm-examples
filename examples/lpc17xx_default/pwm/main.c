@@ -33,7 +33,7 @@ int main(void)
   timerSetOverflow(pwm.timer, 10);
   timerEnable(pwm.timer);
 
-  pwmSetEdges(pwm.outputs[0], 0, timerGetOverflow(pwm.output) / 2);
+  pwmSetEdges(pwm.outputs[0], 0, timerGetOverflow(pwm.timer) / 2);
   pwmEnable(pwm.outputs[0]);
   pwmSetEdges(pwm.outputs[1], 0, 0);
   pwmEnable(pwm.outputs[1]);
@@ -41,7 +41,7 @@ int main(void)
   pwmEnable(pwm.outputs[2]);
 
   struct Timer * const timer = boardSetupTimer();
-  timerSetOverflow(timer, timerGetFrequency(timer) / 100);
+  timerSetOverflow(timer, timerGetFrequency(timer));
   timerSetCallback(timer, onTimerOverflow, &pwm);
   timerEnable(timer);
 
