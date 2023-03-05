@@ -7,8 +7,10 @@
 #include "board.h"
 #include <halm/platform/numicro/adc.h>
 #include <halm/platform/numicro/adc_dma.h>
+#include <halm/platform/numicro/bpwm.h>
 #include <halm/platform/numicro/clocking.h>
 #include <halm/platform/numicro/gptimer.h>
+#include <halm/platform/numicro/i2c.h>
 #include <halm/platform/numicro/pin_int.h>
 #include <halm/platform/numicro/serial.h>
 #include <halm/platform/numicro/serial_dma.h>
@@ -49,10 +51,23 @@ static const struct GpTimerConfig adcTimerConfig = {
     }
 };
 
+static const struct BpwmUnitConfig bpwmTimerConfig = {
+    .frequency = 1000000,
+    .resolution = 20000,
+    .channel = 0
+};
+
 static const struct PinIntConfig buttonIntConfig = {
     .pin = BOARD_BUTTON,
     .event = PIN_FALLING,
     .pull = PIN_NOPULL
+};
+
+static const struct I2CConfig i2cConfig = {
+    .rate = 100000,
+    .scl = PIN(PORT_B, 5),
+    .sda = PIN(PORT_B, 4),
+    .channel = 0
 };
 
 static const struct SerialConfig serialConfig = {
@@ -126,6 +141,11 @@ static const struct PllConfig sysPllConfig = {
 static const struct ExtendedClockConfig adcClockConfig = {
     .source = CLOCK_INTERNAL,
     .divisor = 2
+};
+
+static const struct ExtendedClockConfig bpwmClockConfig = {
+    .source = CLOCK_APB,
+    .divisor = 1
 };
 
 static const struct ExtendedClockConfig mainClockConfigExt = {
@@ -206,11 +226,46 @@ struct Timer *boardSetupAdcTimer(void)
   return(timer);
 }
 /*----------------------------------------------------------------------------*/
+struct PwmPackage boardSetupBpwm(bool centered)
+{
+  const bool inversion = centered;
+
+  clockEnable(bpwmTimerConfig.channel ? Bpwm1Clock : Bpwm0Clock,
+      &bpwmClockConfig);
+
+  /* Override default config */
+  struct BpwmUnitConfig config = bpwmTimerConfig;
+  config.centered = centered;
+
+  struct BpwmUnit * const timer = init(BpwmUnit, &config);
+  assert(timer);
+
+  struct Pwm * const pwm0 = bpwmCreate(timer, BOARD_PWM_0, inversion);
+  assert(pwm0);
+  struct Pwm * const pwm1 = bpwmCreate(timer, BOARD_PWM_1, inversion);
+  assert(pwm1);
+  struct Pwm * const pwm2 = bpwmCreate(timer, BOARD_PWM_2, inversion);
+  assert(pwm2);
+
+  return (struct PwmPackage){
+      (struct Timer *)timer,
+      pwm0,
+      {pwm0, pwm1, pwm2}
+  };
+}
+/*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupButton(void)
 {
   struct Interrupt * const interrupt = init(PinInt, &buttonIntConfig);
   assert(interrupt);
   return(interrupt);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2C(void)
+{
+  struct Interface * const interface = init(I2C, &i2cConfig);
+  assert(interface);
+  return(interface);
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)

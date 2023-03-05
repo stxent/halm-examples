@@ -8,6 +8,7 @@
 #define M48X_DEFAULT_SHARED_BOARD_H_
 /*----------------------------------------------------------------------------*/
 #include <halm/pin.h>
+#include <stddef.h>
 /*----------------------------------------------------------------------------*/
 #define BOARD_BUTTON_0    PIN(PORT_G, 15)
 #define BOARD_BUTTON_1    PIN(PORT_F, 11)
@@ -17,6 +18,10 @@
 #define BOARD_LED_2       PIN(PORT_H, 2)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     true
+#define BOARD_PWM_0       PIN(PORT_A, 3)
+#define BOARD_PWM_1       PIN(PORT_A, 4)
+#define BOARD_PWM_2       PIN(PORT_A, 5)
+#define BOARD_PWM         BOARD_PWM_0
 #define BOARD_SPI_CS      PIN(PORT_C, 9)
 #define BOARD_QSPI_CS     PIN(PORT_C, 3)
 #define BOARD_UART_BUFFER 512
@@ -24,12 +29,27 @@
 struct Entity;
 struct Interface;
 struct Interrupt;
+struct Pwm;
 struct Timer;
+struct Watchdog;
+
+struct PwmPackage
+{
+  struct Timer *timer;
+  struct Pwm *output;
+  struct Pwm *outputs[3];
+};
 /*----------------------------------------------------------------------------*/
+size_t boardGetAdcPinCount(void);
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
+struct Interface *boardSetupAdc(void);
+struct Interface *boardSetupAdcDma(void);
+struct Timer *boardSetupAdcTimer(void);
+struct PwmPackage boardSetupBpwm(bool);
 struct Interrupt *boardSetupButton(void);
 struct Entity *boardSetupHsUsb(void);
+struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupQspi(void);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);

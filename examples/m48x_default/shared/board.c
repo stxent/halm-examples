@@ -5,9 +5,13 @@
  */
 
 #include "board.h"
+#include <halm/platform/numicro/bpwm.h>
 #include <halm/platform/numicro/clocking.h>
+#include <halm/platform/numicro/eadc.h>
+#include <halm/platform/numicro/eadc_dma.h>
 #include <halm/platform/numicro/gptimer.h>
 #include <halm/platform/numicro/hsusb_device.h>
+#include <halm/platform/numicro/i2c.h>
 #include <halm/platform/numicro/pin_int.h>
 #include <halm/platform/numicro/serial.h>
 #include <halm/platform/numicro/serial_dma.h>
@@ -18,6 +22,45 @@
 #include <halm/platform/numicro/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+const PinNumber adcPinArray[] = {
+    PIN(PORT_B, 0),
+    PIN(PORT_B, 1),
+    PIN(PORT_B, 2),
+    PIN(PORT_B, 3),
+    PIN(PORT_B, 12),
+    PIN(PORT_B, 13),
+    PIN(PORT_B, 14),
+    PIN(PORT_B, 15),
+    0
+};
+
+static const struct EadcConfig adcConfig = {
+    .pins = adcPinArray,
+    .event = ADC_TIMER1,
+    .channel = 0
+};
+
+static const struct EadcDmaConfig adcDmaConfig = {
+    .pins = adcPinArray,
+    .event = ADC_TIMER1,
+    .channel = 0,
+    .dma = DMA0_CHANNEL0
+};
+
+static const struct GpTimerConfig adcTimerConfig = {
+    .frequency = 1000000,
+    .channel = 1,
+    .trigger = {
+        .adc = true
+    }
+};
+
+static const struct BpwmUnitConfig bpwmTimerConfig = {
+    .frequency = 1000000,
+    .resolution = 20000,
+    .channel = 0
+};
+
 static const struct PinIntConfig buttonIntConfig = {
     .pin = BOARD_BUTTON,
     .event = PIN_FALLING,
@@ -30,6 +73,13 @@ static const struct UsbDeviceConfig hsUsbConfig = {
     .vbus = PIN(PORT_HSUSB, PIN_HSUSB_VBUS),
     .vid = 0x15A2,
     .pid = 0x0044,
+    .channel = 0
+};
+
+static const struct I2CConfig i2cConfig = {
+    .rate = 100000,
+    .scl = PIN(PORT_G, 0),
+    .sda = PIN(PORT_G, 1),
     .channel = 0
 };
 
@@ -114,6 +164,9 @@ static const struct PllConfig sysPllConfig = {
     .multiplier = 40
 };
 
+static const struct DividedClockConfig adcClockConfig = {
+    .divisor = 2
+};
 
 static const struct ApbClockConfig apbClockConfigDirect = {
     .divisor = 1
@@ -121,6 +174,11 @@ static const struct ApbClockConfig apbClockConfigDirect = {
 
 static const struct ApbClockConfig apbClockConfigDivided = {
     .divisor = 2
+};
+
+static const struct ExtendedClockConfig bpwmClockConfig = {
+    .source = CLOCK_APB,
+    .divisor = 1
 };
 
 static const struct ExtendedClockConfig mainClockConfigExt = {
@@ -157,10 +215,10 @@ static const struct GenericClockConfig wdtClockConfig = {
     .source = CLOCK_INTERNAL_LS
 };
 /*----------------------------------------------------------------------------*/
-// size_t boardGetAdcPinCount(void)
-// {
-//   return ARRAY_SIZE(adcPinArray) - 1;
-// }
+size_t boardGetAdcPinCount(void)
+{
+  return ARRAY_SIZE(adcPinArray) - 1;
+}
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
@@ -185,37 +243,58 @@ void boardSetupClockPll(void)
   clockEnable(MainClock, &mainClockConfigPll);
 }
 /*----------------------------------------------------------------------------*/
-// struct Interface *boardSetupAdc(void)
-// {
-//   clockEnable(AdcClock, &adcClockConfig);
+struct Interface *boardSetupAdc(void)
+{
+  clockEnable(adcConfig.channel ? Eadc1Clock : Eadc0Clock, &adcClockConfig);
 
-//   struct Interface * const interface = init(Adc, &adcConfig);
-//   assert(interface);
-//   return(interface);
-// }
-// /*----------------------------------------------------------------------------*/
-// struct Interface *boardSetupAdcDma(void)
-// {
-//   clockEnable(AdcClock, &adcClockConfig);
+  struct Interface * const interface = init(Eadc, &adcConfig);
+  assert(interface);
+  return(interface);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupAdcDma(void)
+{
+  clockEnable(adcDmaConfig.channel ? Eadc1Clock : Eadc0Clock, &adcClockConfig);
 
-//   struct Interface * const interface = init(AdcDma, &adcDmaConfig);
-//   assert(interface);
-//   return(interface);
-// }
-// /*----------------------------------------------------------------------------*/
-// struct Timer *boardSetupAdcTimer(void)
-// {
-//   struct Timer * const timer = init(GpTimer, &adcTimerConfig);
-//   assert(timer);
-//   return(timer);
-// }
-// /*----------------------------------------------------------------------------*/
-// struct Interrupt *boardSetupButton(void)
-// {
-//   struct Interrupt * const interrupt = init(PinInt, &buttonIntConfig);
-//   assert(interrupt);
-//   return(interrupt);
-// }
+  struct Interface * const interface = init(EadcDma, &adcDmaConfig);
+  assert(interface);
+  return(interface);
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupAdcTimer(void)
+{
+  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
+  assert(timer);
+  return(timer);
+}
+/*----------------------------------------------------------------------------*/
+struct PwmPackage boardSetupBpwm(bool centered)
+{
+  const bool inversion = centered;
+
+  clockEnable(bpwmTimerConfig.channel ? Bpwm1Clock : Bpwm0Clock,
+      &bpwmClockConfig);
+
+  /* Override default config */
+  struct BpwmUnitConfig config = bpwmTimerConfig;
+  config.centered = centered;
+
+  struct BpwmUnit * const timer = init(BpwmUnit, &config);
+  assert(timer);
+
+  struct Pwm * const pwm0 = bpwmCreate(timer, BOARD_PWM_0, inversion);
+  assert(pwm0);
+  struct Pwm * const pwm1 = bpwmCreate(timer, BOARD_PWM_1, inversion);
+  assert(pwm1);
+  struct Pwm * const pwm2 = bpwmCreate(timer, BOARD_PWM_2, inversion);
+  assert(pwm2);
+
+  return (struct PwmPackage){
+      (struct Timer *)timer,
+      pwm0,
+      {pwm0, pwm1, pwm2}
+  };
+}
 /*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupButton(void)
 {
@@ -231,6 +310,13 @@ struct Entity *boardSetupHsUsb(void)
   struct Entity * const usb = init(HsUsbDevice, &hsUsbConfig);
   assert(usb);
   return(usb);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2C(void)
+{
+  struct Interface * const interface = init(I2C, &i2cConfig);
+  assert(interface);
+  return(interface);
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupQspi(void)
