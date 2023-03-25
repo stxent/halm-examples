@@ -84,16 +84,17 @@ static const struct I2CConfig i2cConfig = {
 };
 
 static const struct QspiConfig qspiConfig = {
-  .rate = 1000000,
-  .cs = 0,
-  .io0 = PIN(PORT_C, 0),
-  .io1 = PIN(PORT_C, 1),
-  .io2 = PIN(PORT_C, 5),
-  .io3 = PIN(PORT_C, 4),
-  .sck = PIN(PORT_C, 2),
-  .channel = 0,
-  .mode = 0,
-  .dma = {0, 1}
+    .rate = 1000000,
+    .cs = 0,
+    .io0 = PIN(PORT_C, 0),
+    .io1 = PIN(PORT_C, 1),
+    .io2 = PIN(PORT_C, 5),
+    .io3 = PIN(PORT_C, 4),
+    .sck = PIN(PORT_C, 2),
+    .channel = 0,
+    .mode = 0,
+    .dma = {DMA0_CHANNEL0, DMA0_CHANNEL1}
+};
 };
 
 static const struct SerialConfig serialConfig = {

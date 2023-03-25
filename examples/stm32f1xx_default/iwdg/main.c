@@ -1,6 +1,6 @@
 /*
- * lpc13xx_default/wdt/main.c
- * Copyright (C) 2017 xent
+ * stm32f1xx_default/iwdg/main.c
+ * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -21,7 +21,7 @@ int main(void)
   mdelay(100);
   pinToggle(led);
 
-  struct Watchdog * const wdt = boardSetupWdt();
+  struct Watchdog * const wdt = boardSetupIwdg();
 
   if (watchdogFired(wdt))
     pinToggle(led);

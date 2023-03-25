@@ -14,7 +14,7 @@ int main(void)
 
   const struct Pin input = pinInit(BOARD_BUTTON);
   pinInput(input);
-  pinSetPull(input, PIN_PULLDOWN);
+  pinSetPull(input, PIN_NOPULL);
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, !BOARD_LED_INV);

@@ -9,6 +9,7 @@
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
 #include <halm/platform/stm32/gptimer.h>
+#include <halm/platform/stm32/iwdg.h>
 #include <halm/platform/stm32/serial.h>
 #include <halm/platform/stm32/serial_dma.h>
 #include <halm/platform/stm32/spi.h>
@@ -36,6 +37,10 @@ static struct CanConfig canConfig = {
     .tx = PIN(PORT_B, 9),
     .priority = 0,
     .channel = 0
+};
+
+static const struct IwdgConfig iwdgConfig = {
+    .period = 1000
 };
 
 static const struct SerialConfig serialConfig = {
@@ -140,7 +145,6 @@ void boardSetupClockPll(void)
   clockEnable(Apb1Clock, &apbClockConfigSlow);
   clockEnable(Apb2Clock, &apbClockConfigFast);
   clockEnable(SystemClock, &systemClockConfigPll);
-  clockEnable(UsbClock, &usbClockConfig);
 
   clockEnable(MainClock, &ahbClockConfig);
 }
@@ -168,6 +172,16 @@ struct Interface *boardSetupCan(struct Timer *timer)
   struct Interface * const interface = init(Can, &config);
   assert(interface);
   return(interface);
+}
+/*----------------------------------------------------------------------------*/
+struct Watchdog *boardSetupIwdg(void)
+{
+  clockEnable(InternalLowSpeedOsc, 0);
+  while (!clockReady(InternalLowSpeedOsc));
+
+  struct Watchdog * const timer = init(Iwdg, &iwdgConfig);
+  assert(timer);
+  return(timer);
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)
@@ -200,6 +214,8 @@ struct Timer *boardSetupTimer(void)
 /*----------------------------------------------------------------------------*/
 struct Entity *boardSetupUsb(void)
 {
+  clockEnable(UsbClock, &usbClockConfig);
+
   struct Entity * const usb = init(UsbDevice, &usbConfig);
   assert(usb);
   return(usb);
