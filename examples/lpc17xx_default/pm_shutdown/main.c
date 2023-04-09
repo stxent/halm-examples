@@ -6,58 +6,50 @@
 
 #include "board.h"
 #include <halm/delay.h>
-#include <halm/gpio_bus.h>
 #include <halm/platform/lpc/backup_domain.h>
-#include <halm/platform/lpc/rtc.h>
 #include <halm/pm.h>
+#include <xcore/realtime.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */
-#define RTC_ALARM_PERIOD  5
-/* January 1, 2017, 00:00:00 */
-#define RTC_INITIAL_TIME  1483228800
+#define RTC_ALARM_PERIOD  10
 
 #define MAGIC_WORD        0x3A84508FUL
-/*----------------------------------------------------------------------------*/
-static const struct SimpleGpioBusConfig busConfig = {
-    .pins = (const PinNumber []){
-        BOARD_LED_0, BOARD_LED_1, BOARD_LED_2, 0
-    },
-    .initial = 0,
-    .direction = PIN_OUTPUT
-};
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
   boardSetupClockExt();
 
-  struct GpioBus * const leds = init(SimpleGpioBus, &busConfig);
-  assert(leds);
+  const struct Pin leds[] = {
+      pinInit(BOARD_LED_0),
+      pinInit(BOARD_LED_1)
+  };
+  pinOutput(leds[0], BOARD_LED_INV);
+  pinOutput(leds[1], BOARD_LED_INV);
 
   uint32_t * const backup = backupDomainAddress();
   const bool restartFlag = backup[0] == MAGIC_WORD;
+  const uint32_t state = restartFlag ? backup[1] : 0;
+  const unsigned int phase = (state % 3) + 1;
 
-  const struct RtcConfig rtcConfig = {
-      .timestamp = restartFlag ? 0 : RTC_INITIAL_TIME,
-      .priority = 0
-  };
-  struct RtClock * const rtc = init(Rtc, &rtcConfig);
-  assert(rtc);
+  struct RtClock * const rtc = boardSetupRtc(restartFlag);
   rtSetAlarm(rtc, rtTime(rtc) + RTC_ALARM_PERIOD);
-
-  uint32_t state = restartFlag ? backup[1] : 1;
 
   for (unsigned int i = 0; i < 5; ++i)
   {
-    gpioBusWrite(leds, i % 2 ? 0 : state);
+    if (phase & 0x01)
+      pinToggle(leds[0]);
+    if (phase & 0x02)
+      pinToggle(leds[1]);
+
     mdelay(500);
   }
 
-  gpioBusWrite(leds, 0);
-  state = state < 7 ? state + 1 : 1;
+  /* Save current state */
   backup[0] = MAGIC_WORD;
-  backup[1] = state;
+  backup[1] = state + 1;
 
+  /* Enter deep power-down mode */
   pmChangeState(PM_SHUTDOWN);
 
   /* Execution never reaches this point */

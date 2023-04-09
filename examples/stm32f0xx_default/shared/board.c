@@ -91,19 +91,19 @@ struct Interface *boardSetupSerial(void)
 {
   struct Interface * const interface = init(Serial, &serialConfig);
   assert(interface);
-  return(interface);
+  return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpi(void)
 {
   struct Interface * const interface = init(Spi, &spiConfig);
   assert(interface);
-  return(interface);
+  return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupTimer(void)
 {
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer);
-  return(timer);
+  return timer;
 }

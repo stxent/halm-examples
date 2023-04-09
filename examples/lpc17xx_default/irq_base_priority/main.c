@@ -1,36 +1,36 @@
 /*
- * irq_priorities/main.c
- * Copyright (C) 2015 xent
+ * irq_base_priority/main.c
+ * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include "board.h"
-#include <halm/core/cortex/nvic.h>
 #include <halm/delay.h>
 #include <halm/platform/lpc/gptimer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-/* #define ENABLE_GROUPING */
-/*----------------------------------------------------------------------------*/
 static const struct GpTimerConfig lowPriTimerConfig = {
     .frequency = 1000,
-    .channel = 0,
-    .priority = 1
+    .priority = 1,
+    .channel = 0
 };
 
 static const struct GpTimerConfig highPriTimerConfig = {
     .frequency = 1000,
-    .channel = 1,
-    .priority = 3
+    .priority = 3,
+    .channel = 1
 };
 /*----------------------------------------------------------------------------*/
 static void lowPriCallback(void *argument)
 {
   struct Pin * const pin = argument;
+  const IrqState state = irqSave();
 
   pinToggle(*pin);
   mdelay(1000);
   pinToggle(*pin);
+
+  irqRestore(state);
 }
 /*----------------------------------------------------------------------------*/
 static void highPriCallback(void *argument)
@@ -54,16 +54,6 @@ int main(void)
   pinOutput(led[0], BOARD_LED_INV);
   pinOutput(led[1], BOARD_LED_INV);
 
-  const uint8_t groups = nvicGetPriorityGrouping();
-
-#ifndef ENABLE_GROUPING
-  /* LED's will flash independently */
-  nvicSetPriorityGrouping(groups + 1);
-#else
-  /* Enabling of the led[0] will stop flashing of the led[1] */
-  nvicSetPriorityGrouping(groups + 2);
-#endif
-
   struct Timer * const lowPriTimer = init(GpTimer, &lowPriTimerConfig);
   assert(lowPriTimer);
   timerSetOverflow(lowPriTimer, 4000);
@@ -74,6 +64,10 @@ int main(void)
   timerSetOverflow(highPriTimer, 200);
   timerSetCallback(highPriTimer, highPriCallback, &led[1]);
 
+  /*
+   * LED's will flash independently when CMake option -DIRQ_THRESHOLD=2
+   * is added during the configuration step.
+   */
   timerEnable(lowPriTimer);
   timerEnable(highPriTimer);
 

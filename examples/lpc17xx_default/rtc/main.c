@@ -9,7 +9,7 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */
-#define RTC_ALARM_PERIOD  5
+#define RTC_ALARM_PERIOD 5
 /*----------------------------------------------------------------------------*/
 struct Context
 {
@@ -36,7 +36,7 @@ int main(void)
   pinOutput(context.led, BOARD_LED_INV);
 
   pinToggle(context.led);
-  context.rtc = boardSetupRtc();
+  context.rtc = boardSetupRtc(false);
   pinToggle(context.led);
 
   rtSetCallback(context.rtc, onTimerAlarm, &context);

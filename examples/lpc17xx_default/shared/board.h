@@ -59,6 +59,7 @@ struct StreamPackage
 };
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
+void boardResetClock(void);
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 struct Interface *boardSetupAdc(void);
@@ -77,7 +78,7 @@ struct Interface *boardSetupI2CSlave(void);
 struct StreamPackage boardSetupI2S(void);
 struct PwmPackage boardSetupPwm(void);
 struct Timer *boardSetupRit(void);
-struct RtClock *boardSetupRtc(void);
+struct RtClock *boardSetupRtc(bool);
 struct Interface *boardSetupSdioSpi(void);
 struct Interface *boardSetupSdioSpiDma(void);
 struct Interface *boardSetupSerial(void);

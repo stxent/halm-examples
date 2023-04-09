@@ -37,7 +37,7 @@ int main(void)
 
   pinSet(context.led);
   /* Non-blocking initialization */
-  context.rtc = boardSetupRtc();
+  context.rtc = boardSetupRtc(false);
   /* Wait for RTC registers update */
   while (rtTime(context.rtc) == 0);
   pinReset(context.led);
