@@ -8,13 +8,23 @@
 #include <halm/generic/mmcsd.h>
 #include <halm/generic/sdio_spi.h>
 #include <halm/generic/spi.h>
+#include <halm/generic/work_queue_irq.h>
 #include <xcore/memory.h>
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
+#define BLOCK_SIZE      512
 #define BUFFER_SIZE     2048
 #define SDIO_POLL_RATE  5000
+
+DECLARE_WQ_IRQ(WQ_LP, FLASH_ISR)
 /*----------------------------------------------------------------------------*/
+static const struct WorkQueueIrqConfig wqConfig = {
+    .size = 1,
+    .irq = FLASH_IRQ,
+    .priority = 0
+};
+
 static uint8_t arena[BUFFER_SIZE];
 /*----------------------------------------------------------------------------*/
 static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
@@ -106,6 +116,7 @@ int main(void)
   static const uint8_t SPI_SDIO_MODE = 3;
   static const bool ENABLE_WRITE_TEST = false;
   static const bool USE_BUSY_TIMER = true;
+  static const bool USE_CRC_CHECK = true;
 
   uint64_t capacity;
   uint64_t position = 0;
@@ -130,6 +141,14 @@ int main(void)
     timerSetOverflow(busyTimer, timerGetFrequency(busyTimer) / SDIO_POLL_RATE);
   }
 
+  /* Work Queue for SDIO CRC computation */
+  if (USE_CRC_CHECK)
+  {
+    WQ_LP = init(WorkQueueIrq, &wqConfig);
+    assert(WQ_LP);
+    wqStart(WQ_LP);
+  }
+
   /* Initialize SPI layer */
   spi = boardSetupSpi();
   res = ifSetParam(spi, IF_RATE, &SPI_SDIO_RATE);
@@ -141,8 +160,8 @@ int main(void)
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
       .timer = busyTimer,
-      .wq = 0,
-      .blocks = 0,
+      .wq = WQ_LP,
+      .blocks = USE_CRC_CHECK ? BUFFER_SIZE / BLOCK_SIZE : 0,
       .cs = BOARD_SDIO_CS
   };
   sdio = init(SdioSpi, &sdioConfig);
@@ -151,7 +170,7 @@ int main(void)
   /* Initialize SD Card layer */
   const struct MMCSDConfig cardConfig = {
       .interface = sdio,
-      .crc = false
+      .crc = USE_CRC_CHECK
   };
   card = init(MMCSD, &cardConfig);
   assert(card);

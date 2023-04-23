@@ -26,7 +26,7 @@ int main(void)
    * Core frequency and SysTick resolution must be kept in mind
    * when configuring timer overflow.
    */
-  struct Timer * const timer = init(SysTickTimer, 0);
+  struct Timer * const timer = init(SysTick, 0);
   assert(timer);
 
   timerSetOverflow(timer, timerGetFrequency(timer) / 2);

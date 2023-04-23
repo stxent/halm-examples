@@ -5,6 +5,7 @@
  */
 
 #include "board.h"
+#include <halm/generic/adc.h>
 #include <halm/timer.h>
 #include <xcore/interface.h>
 #include <xcore/memory.h>
@@ -29,6 +30,14 @@ int main(void)
 
   struct Interface * const adc = boardSetupAdc();
   ifSetCallback(adc, onConversionCompleted, &event);
+
+  /* Calibrate ADC */
+  ifSetParam(adc, IF_ADC_CALIBRATE, 0);
+  while (!event)
+    barrier();
+  event = false;
+  /* Enable converter */
+  ifSetParam(adc, IF_ENABLE, 0);
 
   struct Interface * const serial = boardSetupSerial();
 

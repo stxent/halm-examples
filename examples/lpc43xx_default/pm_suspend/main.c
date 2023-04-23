@@ -1,6 +1,6 @@
 /*
- * lpc17xx_default/pm_suspend/main.c
- * Copyright (C) 2017 xent
+ * lpc43xx_default/pm_suspend/main.c
+ * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -23,7 +23,10 @@ int main(void)
   pinOutput(leds[0], BOARD_LED_INV);
   pinOutput(leds[1], BOARD_LED_INV);
 
+  /* Non-blocking initialization */
   struct RtClock * const rtc = boardSetupRtc(false);
+  /* Wait for RTC registers update */
+  while (rtTime(rtc) == 0);
   rtSetAlarm(rtc, rtTime(rtc) + RTC_ALARM_PERIOD);
 
   uint32_t state = 0;

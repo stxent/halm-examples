@@ -29,14 +29,15 @@ int main(void)
 
   struct Interface * const adc = boardSetupAdc();
   ifSetCallback(adc, onConversionCompleted, &event);
+  ifSetParam(adc, IF_ENABLE, 0);
 
   struct Interface * const serial = boardSetupSerial();
   struct Timer * const timer = boardSetupAdcTimer();
 
   /*
-  * The overflow frequency of the timer should be two times higher
-  * than that of the hardware events for ADC.
-  */
+   * The overflow frequency of the timer should be two times higher
+   * than that of the hardware events for ADC.
+   */
   timerSetOverflow(timer, timerGetFrequency(timer) / (count * ADC_RATE * 2));
   timerEnable(timer);
 

@@ -26,6 +26,7 @@
 #include <halm/platform/lpc/spi.h>
 #include <halm/platform/lpc/spi_dma.h>
 #include <halm/platform/lpc/spifi.h>
+#include <halm/platform/lpc/system.h>
 #include <halm/platform/lpc/sct_pwm.h>
 #include <halm/platform/lpc/usb_device.h>
 #include <halm/platform/lpc/wdt.h>
@@ -146,14 +147,14 @@ static const struct I2SDmaConfig i2sConfig = {
     .rate = 44100,
     .width = I2S_WIDTH_16,
     .tx = {
-        .sda = PIN(0, 9),
-        .sck = PIN(0, 7),
-        .ws = PIN(0, 8),
-        .mclk = PIN(4, 29),
+        .sda = PIN(PORT_7, 2),
+        .sck = PIN(PORT_4, 7),
+        .ws = PIN(PORT_7, 1),
+        .mclk = PIN(PORT_CLK, 2),
         .dma = 6
     },
     .rx = {
-        .sda = PIN(0, 6),
+        .sda = PIN(PORT_6, 2),
         .dma = 7
     },
     .channel = 0,
@@ -201,9 +202,9 @@ static const struct SerialConfig serialConfig = {
     .rxLength = BOARD_UART_BUFFER,
     .txLength = BOARD_UART_BUFFER,
     .rate = 19200,
-    .rx = PIN(PORT_2, 4),
-    .tx = PIN(PORT_2, 3),
-    .channel = 3
+    .rx = PIN(PORT_1, 14),
+    .tx = PIN(PORT_5, 6),
+    .channel = 1
 };
 
 static const struct SerialDmaConfig serialDmaConfig = {
@@ -211,9 +212,9 @@ static const struct SerialDmaConfig serialDmaConfig = {
     .rxLength = BOARD_UART_BUFFER,
     .txLength = BOARD_UART_BUFFER,
     .rate = 19200,
-    .rx = PIN(PORT_2, 4),
-    .tx = PIN(PORT_2, 3),
-    .channel = 3,
+    .rx = PIN(PORT_1, 14),
+    .tx = PIN(PORT_5, 6),
+    .channel = 1,
     .dma = {2, 3}
 };
 
@@ -403,6 +404,9 @@ void boardResetClock(void)
 
   if (clockReady(ExternalOsc))
     clockDisable(ExternalOsc);
+
+  /* Flash latency should be reset to exit correctly from power-down modes */
+  sysFlashLatencyReset();
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)

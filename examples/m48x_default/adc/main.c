@@ -5,6 +5,7 @@
  */
 
 #include "board.h"
+#include <halm/generic/adc.h>
 #include <halm/timer.h>
 #include <xcore/interface.h>
 #include <xcore/memory.h>
@@ -29,6 +30,7 @@ int main(void)
 
   struct Interface * const adc = boardSetupAdc();
   ifSetCallback(adc, onConversionCompleted, &event);
+  ifSetParam(adc, IF_ENABLE, 0);
 
   struct Interface * const serial = boardSetupSerial();
 
