@@ -48,6 +48,7 @@ struct Interface *boardSetupAdcDma(void);
 struct Timer *boardSetupAdcTimer(void);
 struct PwmPackage boardSetupBpwm(bool);
 struct Interrupt *boardSetupButton(void);
+struct Interface *boardSetupCan(struct Timer *);
 struct Entity *boardSetupHsUsb(void);
 struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupQspi(void);

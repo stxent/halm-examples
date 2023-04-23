@@ -6,6 +6,7 @@
 
 #include "board.h"
 #include <halm/platform/numicro/bpwm.h>
+#include <halm/platform/numicro/can.h>
 #include <halm/platform/numicro/clocking.h>
 #include <halm/platform/numicro/eadc.h>
 #include <halm/platform/numicro/eadc_dma.h>
@@ -65,6 +66,15 @@ static const struct PinIntConfig buttonIntConfig = {
     .pin = BOARD_BUTTON,
     .event = PIN_FALLING,
     .pull = PIN_NOPULL
+};
+
+static const struct CanConfig canConfig = {
+    .rate = 1000000,
+    .rxBuffers = 4,
+    .txBuffers = 4,
+    .rx = PIN(PORT_A, 4),
+    .tx = PIN(PORT_A, 5),
+    .channel = 0
 };
 
 static const struct UsbDeviceConfig hsUsbConfig = {
@@ -301,6 +311,17 @@ struct Interrupt *boardSetupButton(void)
   struct Interrupt * const interrupt = init(PinInt, &buttonIntConfig);
   assert(interrupt);
   return interrupt;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupCan(struct Timer *timer)
+{
+  /* Override default config */
+  struct CanConfig config = canConfig;
+  config.timer = timer;
+
+  struct Interface * const interface = init(Can, &config);
+  assert(interface);
+  return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Entity *boardSetupHsUsb(void)
