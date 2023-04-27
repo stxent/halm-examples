@@ -28,7 +28,7 @@ int main(void)
   enum Result res;
 
   struct Interface * const i2c = init(I2CSlave, &i2cConfig);
-  assert(i2c);
+  assert(i2c != NULL);
   ifSetParam(i2c, IF_ADDRESS, &deviceAddress);
 
   (void)res; /* Suppress warning */

@@ -62,8 +62,8 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  struct Interface * const eeprom = init(Eeprom, 0);
-  assert(eeprom);
+  struct Interface * const eeprom = init(Eeprom, NULL);
+  assert(eeprom != NULL);
 
   pinWrite(led, !BOARD_LED_INV);
   if ((res = ifGetParam(eeprom, IF_SIZE, &capacity)) == E_OK)

@@ -64,11 +64,11 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t length,
       barrier();
     event = false;
 
-    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
+    if (ifGetParam(card, IF_STATUS, NULL) == E_OK)
       completed = true;
   }
 
-  ifSetCallback(card, 0, 0);
+  ifSetCallback(card, NULL, NULL);
   return completed;
 }
 /*----------------------------------------------------------------------------*/
@@ -90,11 +90,11 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t length,
       barrier();
     event = false;
 
-    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
+    if (ifGetParam(card, IF_STATUS, NULL) == E_OK)
       completed = true;
   }
 
-  ifSetCallback(card, 0, 0);
+  ifSetCallback(card, NULL, NULL);
   return completed;
 }
 /*----------------------------------------------------------------------------*/
@@ -126,8 +126,8 @@ int main(void)
       .crc = true
   };
   card = init(MMCSD, &cardConfig);
-  assert(card);
-  res = ifSetParam(card, IF_ZEROCOPY, 0);
+  assert(card != NULL);
+  res = ifSetParam(card, IF_ZEROCOPY, NULL);
   assert(res == E_OK);
   res = ifGetParam(card, IF_SIZE_64, &capacity);
   assert(res == E_OK);

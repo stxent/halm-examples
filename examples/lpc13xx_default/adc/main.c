@@ -29,7 +29,7 @@ int main(void)
 
   struct Interface * const adc = boardSetupAdc();
   ifSetCallback(adc, onConversionCompleted, &event);
-  ifSetParam(adc, IF_ENABLE, 0);
+  ifSetParam(adc, IF_ENABLE, NULL);
 
   struct Interface * const serial = boardSetupSerial();
   struct Timer * const timer = boardSetupAdcTimer();

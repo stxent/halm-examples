@@ -90,20 +90,20 @@ void boardSetupClockPll(void)
 struct Interface *boardSetupSerial(void)
 {
   struct Interface * const interface = init(Serial, &serialConfig);
-  assert(interface);
+  assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpi(void)
 {
   struct Interface * const interface = init(Spi, &spiConfig);
-  assert(interface);
+  assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupTimer(void)
 {
   struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
+  assert(timer != NULL);
   return timer;
 }

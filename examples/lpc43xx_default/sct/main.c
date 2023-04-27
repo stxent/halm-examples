@@ -23,8 +23,7 @@ static const struct SctTimerConfig timerConfigs[] = {
         .frequency = 100000,
         .part = SCT_LOW,
         .channel = 0
-    },
-    {
+    }, {
         .frequency = 400000,
         .part = SCT_HIGH,
         .channel = 0
@@ -49,19 +48,19 @@ int main(void)
 
 #ifdef TEST_UNIFIED
   struct Timer * const timerA = init(SctUnifiedTimer, &timerConfig);
-  assert(timerA);
+  assert(timerA != NULL);
   timerSetOverflow(timerA, 500000);
   timerSetCallback(timerA, onTimerOverflow, &ledA);
   timerEnable(timerA);
 #else
   struct Timer * const timerA = init(SctTimer, &timerConfigs[0]);
-  assert(timerA);
+  assert(timerA != NULL);
   timerSetOverflow(timerA, 50000);
   timerSetCallback(timerA, onTimerOverflow, &ledA);
   timerEnable(timerA);
 
   struct Timer * const timerB = init(SctTimer, &timerConfigs[1]);
-  assert(timerB);
+  assert(timerB != NULL);
   timerSetOverflow(timerB, 50000);
   timerSetCallback(timerB, onTimerOverflow, &ledB);
   timerEnable(timerB);

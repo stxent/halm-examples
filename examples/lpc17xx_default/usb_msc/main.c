@@ -56,12 +56,12 @@ int main(void)
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
       .timer = timer,
-      .wq = 0,
+      .wq = NULL,
       .blocks = 0,
       .cs = BOARD_SDIO_CS
   };
   sdio = init(SdioSpi, &sdioConfig);
-  assert(sdio);
+  assert(sdio != NULL);
 
   /* Optional wrapper for R/W operations indication */
   if (USE_INDICATION)
@@ -73,10 +73,10 @@ int main(void)
         .inversion = BOARD_LED_INV
     };
     wrapper = init(InterfaceWrapper, &wrapperConfig);
-    assert(wrapper);
+    assert(wrapper != NULL);
   }
   else
-    wrapper = 0;
+    wrapper = NULL;
 
   /* Initialize SD Card layer */
   const struct MMCSDConfig cardConfig = {
@@ -84,8 +84,8 @@ int main(void)
       .crc = false
   };
   card = init(MMCSD, &cardConfig);
-  assert(card);
-  res = ifSetParam(card, IF_ZEROCOPY, 0);
+  assert(card != NULL);
+  res = ifSetParam(card, IF_ZEROCOPY, NULL);
   assert(res == E_OK);
 
   /* Initialize USB peripheral */
@@ -104,7 +104,7 @@ int main(void)
       }
   };
   struct Msc * const msc = init(Msc, &config);
-  assert(msc);
+  assert(msc != NULL);
 
   mscAttachUnit(msc, 0, card);
   usbDevSetConnected(usb, true);

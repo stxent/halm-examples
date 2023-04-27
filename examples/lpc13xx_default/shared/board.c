@@ -198,28 +198,28 @@ void boardSetupClockPll(void)
 struct Interface *boardSetupAdc(void)
 {
   struct Interface * const interface = init(Adc, &adcConfig);
-  assert(interface);
+  assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupAdcOneShot(void)
 {
   struct Interface * const interface = init(AdcOneShot, &adcOneShotConfig);
-  assert(interface);
+  assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupAdcTimer(void)
 {
   struct Timer * const timer = init(GpTimer, &adcTimerConfig);
-  assert(timer);
+  assert(timer != NULL);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupButton(void)
 {
   struct Interrupt * const interrupt = init(PinInt, &buttonIntConfig);
-  assert(interrupt);
+  assert(interrupt != NULL);
   return interrupt;
 }
 /*----------------------------------------------------------------------------*/
@@ -227,11 +227,11 @@ struct CapturePackage boardSetupCapture(void)
 {
   struct GpTimerCaptureUnit * const timer =
       init(GpTimerCaptureUnit, &captureTimerConfig);
-  assert(timer);
+  assert(timer != NULL);
 
   struct Capture * const capture =
       gpTimerCaptureCreate(timer, BOARD_CAPTURE, PIN_RISING, PIN_PULLDOWN);
-  assert(capture);
+  assert(capture != NULL);
 
   return (struct CapturePackage){(struct Timer *)timer, capture};
 }
@@ -239,26 +239,26 @@ struct CapturePackage boardSetupCapture(void)
 struct Timer *boardSetupCounterTimer(void)
 {
   struct Timer * const timer = init(GpTimerCounter, &counterTimerConfig);
-  assert(timer);
+  assert(timer != NULL);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C(void)
 {
   struct Interface * const interface = init(I2C, &i2cConfig);
-  assert(interface);
+  assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct PwmPackage boardSetupPwm(void)
 {
   struct GpTimerPwmUnit * const timer = init(GpTimerPwmUnit, &pwmTimerConfig);
-  assert(timer);
+  assert(timer != NULL);
 
   struct Pwm * const pwm0 = gpTimerPwmCreate(timer, BOARD_PWM_0);
-  assert(pwm0);
+  assert(pwm0 != NULL);
   struct Pwm * const pwm1 = gpTimerPwmCreate(timer, BOARD_PWM_1);
-  assert(pwm1);
+  assert(pwm1 != NULL);
 
   return (struct PwmPackage){
       (struct Timer *)timer,
@@ -270,28 +270,28 @@ struct PwmPackage boardSetupPwm(void)
 struct Interface *boardSetupSerial(void)
 {
   struct Interface * const interface = init(Serial, &serialConfig);
-  assert(interface);
+  assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerialPoll(void)
 {
   struct Interface * const interface = init(SerialPoll, &serialPollConfig);
-  assert(interface);
+  assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpi(void)
 {
   struct Interface * const interface = init(Spi, &spiConfig);
-  assert(interface);
+  assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupTimer(void)
 {
   struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer);
+  assert(timer != NULL);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
@@ -309,7 +309,7 @@ struct Entity *boardSetupUsb(void)
   while (!clockReady(UsbClock));
 
   struct Entity * const usb = init(UsbDevice, &usbConfig);
-  assert(usb);
+  assert(usb != NULL);
   return usb;
 }
 /*----------------------------------------------------------------------------*/
@@ -322,6 +322,6 @@ struct Watchdog *boardSetupWdt(void)
   while (!clockReady(WdtClock));
 
   struct Watchdog * const timer = init(Wdt, &wdtConfig);
-  assert(timer);
+  assert(timer != NULL);
   return timer;
 }

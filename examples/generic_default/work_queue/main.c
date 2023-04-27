@@ -20,12 +20,12 @@ static void periodicTask(void *);
 /*----------------------------------------------------------------------------*/
 static void onSignalReceived(void *argument)
 {
-  uv_walk(argument, onUvWalk, 0);
+  uv_walk(argument, onUvWalk, NULL);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument __attribute__((unused)))
 {
-  const enum Result res = wqAdd(WQ_DEFAULT, periodicTask, 0);
+  const enum Result res = wqAdd(WQ_DEFAULT, periodicTask, NULL);
 
   assert(res == E_OK);
   (void)res;
@@ -59,19 +59,19 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
       .signum = SIGINT
   };
   struct SignalHandler * const listener = init(SignalHandler, &listenerConfig);
-  assert(listener);
+  assert(listener != NULL);
   interruptSetCallback(listener, onSignalReceived, loop);
   interruptEnable(listener);
 
   /* Periodic timer */
-  struct Timer * const timer = init(Timer, 0);
-  assert(timer);
+  struct Timer * const timer = init(Timer, NULL);
+  assert(timer != NULL);
   timerSetOverflow(timer, 100);
-  timerSetCallback(timer, onTimerOverflow, 0);
+  timerSetCallback(timer, onTimerOverflow, NULL);
   timerEnable(timer);
 
   /* Initialize Work Queue */
-  WQ_DEFAULT = init(EventQueue, 0);
+  WQ_DEFAULT = init(EventQueue, NULL);
   assert(WQ_DEFAULT);
   wqStart(WQ_DEFAULT);
 

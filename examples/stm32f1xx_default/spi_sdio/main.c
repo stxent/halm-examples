@@ -76,11 +76,11 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t length,
       barrier();
     event = false;
 
-    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
+    if (ifGetParam(card, IF_STATUS, NULL) == E_OK)
       completed = true;
   }
 
-  ifSetCallback(card, 0, 0);
+  ifSetCallback(card, NULL, NULL);
   return completed;
 }
 /*----------------------------------------------------------------------------*/
@@ -102,11 +102,11 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t length,
       barrier();
     event = false;
 
-    if (ifGetParam(card, IF_STATUS, 0) == E_OK)
+    if (ifGetParam(card, IF_STATUS, NULL) == E_OK)
       completed = true;
   }
 
-  ifSetCallback(card, 0, 0);
+  ifSetCallback(card, NULL, NULL);
   return completed;
 }
 /*----------------------------------------------------------------------------*/
@@ -134,7 +134,7 @@ int main(void)
   /* Helper timer for SDIO status polling */
   struct Timer * const busyTimer = USE_BUSY_TIMER ? boardSetupAdcTimer() : 0;
 
-  if (busyTimer)
+  if (busyTimer != NULL)
   {
     /* Set 5 kHz update event rate */
     assert(timerGetFrequency(busyTimer) >= 10 * SDIO_POLL_RATE);
@@ -165,7 +165,7 @@ int main(void)
       .cs = BOARD_SDIO_CS
   };
   sdio = init(SdioSpi, &sdioConfig);
-  assert(sdio);
+  assert(sdio != NULL);
 
   /* Initialize SD Card layer */
   const struct MMCSDConfig cardConfig = {
@@ -173,8 +173,8 @@ int main(void)
       .crc = USE_CRC_CHECK
   };
   card = init(MMCSD, &cardConfig);
-  assert(card);
-  res = ifSetParam(card, IF_ZEROCOPY, 0);
+  assert(card != NULL);
+  res = ifSetParam(card, IF_ZEROCOPY, NULL);
   assert(res == E_OK);
   res = ifGetParam(card, IF_SIZE_64, &capacity);
   assert(res == E_OK);

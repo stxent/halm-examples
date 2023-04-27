@@ -61,7 +61,7 @@ int main(void)
   pinOutput(led, BOARD_LED_INV);
 
   struct Timer * const counter = init(GpTimerCounter, &counterConfig);
-  assert(counter);
+  assert(counter != NULL);
 
   struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer));

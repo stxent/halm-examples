@@ -76,7 +76,7 @@ int main(void)
 
   struct Interface * const can = boardSetupCan(chronoTimer);
   ifSetCallback(can, onEvent, &canEvent);
-  ifSetParam(can, IF_CAN_ACTIVE, 0);
+  ifSetParam(can, IF_CAN_ACTIVE, NULL);
 
   while (1)
   {

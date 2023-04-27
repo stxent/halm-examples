@@ -55,7 +55,7 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
 
   struct CdcAcmConfig config = {
       .device = parent,
-      .arena = 0,
+      .arena = NULL,
       .rxBuffers = 4,
       .txBuffers = 4
   };
@@ -67,7 +67,7 @@ static void initStreams(struct StreamDescriptor *streams, void *parent)
     config.endpoints.tx = endpointAddressMap[i][EP_TX];
 
     streams[i].stream = init(CdcAcm, &config);
-    assert(streams[i].stream);
+    assert(streams[i].stream != NULL);
     ifSetCallback(streams[i].stream, onSerialEvent, streams + i);
     streams[i].event = false;
     streams[i].led = leds[i];
@@ -115,7 +115,7 @@ int main(void)
       .device = usb
   };
   struct Entity * const composite = init(CompositeDevice, &compositeConfig);
-  assert(composite);
+  assert(composite != NULL);
 
   initStreams(streams, composite);
   usbDevSetConnected(composite, true);

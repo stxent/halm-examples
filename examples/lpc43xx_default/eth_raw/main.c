@@ -294,7 +294,7 @@ int main(void)
   pinOutput(rst, true);
 
   void * const eth = init(Ethernet, &ethConfig);
-  assert(eth);
+  assert(eth != NULL);
 
   const struct BufferingProxyConfig proxyConfig = {
       .pipe = eth,
@@ -310,10 +310,10 @@ int main(void)
       }
   };
   void * const proxy = init(BufferingProxy, &proxyConfig);
-  assert(proxy);
+  assert(proxy != NULL);
 
   void * const mdio = ethMakeMDIO(eth);
-  assert(mdio);
+  assert(mdio != NULL);
 
   const bool phyReady = phyInit(mdio);
   (void)phyReady;

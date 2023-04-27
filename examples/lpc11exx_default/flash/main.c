@@ -76,8 +76,8 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  struct Interface * const flash = init(Flash, 0);
-  assert(flash);
+  struct Interface * const flash = init(Flash, NULL);
+  assert(flash != NULL);
 
   pinWrite(led, !BOARD_LED_INV);
   if ((res = ifGetParam(flash, IF_SIZE, &flashSize)) == E_OK)

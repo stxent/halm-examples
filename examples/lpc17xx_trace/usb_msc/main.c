@@ -99,11 +99,11 @@ int main(void)
   setupClock();
 
   struct Interface * const serial = init(Serial, &serialConfig);
-  assert(serial);
+  assert(serial != NULL);
 
   /* Chrono timer */
   struct Timer * const chronoTimer = init(GpTimer, &chronoTimerConfig);
-  assert(chronoTimer);
+  assert(chronoTimer != NULL);
   timerEnable(chronoTimer);
 
   /* Helper timer for SDIO status polling */
@@ -114,7 +114,7 @@ int main(void)
 
   /* Initialize SPI layer */
   struct Interface * const spi = init(SpiDma, &spiDmaConfig);
-  assert(spi);
+  assert(spi != NULL);
 
   /* Initialize SDIO layer */
   const struct SdioSpiConfig sdioConfig = {
@@ -124,7 +124,7 @@ int main(void)
       .cs = CS_PIN
   };
   struct Interface * const sdio = init(SdioSpi, &sdioConfig);
-  assert(sdio);
+  assert(sdio != NULL);
 
   /* Initialize SD Card layer */
   const struct MMCSDConfig cardConfig = {
@@ -132,12 +132,12 @@ int main(void)
       .crc = false
   };
   struct Interface * const card = init(MMCSD, &cardConfig);
-  assert(card);
-  ifSetParam(card, IF_ZEROCOPY, 0);
+  assert(card != NULL);
+  ifSetParam(card, IF_ZEROCOPY, NULL);
 
   /* Initialize USB peripheral */
   struct Entity * const usb = init(UsbDevice, &usbConfig);
-  assert(usb);
+  assert(usb != NULL);
 
   /* Initialize Mass Storage Device */
   const struct MscConfig config = {
@@ -152,7 +152,7 @@ int main(void)
       }
   };
   struct Msc * const msc = init(Msc, &config);
-  assert(msc);
+  assert(msc != NULL);
 
   usbTraceInit(serial, chronoTimer);
   mscAttachUnit(msc, 0, card);

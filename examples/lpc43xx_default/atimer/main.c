@@ -20,14 +20,14 @@ int main(void)
 
   boardSetupClockExt();
 
-  clockEnable(RtcOsc, 0);
+  clockEnable(RtcOsc, NULL);
   while (!clockReady(RtcOsc));
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  struct Timer * const timer = init(Atimer, 0);
-  assert(timer);
+  struct Timer * const timer = init(Atimer, NULL);
+  assert(timer != NULL);
 
   timerSetOverflow(timer, timerGetFrequency(timer) / 2);
   timerSetCallback(timer, onTimerOverflow, &event);

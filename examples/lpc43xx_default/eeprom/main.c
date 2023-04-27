@@ -56,8 +56,8 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, false);
 
-  struct Interface * const eeprom = init(Eeprom, 0);
-  assert(eeprom);
+  struct Interface * const eeprom = init(Eeprom, NULL);
+  assert(eeprom != NULL);
 
   uint32_t capacity;
   enum Result res;

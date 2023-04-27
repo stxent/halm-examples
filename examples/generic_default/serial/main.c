@@ -64,7 +64,7 @@ static void onSerialEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 static void onSignalReceived(void *argument)
 {
-  uv_walk(argument, onUvWalk, 0);
+  uv_walk(argument, onUvWalk, NULL);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -104,8 +104,8 @@ int main(int argc, char *argv[])
 
   /* Serial port */
   struct SerialEventTuple context = {
-    .serial = 0,
-    .counter = 0
+      .serial = 0,
+      .counter = 0
   };
   const struct SerialConfig serialConfig = {
       .device = argv[1],
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
   };
   struct Interface * const serial = init(Serial, &serialConfig);
 
-  if (serial)
+  if (serial != NULL)
   {
     context.serial = serial;
     ifSetCallback(serial, onSerialEvent, &context);
@@ -125,13 +125,13 @@ int main(int argc, char *argv[])
     };
     struct SignalHandler * const listener = init(SignalHandler,
         &listenerConfig);
-    assert(listener);
+    assert(listener != NULL);
     interruptSetCallback(listener, onSignalReceived, loop);
     interruptEnable(listener);
 
     /* Periodic timer */
-    struct Timer * const timer = init(Timer, 0);
-    assert(timer);
+    struct Timer * const timer = init(Timer, NULL);
+    assert(timer != NULL);
     timerSetOverflow(timer, 100);
     timerSetCallback(timer, onTimerOverflow, serial);
     timerEnable(timer);

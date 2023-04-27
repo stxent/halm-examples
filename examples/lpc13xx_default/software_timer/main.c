@@ -52,22 +52,22 @@ int main(void)
 
   struct SoftwareTimerFactory * const timerFactory =
       init(SoftwareTimerFactory, &factoryConfig);
-  assert(timerFactory);
+  assert(timerFactory != NULL);
 
   struct Timer * const timer0 = softwareTimerCreate(timerFactory);
-  assert(timer0);
+  assert(timer0 != NULL);
   timerSetCallback(timer0, onTimer0Overflow, &output0);
   timerSetOverflow(timer0, 199);
   timerEnable(timer0);
 
   struct Timer * const timer1 = softwareTimerCreate(timerFactory);
-  assert(timer1);
+  assert(timer1 != NULL);
   timerSetCallback(timer1, onTimer1Overflow, &output1);
   timerSetOverflow(timer1, 37);
   timerEnable(timer1);
 
   struct Timer * const timer2 = softwareTimerCreate(timerFactory);
-  assert(timer2);
+  assert(timer2 != NULL);
   timerSetCallback(timer2, onTimer2Overflow, &output2);
   timerSetOverflow(timer2, 97);
   timerEnable(timer2);

@@ -33,7 +33,7 @@ int main(void)
   pinOutput(leds[1], BOARD_LED_INV);
 
   struct Interrupt * const bod = init(Bod, &bodConfig);
-  assert(bod);
+  assert(bod != NULL);
   interruptSetCallback(bod, onPowerEvent, leds);
   interruptEnable(bod);
 

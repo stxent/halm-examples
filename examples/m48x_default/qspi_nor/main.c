@@ -52,7 +52,7 @@ static struct DeviceInfo readDeviceInfo(struct Interface *qspi, struct Pin cs)
   struct DeviceInfo info;
   pinReset(cs);
 
-  ifSetParam(qspi, IF_QSPI_SERIAL, 0);
+  ifSetParam(qspi, IF_QSPI_SERIAL, NULL);
   ifWrite(qspi, &command, sizeof(command));
   ifWrite(qspi, &address, 3);
   ifRead(qspi, &info, sizeof(info));
@@ -71,10 +71,10 @@ static struct DeviceInfo readDeviceInfoDual(struct Interface *qspi,
   struct DeviceInfo info;
   pinReset(cs);
 
-  ifSetParam(qspi, IF_QSPI_SERIAL, 0);
+  ifSetParam(qspi, IF_QSPI_SERIAL, NULL);
   ifWrite(qspi, &command, sizeof(command));
 
-  ifSetParam(qspi, IF_QSPI_DUAL, 0);
+  ifSetParam(qspi, IF_QSPI_DUAL, NULL);
   ifWrite(qspi, &address, 3);
   ifWrite(qspi, &post, sizeof(post));
   ifRead(qspi, &info, sizeof(info));
@@ -94,10 +94,10 @@ static struct DeviceInfo readDeviceInfoQuad(struct Interface *qspi,
   struct DeviceInfo info;
   pinReset(cs);
 
-  ifSetParam(qspi, IF_QSPI_SERIAL, 0);
+  ifSetParam(qspi, IF_QSPI_SERIAL, NULL);
   ifWrite(qspi, &command, sizeof(command));
 
-  ifSetParam(qspi, IF_QSPI_QUAD, 0);
+  ifSetParam(qspi, IF_QSPI_QUAD, NULL);
   ifWrite(qspi, &address, 3);
   ifWrite(qspi, &post, sizeof(post));
   ifWrite(qspi, delay, sizeof(delay));

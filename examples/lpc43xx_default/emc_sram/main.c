@@ -112,7 +112,7 @@ int main(void)
   pinOutput(led, BOARD_LED_INV);
 
   struct EmcSram * const memory = init(EmcSram, &emcSramConfig);
-  assert(memory);
+  assert(memory != NULL);
 
   void * const address = emcSramAddress(memory);
 

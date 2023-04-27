@@ -21,7 +21,7 @@ int main(void)
 
   struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer) * 5);
-  timerSetCallback(timer, onTimerOverflow, 0);
+  timerSetCallback(timer, onTimerOverflow, NULL);
   timerEnable(timer);
 
   while (1)

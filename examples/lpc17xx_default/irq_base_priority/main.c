@@ -55,12 +55,12 @@ int main(void)
   pinOutput(led[1], BOARD_LED_INV);
 
   struct Timer * const lowPriTimer = init(GpTimer, &lowPriTimerConfig);
-  assert(lowPriTimer);
+  assert(lowPriTimer != NULL);
   timerSetOverflow(lowPriTimer, 4000);
   timerSetCallback(lowPriTimer, lowPriCallback, &led[0]);
 
   struct Timer * const highPriTimer = init(GpTimer, &highPriTimerConfig);
-  assert(highPriTimer);
+  assert(highPriTimer != NULL);
   timerSetOverflow(highPriTimer, 200);
   timerSetCallback(highPriTimer, highPriCallback, &led[1]);
 

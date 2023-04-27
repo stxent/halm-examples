@@ -32,12 +32,12 @@ int main(void)
   ifSetCallback(adc, onConversionCompleted, &event);
 
   /* Calibrate ADC */
-  ifSetParam(adc, IF_ADC_CALIBRATE, 0);
+  ifSetParam(adc, IF_ADC_CALIBRATE, NULL);
   while (!event)
     barrier();
   event = false;
   /* Enable converter */
-  ifSetParam(adc, IF_ENABLE, 0);
+  ifSetParam(adc, IF_ENABLE, NULL);
 
   struct Interface * const serial = boardSetupSerial();
 

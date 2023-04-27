@@ -45,7 +45,7 @@ int main(void)
 
   if (USE_ZEROCOPY)
   {
-    ifSetParam(spi, IF_ZEROCOPY, 0);
+    ifSetParam(spi, IF_ZEROCOPY, NULL);
     ifSetCallback(spi, onTransferCompleted, &value);
   }
 

@@ -70,8 +70,8 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  struct Interface * const flash = init(Flash, 0);
-  assert(flash);
+  struct Interface * const flash = init(Flash, NULL);
+  assert(flash != NULL);
 
   size_t flashSize, pageSize;
   enum Result res;

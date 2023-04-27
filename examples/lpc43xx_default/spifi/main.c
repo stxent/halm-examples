@@ -39,13 +39,13 @@ static struct DeviceInfo readDeviceInfo(struct Interface *spifi)
   struct DeviceInfo info;
 
   ifSetParam(spifi, IF_SPIM_COMMAND, &command);
-  ifSetParam(spifi, IF_SPIM_COMMAND_SERIAL, 0);
+  ifSetParam(spifi, IF_SPIM_COMMAND_SERIAL, NULL);
   ifSetParam(spifi, IF_SPIM_ADDRESS_24, &address);
-  ifSetParam(spifi, IF_SPIM_ADDRESS_SERIAL, 0);
-  ifSetParam(spifi, IF_SPIM_POST_ADDRESS_NONE, 0);
-  ifSetParam(spifi, IF_SPIM_DELAY_NONE, 0);
+  ifSetParam(spifi, IF_SPIM_ADDRESS_SERIAL, NULL);
+  ifSetParam(spifi, IF_SPIM_POST_ADDRESS_NONE, NULL);
+  ifSetParam(spifi, IF_SPIM_DELAY_NONE, NULL);
   ifSetParam(spifi, IF_SPIM_DATA_LENGTH, &length);
-  ifSetParam(spifi, IF_SPIM_DATA_SERIAL, 0);
+  ifSetParam(spifi, IF_SPIM_DATA_SERIAL, NULL);
 
   ifRead(spifi, &info, sizeof(info));
   return info;
@@ -59,16 +59,16 @@ static struct DeviceInfo readDeviceInfoDual(struct Interface *spifi)
   static const uint8_t post = 0xFF;
   struct DeviceInfo info;
 
-  ifSetParam(spifi, IF_SPIM_DUAL, 0);
+  ifSetParam(spifi, IF_SPIM_DUAL, NULL);
   ifSetParam(spifi, IF_SPIM_COMMAND, &command);
-  ifSetParam(spifi, IF_SPIM_COMMAND_SERIAL, 0);
+  ifSetParam(spifi, IF_SPIM_COMMAND_SERIAL, NULL);
   ifSetParam(spifi, IF_SPIM_ADDRESS_24, &address);
-  ifSetParam(spifi, IF_SPIM_ADDRESS_PARALLEL, 0);
+  ifSetParam(spifi, IF_SPIM_ADDRESS_PARALLEL, NULL);
   ifSetParam(spifi, IF_SPIM_POST_ADDRESS_8, &post);
-  ifSetParam(spifi, IF_SPIM_POST_ADDRESS_PARALLEL, 0);
-  ifSetParam(spifi, IF_SPIM_DELAY_NONE, 0);
+  ifSetParam(spifi, IF_SPIM_POST_ADDRESS_PARALLEL, NULL);
+  ifSetParam(spifi, IF_SPIM_DELAY_NONE, NULL);
   ifSetParam(spifi, IF_SPIM_DATA_LENGTH, &length);
-  ifSetParam(spifi, IF_SPIM_DATA_PARALLEL, 0);
+  ifSetParam(spifi, IF_SPIM_DATA_PARALLEL, NULL);
 
   ifRead(spifi, &info, sizeof(info));
   return info;
@@ -83,17 +83,17 @@ static struct DeviceInfo readDeviceInfoQuad(struct Interface *spifi)
   static const uint8_t post = 0xFF;
   struct DeviceInfo info;
 
-  ifSetParam(spifi, IF_SPIM_QUAD, 0);
+  ifSetParam(spifi, IF_SPIM_QUAD, NULL);
   ifSetParam(spifi, IF_SPIM_COMMAND, &command);
-  ifSetParam(spifi, IF_SPIM_COMMAND_SERIAL, 0);
+  ifSetParam(spifi, IF_SPIM_COMMAND_SERIAL, NULL);
   ifSetParam(spifi, IF_SPIM_ADDRESS_24, &address);
-  ifSetParam(spifi, IF_SPIM_ADDRESS_PARALLEL, 0);
+  ifSetParam(spifi, IF_SPIM_ADDRESS_PARALLEL, NULL);
   ifSetParam(spifi, IF_SPIM_POST_ADDRESS_8, &post);
-  ifSetParam(spifi, IF_SPIM_POST_ADDRESS_PARALLEL, 0);
+  ifSetParam(spifi, IF_SPIM_POST_ADDRESS_PARALLEL, NULL);
   ifSetParam(spifi, IF_SPIM_DELAY_LENGTH, &delay);
-  ifSetParam(spifi, IF_SPIM_DELAY_PARALLEL, 0);
+  ifSetParam(spifi, IF_SPIM_DELAY_PARALLEL, NULL);
   ifSetParam(spifi, IF_SPIM_DATA_LENGTH, &length);
-  ifSetParam(spifi, IF_SPIM_DATA_PARALLEL, 0);
+  ifSetParam(spifi, IF_SPIM_DATA_PARALLEL, NULL);
 
   ifRead(spifi, &info, sizeof(info));
   return info;

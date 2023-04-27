@@ -52,7 +52,7 @@ int main(void)
 
   const struct CdcAcmConfig config = {
       .device = usb,
-      .arena = 0,
+      .arena = NULL,
       .rxBuffers = 4,
       .txBuffers = 4,
 
@@ -64,7 +64,7 @@ int main(void)
   };
 
   struct Interface * const serial = init(CdcAcm, &config);
-  assert(serial);
+  assert(serial != NULL);
   ifSetCallback(serial, onSerialEvent, &event);
 
   usbDevSetConnected(usb, true);
