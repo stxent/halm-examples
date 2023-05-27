@@ -5,7 +5,9 @@
  */
 
 #include "board.h"
+#include <xcore/interface.h>
 #include <xcore/stream.h>
+#include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
 struct EventTuple
@@ -72,6 +74,8 @@ static void fillBuffers(void)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const uint32_t I2S_TEST_RATE = 44100;
+
   boardSetupClockPll();
   fillBuffers();
 
@@ -81,6 +85,10 @@ int main(void)
   pinOutput(txLed, BOARD_LED_INV);
 
   struct StreamPackage audio = boardSetupI2S();
+  enum Result res;
+
+  res = ifSetParam(audio.interface, IF_RATE, &I2S_TEST_RATE);
+  assert(res == E_OK);
 
   struct EventTuple rxContext = {
       .stream = audio.rx,
@@ -132,6 +140,9 @@ int main(void)
   streamEnqueue(audio.rx, &rxRequests[1]);
   txRequests[1].length = txRequests[1].capacity;
   streamEnqueue(audio.tx, &txRequests[1]);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1);
   return 0;

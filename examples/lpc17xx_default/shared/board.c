@@ -136,7 +136,7 @@ static const struct I2CSlaveConfig i2cSlaveConfig = {
 
 static const struct I2SDmaConfig i2sConfig = {
     .size = 2,
-    .rate = 44100,
+    .rate = 96000,
     .width = I2S_WIDTH_16,
     .tx = {
         .sda = PIN(0, 9),
