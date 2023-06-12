@@ -288,7 +288,7 @@ struct Interface *boardSetupSerialDma(void)
       Uart4Clock, Uart5Clock, Uart6Clock, Uart7Clock
   };
 
-  clockEnable(UART_CLOCKS[serialConfig.channel], &uartClockConfig);
+  clockEnable(UART_CLOCKS[serialDmaConfig.channel], &uartClockConfig);
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
   assert(interface != NULL);

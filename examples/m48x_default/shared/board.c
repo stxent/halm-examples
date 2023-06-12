@@ -16,6 +16,7 @@
 #include <halm/platform/numicro/pin_int.h>
 #include <halm/platform/numicro/serial.h>
 #include <halm/platform/numicro/serial_dma.h>
+#include <halm/platform/numicro/serial_dma_toc.h>
 #include <halm/platform/numicro/spi.h>
 #include <halm/platform/numicro/spi_dma.h>
 #include <halm/platform/numicro/qspi.h>
@@ -126,6 +127,18 @@ static const struct SerialDmaConfig serialDmaConfig = {
     .dma = {DMA0_CHANNEL0, DMA0_CHANNEL1}
 };
 
+static const struct SerialDmaTOCConfig serialDmaTOCConfig = {
+    .rxChunk = BOARD_UART_BUFFER / 8,
+    .rxLength = BOARD_UART_BUFFER,
+    .txLength = BOARD_UART_BUFFER,
+    .rate = 19200,
+    .timeout = 80,
+    .rx = PIN(PORT_A, 0),
+    .tx = PIN(PORT_A, 1),
+    .channel = 0,
+    .dma = {DMA0_CHANNEL7, DMA0_CHANNEL0}
+};
+
 static const struct SpiConfig spiConfig = {
     .rate = 2000000,
     .miso = PIN(PORT_C, 12),
@@ -211,7 +224,7 @@ static const struct ExtendedClockConfig spiClockConfig = {
 };
 
 static const struct ExtendedClockConfig uartClockConfig = {
-    .source = CLOCK_APB,
+    .source = CLOCK_PLL,
     .divisor = 1
 };
 
@@ -347,8 +360,6 @@ struct Interface *boardSetupQspi(void)
   assert(interface != NULL);
   return interface;
 }
-  return interface;
-}
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)
 {
@@ -371,9 +382,23 @@ struct Interface *boardSetupSerialDma(void)
       Uart4Clock, Uart5Clock, Uart6Clock, Uart7Clock
   };
 
-  clockEnable(UART_CLOCKS[serialConfig.channel], &uartClockConfig);
+  clockEnable(UART_CLOCKS[serialDmaConfig.channel], &uartClockConfig);
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerialDmaTOC(void)
+{
+  const void * const UART_CLOCKS[] = {
+      Uart0Clock, Uart1Clock, Uart2Clock, Uart3Clock,
+      Uart4Clock, Uart5Clock, Uart6Clock, Uart7Clock
+  };
+
+  clockEnable(UART_CLOCKS[serialDmaTOCConfig.channel], &uartClockConfig);
+
+  struct Interface * const interface = init(SerialDmaTOC, &serialDmaTOCConfig);
   assert(interface != NULL);
   return interface;
 }
