@@ -1,21 +1,15 @@
 /*
- * m48x_default/serial_dma/main.c
+ * m03x_default/serial_dma_toc/main.c
  * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include "board.h"
 #include <halm/generic/serial.h>
-#include <halm/timer.h>
 #include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 static void onSerialEvent(void *argument)
-{
-  *(bool *)argument = true;
-}
-/*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
 }
@@ -53,19 +47,12 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  struct Interface * const serial = boardSetupSerialDma();
+  struct Interface * const serial = boardSetupSerialDmaTOC();
   ifSetCallback(serial, onSerialEvent, &event);
   res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
   assert(res == E_OK);
   res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
   assert(res == E_OK);
-
-  struct Timer * const timer = boardSetupTimer();
-  timerSetOverflow(timer, timerGetFrequency(timer) / 10);
-  timerSetCallback(timer, onTimerOverflow, &event);
-
-  if (USE_IDLE_TIMER)
-    timerEnable(timer);
 
   /* Suppress warning */
   (void)res;

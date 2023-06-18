@@ -1,31 +1,19 @@
 /*
- * lpc17xx_default/spi_sdio/main.c
- * Copyright (C) 2016 xent
+ * m48x_default/sdh/main.c
+ * Copyright (C) 2023 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include "board.h"
 #include <halm/generic/mmcsd.h>
-#include <halm/generic/sdio_spi.h>
-#include <halm/generic/spi.h>
-#include <halm/generic/work_queue_irq.h>
+#include <halm/timer.h>
 #include <xcore/memory.h>
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-#define BLOCK_SIZE      512
-#define BUFFER_SIZE     2048
-#define SDIO_POLL_RATE  5000
-
-DECLARE_WQ_IRQ(WQ_LP, SPI_ISR)
+#define BUFFER_SIZE 2048
 /*----------------------------------------------------------------------------*/
-static const struct WorkQueueIrqConfig wqConfig = {
-    .size = 1,
-    .irq = SPI_IRQ,
-    .priority = 0
-};
-
-static uint8_t arena[BUFFER_SIZE];
+static uint8_t arena[2048];
 /*----------------------------------------------------------------------------*/
 static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
 {
@@ -112,66 +100,31 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t length,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t SPI_SDIO_RATE = 12000000;
-  static const uint8_t SPI_SDIO_MODE = 3;
+  static const uint32_t SDMMC_RATE = 6000000; // TODO
   static const bool ENABLE_WRITE_TEST = false;
-  static const bool USE_BUSY_TIMER = true;
-  static const bool USE_CRC_CHECK = true;
-  static const bool USE_SPI_DMA = true;
 
   uint64_t capacity;
   uint64_t position = 0;
   struct Interface *card;
-  struct Interface *sdio;
-  struct Interface *spi;
+  struct Interface *sdmmc;
   enum Result res;
   bool event = false;
 
-  boardSetupClockPll();
+//  boardSetupClockPll();
+  boardSetupClockExt();
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  /* Helper timer for SDIO status polling */
-  struct Timer * const busyTimer = USE_BUSY_TIMER ? boardSetupAdcTimer() : 0;
-
-  if (busyTimer != NULL)
-  {
-    /* Set 5 kHz update event rate */
-    assert(timerGetFrequency(busyTimer) >= 10 * SDIO_POLL_RATE);
-    timerSetOverflow(busyTimer, timerGetFrequency(busyTimer) / SDIO_POLL_RATE);
-  }
-
-  /* Work Queue for SDIO CRC computation */
-  if (USE_CRC_CHECK)
-  {
-    WQ_LP = init(WorkQueueIrq, &wqConfig);
-    assert(WQ_LP);
-    wqStart(WQ_LP);
-  }
-
-  /* Initialize SPI layer */
-  spi = USE_SPI_DMA ? boardSetupSdioSpiDma() : boardSetupSdioSpi();
-  res = ifSetParam(spi, IF_RATE, &SPI_SDIO_RATE);
-  assert(res == E_OK);
-  res = ifSetParam(spi, IF_SPI_MODE, &SPI_SDIO_MODE);
-  assert(res == E_OK);
-
-  /* Initialize SDIO layer */
-  const struct SdioSpiConfig sdioConfig = {
-      .interface = spi,
-      .timer = busyTimer,
-      .wq = WQ_LP,
-      .blocks = USE_CRC_CHECK ? BUFFER_SIZE / BLOCK_SIZE : 0,
-      .cs = BOARD_SDIO_CS
-  };
-  sdio = init(SdioSpi, &sdioConfig);
-  assert(sdio != NULL);
+  /* Initialize SDMMC layer */
+  sdmmc = boardSetupSdh(true);
+//  res = ifSetParam(sdmmc, IF_RATE, &SDMMC_RATE);
+//  assert(res == E_OK);
 
   /* Initialize SD Card layer */
   const struct MMCSDConfig cardConfig = {
-      .interface = sdio,
-      .crc = USE_CRC_CHECK
+      .interface = sdmmc,
+      .crc = true
   };
   card = init(MMCSD, &cardConfig);
   assert(card != NULL);

@@ -64,7 +64,7 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t length,
 {
   bool event = false;
 
-  ifSetParam(card, IF_POSITION, &position);
+  ifSetParam(card, IF_POSITION_64, &position);
   ifSetCallback(card, onDataEvent, &event);
 
   const size_t count = ifRead(card, buffer, length);
@@ -89,7 +89,7 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t length,
 {
   bool event = false;
 
-  ifSetParam(card, IF_POSITION, &position);
+  ifSetParam(card, IF_POSITION_64, &position);
   ifSetCallback(card, onDataEvent, &event);
   markBuffer(buffer, length, position / length);
 

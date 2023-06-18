@@ -14,9 +14,9 @@
 #include <halm/platform/numicro/hsusb_device.h>
 #include <halm/platform/numicro/i2c.h>
 #include <halm/platform/numicro/pin_int.h>
+#include <halm/platform/numicro/sdh.h>
 #include <halm/platform/numicro/serial.h>
 #include <halm/platform/numicro/serial_dma.h>
-#include <halm/platform/numicro/serial_dma_toc.h>
 #include <halm/platform/numicro/spi.h>
 #include <halm/platform/numicro/spi_dma.h>
 #include <halm/platform/numicro/qspi.h>
@@ -107,6 +107,25 @@ static const struct QspiConfig qspiConfig = {
     .dma = {DMA0_CHANNEL0, DMA0_CHANNEL1}
 };
 
+static const struct SdhConfig sdhConfig1Bit = {
+    .rate = 1000000,
+    .clk = PIN(PORT_E, 6),
+    .cmd = PIN(PORT_E, 7),
+    .dat0 = PIN(PORT_E, 2),
+    .channel = 0
+};
+
+static const struct SdhConfig sdhConfig4Bit = {
+    .rate = 1000000,
+    .clk = PIN(PORT_E, 6),
+    .cmd = PIN(PORT_E, 7),
+    .dat0 = PIN(PORT_E, 2),
+    .dat1 = PIN(PORT_E, 3),
+    .dat2 = PIN(PORT_B, 4),
+    .dat3 = PIN(PORT_B, 5),
+    .channel = 0
+};
+
 static const struct SerialConfig serialConfig = {
     .rxLength = BOARD_UART_BUFFER,
     .txLength = BOARD_UART_BUFFER,
@@ -125,18 +144,6 @@ static const struct SerialDmaConfig serialDmaConfig = {
     .tx = PIN(PORT_A, 1),
     .channel = 0,
     .dma = {DMA0_CHANNEL0, DMA0_CHANNEL1}
-};
-
-static const struct SerialDmaTOCConfig serialDmaTOCConfig = {
-    .rxChunk = BOARD_UART_BUFFER / 8,
-    .rxLength = BOARD_UART_BUFFER,
-    .txLength = BOARD_UART_BUFFER,
-    .rate = 19200,
-    .timeout = 80,
-    .rx = PIN(PORT_A, 0),
-    .tx = PIN(PORT_A, 1),
-    .channel = 0,
-    .dma = {DMA0_CHANNEL7, DMA0_CHANNEL0}
 };
 
 static const struct SpiConfig spiConfig = {
@@ -216,6 +223,10 @@ static const struct ExtendedClockConfig mainClockConfigPll = {
 static const struct ExtendedClockConfig qspiClockConfig = {
     .source = CLOCK_APB,
     .divisor = 1
+};
+
+static const struct GenericClockConfig sdhClockConfig = {
+    .source = CLOCK_EXTERNAL
 };
 
 static const struct ExtendedClockConfig spiClockConfig = {
@@ -361,6 +372,18 @@ struct Interface *boardSetupQspi(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSdh(bool wide)
+{
+  const struct SdhConfig * const config = wide ?
+      &sdhConfig4Bit : &sdhConfig1Bit;
+
+  clockEnable(config->channel ? Sdh1Clock : Sdh0Clock, &sdhClockConfig);
+
+  struct Interface * const interface = init(Sdh, config);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)
 {
   const void * const UART_CLOCKS[] = {
@@ -385,20 +408,6 @@ struct Interface *boardSetupSerialDma(void)
   clockEnable(UART_CLOCKS[serialDmaConfig.channel], &uartClockConfig);
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
-  assert(interface != NULL);
-  return interface;
-}
-/*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSerialDmaTOC(void)
-{
-  const void * const UART_CLOCKS[] = {
-      Uart0Clock, Uart1Clock, Uart2Clock, Uart3Clock,
-      Uart4Clock, Uart5Clock, Uart6Clock, Uart7Clock
-  };
-
-  clockEnable(UART_CLOCKS[serialDmaTOCConfig.channel], &uartClockConfig);
-
-  struct Interface * const interface = init(SerialDmaTOC, &serialDmaTOCConfig);
   assert(interface != NULL);
   return interface;
 }
