@@ -1,0 +1,189 @@
+/*
+ * {{group.name}}/usb_msc/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/mmcsd.h>
+#include <halm/usb/msc.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+static uint8_t arena[16384];
+/*----------------------------------------------------------------------------*/
+struct InterfaceWrapperConfig
+{
+  /** Mandatory: underlying interface. */
+  struct Interface *pipe;
+  /** Mandatory: reception indication. */
+  PinNumber rx;
+  /** Mandatory: transmission indication. */
+  PinNumber tx;
+};
+
+struct InterfaceWrapper
+{
+  struct Interface base;
+
+  struct Interface *pipe;
+  struct Pin rx;
+  struct Pin tx;
+  bool inversion;
+};
+/*----------------------------------------------------------------------------*/
+static enum Result interfaceInit(void *, const void *);
+static void interfaceSetCallback(void *, void (*)(void *), void *);
+static enum Result interfaceGetParam(void *, int, void *);
+static enum Result interfaceSetParam(void *, int, const void *);
+static size_t interfaceRead(void *, void *, size_t);
+static size_t interfaceWrite(void *, const void *, size_t);
+/*----------------------------------------------------------------------------*/
+const struct InterfaceClass * const InterfaceWrapper =
+    &(const struct InterfaceClass){
+    .size = sizeof(struct InterfaceWrapper),
+    .init = interfaceInit,
+    .deinit = NULL, /* Default destructor */
+
+    .setCallback = interfaceSetCallback,
+    .getParam = interfaceGetParam,
+    .setParam = interfaceSetParam,
+    .read = interfaceRead,
+    .write = interfaceWrite
+};
+/*----------------------------------------------------------------------------*/
+static enum Result interfaceInit(void *object, const void *configBase)
+{
+  const struct InterfaceWrapperConfig * const config = configBase;
+  assert(config != NULL);
+  assert(config->pipe != NULL);
+
+  struct InterfaceWrapper * const interface = object;
+
+  interface->pipe = config->pipe;
+
+  interface->rx = pinInit(config->rx);
+  assert(pinValid(interface->rx));
+  pinOutput(interface->rx, BOARD_LED_INV);
+  interface->tx = pinInit(config->tx);
+  assert(pinValid(interface->tx));
+  pinOutput(interface->tx, BOARD_LED_INV);
+
+  return E_OK;
+}
+/*----------------------------------------------------------------------------*/
+static void interfaceSetCallback(void *object, void (*callback)(void *),
+    void *argument)
+{
+  struct InterfaceWrapper * const interface = object;
+  ifSetCallback(interface->pipe, callback, argument);
+}
+/*----------------------------------------------------------------------------*/
+static enum Result interfaceGetParam(void *object, int parameter, void *data)
+{
+  struct InterfaceWrapper * const interface = object;
+  return ifGetParam(interface->pipe, parameter, data);
+}
+/*----------------------------------------------------------------------------*/
+static enum Result interfaceSetParam(void *object, int parameter,
+    const void *data)
+{
+  struct InterfaceWrapper * const interface = object;
+
+  switch ((enum IfParameter)parameter)
+  {
+    case IF_RELEASE:
+      pinWrite(interface->rx, BOARD_LED_INV);
+      pinWrite(interface->tx, BOARD_LED_INV);
+      break;
+
+    default:
+      break;
+  }
+
+  return ifSetParam(interface->pipe, parameter, data);
+}
+/*----------------------------------------------------------------------------*/
+static size_t interfaceRead(void *object, void *buffer, size_t length)
+{
+  struct InterfaceWrapper * const interface = object;
+
+  pinWrite(interface->rx, !BOARD_LED_INV);
+  return ifRead(interface->pipe, buffer, length);
+}
+/*----------------------------------------------------------------------------*/
+static size_t interfaceWrite(void *object, const void *buffer, size_t length)
+{
+  struct InterfaceWrapper * const interface = object;
+
+  pinWrite(interface->tx, !BOARD_LED_INV);
+  return ifWrite(interface->pipe, buffer, length);
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  static const uint32_t SDMMC_RATE = 6000000;
+  static const bool USE_INDICATION = true;
+  static const bool USE_WIDE_BUS = true;
+
+  boardSetupClockPll();
+
+  struct Interface *card;
+  struct Interface *sdmmc;
+  struct Interface *wrapper;
+  enum Result res;
+
+  /* Initialize SDMMC layer */
+  sdmmc = boardSetupSdio(USE_WIDE_BUS);
+  res = ifSetParam(sdmmc, IF_RATE, &SDMMC_RATE);
+  assert(res == E_OK);
+
+  /* Optional wrapper for R/W operations indication */
+  if (USE_INDICATION)
+  {
+    const struct InterfaceWrapperConfig wrapperConfig = {
+        .pipe = sdmmc,
+        .rx = BOARD_LED_1,
+        .tx = BOARD_LED_0
+    };
+    wrapper = init(InterfaceWrapper, &wrapperConfig);
+    assert(wrapper != NULL);
+  }
+  else
+    wrapper = NULL;
+
+  /* Initialize SD Card layer */
+  const struct MMCSDConfig cardConfig = {
+      .interface = wrapper,
+      .crc = true
+  };
+  card = init(MMCSD, &cardConfig);
+  assert(card != NULL);
+  res = ifSetParam(card, IF_ZEROCOPY, NULL);
+  assert(res == E_OK);
+
+  /* Initialize USB peripheral */
+  struct Entity * const usb = boardSetupUsb();
+
+  /* Initialize Mass Storage Device */
+  const struct MscConfig config = {
+      .device = usb,
+
+      .arena = arena,
+      .size = sizeof(arena),
+
+      .endpoints = {
+          .rx = BOARD_USB_MSC_RX,
+          .tx = BOARD_USB_MSC_TX
+      }
+  };
+  struct Msc * const msc = init(Msc, &config);
+  assert(msc != NULL);
+
+  mscAttachUnit(msc, 0, card);
+  usbDevSetConnected(usb, true);
+
+  /* Suppress warning */
+  (void)res;
+
+  while (1);
+  return 0;
+}

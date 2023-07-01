@@ -13,7 +13,13 @@
 #define BOARD_LED     BOARD_LED_0
 #define BOARD_LED_INV false
 /*----------------------------------------------------------------------------*/
+struct Interface;
+struct Timer;
+/*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
+struct Interface *boardSetupEeprom(void);
+struct Interface *boardSetupFlash(void);
+struct Timer *boardSetupTimer(void);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC11EXX_DEFAULT_SHARED_BOARD_H_ */

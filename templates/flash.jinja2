@@ -1,0 +1,160 @@
+/*
+ * {{group.name}}/flash/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/flash.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+#define BUFFER_SIZE 2048
+
+extern unsigned long _stext;
+extern unsigned long _sidata;
+extern unsigned long _sdata;
+extern unsigned long _edata;
+/*----------------------------------------------------------------------------*/
+static uint32_t findNearestRegion(const struct Interface *interface)
+{
+  const size_t textSize = (size_t)((uintptr_t)&_sidata - (uintptr_t)&_stext);
+  const size_t dataSize = (size_t)((uintptr_t)&_edata - (uintptr_t)&_sdata);
+  const uint32_t address = (uint32_t)(textSize + dataSize);
+
+  struct FlashGeometry geometry[2];
+
+  const size_t count = flashGetGeometry(interface, geometry,
+      ARRAY_SIZE(geometry));
+  assert(count > 0);
+
+  const struct FlashGeometry * const region = flashFindRegion(geometry,
+      count, address);
+  assert(region != NULL);
+
+  return (address & ~(region->size - 1)) + region->size;
+}
+/*----------------------------------------------------------------------------*/
+static uint32_t findRegionSize(const struct Interface *interface,
+    uint32_t address)
+{
+  struct FlashGeometry geometry[2];
+
+  const size_t count = flashGetGeometry(interface, geometry,
+      ARRAY_SIZE(geometry));
+  assert(count > 0);
+
+  const struct FlashGeometry * const region = flashFindRegion(geometry,
+      count, address);
+  assert(region != NULL);
+
+  return region->size;
+}
+/*----------------------------------------------------------------------------*/
+static bool program(struct Interface *interface, uint32_t address,
+    size_t length)
+{
+  uint32_t next = 0;
+  uint8_t buffer[length];
+
+  for (size_t i = 0; i < length; ++i)
+    buffer[i] = (uint8_t)i;
+
+  if (ifSetParam(interface, IF_POSITION, &address) != E_OK)
+    return false;
+  if (ifWrite(interface, buffer, length) != length)
+    return false;
+  if (ifGetParam(interface, IF_POSITION, &next) != E_OK)
+    return false;
+  if (next != address + length)
+    return false;
+
+  return true;
+}
+/*----------------------------------------------------------------------------*/
+static bool verify(struct Interface *interface, uint32_t address,
+    size_t length)
+{
+  uint32_t next = 0;
+  uint8_t buffer[length];
+
+  for (size_t i = 0; i < length; ++i)
+    buffer[i] = 0;
+
+  if (ifSetParam(interface, IF_POSITION, &address) != E_OK)
+    return false;
+  if (ifRead(interface, buffer, length) != length)
+    return false;
+  if (ifGetParam(interface, IF_POSITION, &next) != E_OK)
+    return false;
+  if (next != address + length)
+    return false;
+
+  for (size_t i = 0; i < length; ++i)
+  {
+    if (buffer[i] != (uint8_t)i)
+      return false;
+  }
+
+  return true;
+}
+/*----------------------------------------------------------------------------*/
+bool memoryTestSequence(struct Interface *interface, int paramSize,
+    int paramErase)
+{
+  const uint32_t address = findNearestRegion(interface);
+  size_t size = BUFFER_SIZE;
+
+  uint32_t capacity;
+  uint32_t chunk;
+
+  if (ifGetParam(interface, IF_SIZE, &capacity) != E_OK)
+    return false;
+  if (!capacity)
+    return false;
+
+  if (ifGetParam(interface, paramSize, &chunk) == E_OK)
+  {
+    if (!chunk)
+    {
+      /* Size is ambiguous, use flash geometry instead */
+      chunk = findRegionSize(interface, address);
+    }
+
+    size = MIN(size, (size_t)chunk);
+
+    if (ifSetParam(interface, paramErase, &address) != E_OK)
+      return false;
+
+    if (!program(interface, address, size))
+      return false;
+
+    if (!verify(interface, address, size))
+      return false;
+  }
+
+  return true;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+  struct Interface * const flash = boardSetupFlash();
+
+  /* Test page erase */
+  if (!memoryTestSequence(flash, IF_FLASH_PAGE_SIZE, IF_FLASH_ERASE_PAGE))
+    pinWrite(led, !BOARD_LED_INV);
+
+  /* Test sector erase */
+  if (!memoryTestSequence(flash, IF_FLASH_SECTOR_SIZE, IF_FLASH_ERASE_SECTOR))
+    pinWrite(led, !BOARD_LED_INV);
+
+  /* Test block erase */
+  if (!memoryTestSequence(flash, IF_FLASH_BLOCK_SIZE, IF_FLASH_ERASE_BLOCK))
+    pinWrite(led, !BOARD_LED_INV);
+
+  while (1);
+  return 0;
+}

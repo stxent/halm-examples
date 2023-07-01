@@ -37,7 +37,6 @@ int main(void)
 {
   static const uint32_t UART_TEST_RATE = 19200;
   static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
-  static const bool USE_IDLE_TIMER = true;
 
   bool event = false;
   enum Result res;

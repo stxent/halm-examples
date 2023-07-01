@@ -5,47 +5,16 @@
  */
 
 #include "board.h"
+#include <halm/platform/stm32/can.h>
 #include <halm/platform/stm32/clocking.h>
+#include <halm/platform/stm32/exti.h>
 #include <halm/platform/stm32/gptimer.h>
+#include <halm/platform/stm32/iwdg.h>
 #include <halm/platform/stm32/serial.h>
+#include <halm/platform/stm32/serial_dma.h>
 #include <halm/platform/stm32/spi.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-static const struct SerialConfig serialConfig = {
-    .rxLength = BOARD_UART_BUFFER,
-    .txLength = BOARD_UART_BUFFER,
-    .rate = 19200,
-    .rx = PIN(PORT_A, 3),
-    .tx = PIN(PORT_A, 2),
-    .channel = USART2
-};
-
-static const struct SpiConfig spiConfig = {
-    .rate = 2000000,
-    .miso = PIN(PORT_A, 6),
-    .mosi = PIN(PORT_A, 7),
-    .sck = PIN(PORT_A, 5),
-    .channel = SPI1,
-    .mode = 0,
-    .rxDma = DMA1_STREAM2,
-    .txDma = DMA1_STREAM3
-};
-
-static const struct GpTimerConfig timerConfig = {
-    .frequency = 10000,
-    .channel = TIM14
-};
-/*----------------------------------------------------------------------------*/
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 8000000
-};
-
-static const struct SystemPllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 1,
-    .multiplier = 6
-};
-
 static const struct BusClockConfig ahbClockConfig = {
     .divisor = 1
 };
@@ -54,16 +23,16 @@ static const struct BusClockConfig apbClockConfig = {
     .divisor = 1
 };
 
-static const struct SystemClockConfig systemClockConfigExt = {
-    .source = CLOCK_EXTERNAL
-};
-
-static const struct SystemClockConfig systemClockConfigPll = {
-    .source = CLOCK_PLL
+static const struct ExternalOscConfig extOscConfig = {
+    .frequency = 8000000
 };
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
+  static const struct SystemClockConfig systemClockConfigExt = {
+      .source = CLOCK_EXTERNAL
+  };
+
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
@@ -75,10 +44,19 @@ void boardSetupClockExt(void)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
 {
+  static const struct SystemPllConfig systemPllConfig = {
+      .source = CLOCK_EXTERNAL,
+      .divisor = 1,
+      .multiplier = 6
+  };
+  static const struct SystemClockConfig systemClockConfigPll = {
+      .source = CLOCK_PLL
+  };
+
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(SystemPll, &sysPllConfig);
+  clockEnable(SystemPll, &systemPllConfig);
   while (!clockReady(SystemPll));
 
   clockEnable(ApbClock, &apbClockConfig);
@@ -87,15 +65,97 @@ void boardSetupClockPll(void)
   clockEnable(MainClock, &ahbClockConfig);
 }
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupAdcTimer(void)
+{
+  static const struct GpTimerConfig adcTimerConfig = {
+      .frequency = 10000,
+      .channel = TIM2,
+      .event = 4
+  };
+
+  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Interrupt *boardSetupButton(void)
+{
+  static const struct ExtiConfig buttonIntConfig = {
+      .pin = BOARD_BUTTON,
+      .event = PIN_FALLING,
+      .pull = PIN_PULLUP
+  };
+
+  struct Interrupt * const interrupt = init(Exti, &buttonIntConfig);
+  assert(interrupt != NULL);
+  return interrupt;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupCan(struct Timer *timer)
+{
+  const struct CanConfig canConfig = {
+      .timer = timer,
+      .rate = 1000000,
+      .rxBuffers = 4,
+      .txBuffers = 4,
+      .rx = PIN(PORT_B, 8),
+      .tx = PIN(PORT_B, 9),
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(Can, &canConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)
 {
+  static const struct SerialConfig serialConfig = {
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(PORT_A, 3),
+      .tx = PIN(PORT_A, 2),
+      .channel = USART2
+  };
+
   struct Interface * const interface = init(Serial, &serialConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerialDma(void)
+{
+  static const struct SerialDmaConfig serialDmaConfig = {
+      .rxChunk = BOARD_UART_BUFFER / 4,
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(PORT_A, 3),
+      .tx = PIN(PORT_A, 2),
+      .channel = USART2,
+      .rxDma = DMA1_STREAM5,
+      .txDma = DMA1_STREAM4
+  };
+
+  struct Interface * const interface = init(SerialDma, &serialDmaConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpi(void)
 {
+  static const struct SpiConfig spiConfig = {
+      .rate = 2000000,
+      .miso = PIN(PORT_A, 6),
+      .mosi = PIN(PORT_A, 7),
+      .sck = PIN(PORT_A, 5),
+      .channel = SPI1,
+      .mode = 0,
+      .rxDma = DMA1_STREAM2,
+      .txDma = DMA1_STREAM3
+  };
+
   struct Interface * const interface = init(Spi, &spiConfig);
   assert(interface != NULL);
   return interface;
@@ -103,7 +163,26 @@ struct Interface *boardSetupSpi(void)
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupTimer(void)
 {
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 10000,
+      .channel = TIM14
+  };
+
   struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
+{
+  static const struct IwdgConfig iwdgConfig = {
+      .period = 1000
+  };
+
+  clockEnable(InternalLowSpeedOsc, NULL);
+  while (!clockReady(InternalLowSpeedOsc));
+
+  struct Watchdog * const timer = init(Iwdg, &iwdgConfig);
   assert(timer != NULL);
   return timer;
 }

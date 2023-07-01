@@ -1,0 +1,83 @@
+/*
+ * {{group.name}}/serial_dma/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/serial.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+static void onSerialEvent(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+{% if config.SERIAL_DMA_TIMER is defined and config.SERIAL_DMA_TIMER %}
+static void onTimerOverflow(void *argument)
+{
+  *(bool *)argument = true;
+}
+{% endif %}
+/*----------------------------------------------------------------------------*/
+static void transferData(struct Interface *interface, struct Pin led)
+{
+  size_t available = 0;
+
+  pinToggle(led);
+
+  do
+  {
+    uint8_t buffer[BOARD_UART_BUFFER];
+    const size_t length = ifRead(interface, buffer, sizeof(buffer));
+
+    ifWrite(interface, buffer, length);
+    ifGetParam(interface, IF_RX_AVAILABLE, &available);
+  }
+  while (available > 0);
+
+  pinToggle(led);
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  static const uint32_t UART_TEST_RATE = 19200;
+  static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
+
+  bool event = false;
+  enum Result res;
+
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+  struct Interface * const serial = boardSetupSerialDma();
+  ifSetCallback(serial, onSerialEvent, &event);
+  res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
+  assert(res == E_OK);
+  res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
+  assert(res == E_OK);
+
+{% if config.SERIAL_DMA_TIMER is defined and config.SERIAL_DMA_TIMER %}
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) / 10);
+  timerSetCallback(timer, onTimerOverflow, &event);
+  timerEnable(timer);
+{% endif %}
+
+  /* Suppress warning */
+  (void)res;
+
+  while (1)
+  {
+    while (!event)
+      barrier();
+    event = false;
+
+    transferData(serial, led);
+  }
+
+  return 0;
+}

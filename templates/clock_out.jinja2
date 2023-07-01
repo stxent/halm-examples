@@ -1,0 +1,56 @@
+/*
+ * {{group.name}}/clock_out/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/clock.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  bool event = false;
+
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+  struct Timer * const counterTimer = boardSetupCounterTimer();
+  timerEnable(counterTimer);
+
+  struct Timer * const eventTimer = boardSetupTimer();
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
+  timerSetCallback(eventTimer, onTimerOverflow, &event);
+
+  const struct ClockClass * const outClock = boardSetupClockOutput(100);
+  const uint32_t outClockFrequency = clockFrequency(outClock);
+  const uint32_t maxClockLimit = outClockFrequency + outClockFrequency / 100;
+  const uint32_t minClockLimit = outClockFrequency - outClockFrequency / 100;
+
+  /* Start counting */
+  timerEnable(eventTimer);
+
+  while (1)
+  {
+    while (!event)
+      barrier();
+    event = false;
+
+    const uint32_t frequency = timerGetValue(counterTimer);
+    timerSetValue(counterTimer, 0);
+
+    if (frequency >= minClockLimit && frequency <= maxClockLimit)
+      pinWrite(led, !BOARD_LED_INV);
+    else
+      pinWrite(led, BOARD_LED_INV);
+  }
+
+  return 0;
+}

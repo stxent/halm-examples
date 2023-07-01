@@ -5,7 +5,8 @@ cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0069 NEW)
 project(examples C)
 
-option(USE_DFU "Use memory layout for a bootloader." OFF)
+option(USE_BIN "Convert executables to binary format." OFF)
+option(USE_HEX "Convert executables to Intel HEX format." ON)
 option(USE_LTO "Enable Link Time Optimization." OFF)
 
 set(PATH_XCORE "${PROJECT_SOURCE_DIR}/../xcore" CACHE STRING "Path to the XCORE library.")
@@ -25,13 +26,6 @@ if(USE_LTO)
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
         set(CMAKE_C_COMPILE_OPTIONS_IPO -flto -ffat-lto-objects)
     endif()
-endif()
-
-# Set platform type
-set(BUNDLE_PLATFORM_FILE ${PROJECT_SOURCE_DIR}/${BUNDLE}/platform)
-if(EXISTS ${BUNDLE_PLATFORM_FILE})
-    file(STRINGS ${BUNDLE_PLATFORM_FILE} CONFIG_PLATFORM)
-    list(GET CONFIG_PLATFORM 0 PLATFORM)
 endif()
 
 # Include platform-specific configuration
@@ -70,6 +64,50 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/${BUNDLE}/shared")
 endif()
 
 list_directories(EXAMPLES_LIST "${PROJECT_SOURCE_DIR}/${BUNDLE}")
+
+# Generate and build templated examples
+
+foreach(TEMPLATE_NAME ${TEMPLATES_LIST})
+    string(TOLOWER ${PLATFORM} _platform_name)
+    string(TOLOWER ${FAMILY} _family_name)
+    set(TEMPLATE_SOURCE "${PROJECT_BINARY_DIR}/${TEMPLATE_NAME}/main.c")
+
+    add_custom_command(
+        OUTPUT ${TEMPLATE_SOURCE}
+        COMMAND "${PROJECT_SOURCE_DIR}/../tools/make_example.py"
+                --bundle=${BUNDLE}
+                --config="${TEMPLATES_CONFIG}"
+                --family=${_family_name}
+                --output=${PROJECT_BINARY_DIR}
+                --platform=${_platform_name}
+                ${TEMPLATE_NAME}
+        DEPENDS "${PROJECT_SOURCE_DIR}/../templates/${TEMPLATE_NAME}.jinja2"
+    )
+
+    add_executable("${TEMPLATE_NAME}" ${TEMPLATE_SOURCE})
+    target_link_libraries("${TEMPLATE_NAME}" PRIVATE halm shared)
+
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
+        if(USE_BIN)
+            add_custom_command(TARGET "${TEMPLATE_NAME}"
+                    POST_BUILD
+                    COMMAND "${CMAKE_OBJCOPY}" "${TEMPLATE_NAME}${CMAKE_EXECUTABLE_SUFFIX}" -Obinary "${TEMPLATE_NAME}.bin"
+            )
+        endif()
+        if(USE_HEX)
+            add_custom_command(TARGET "${TEMPLATE_NAME}"
+                    POST_BUILD
+                    COMMAND "${CMAKE_OBJCOPY}" "${TEMPLATE_NAME}${CMAKE_EXECUTABLE_SUFFIX}" -Oihex "${TEMPLATE_NAME}.hex"
+            )
+        endif()
+    endif()
+
+    add_dependencies(size "${TEMPLATE_NAME}")
+    add_custom_command(TARGET size POST_BUILD COMMAND "${CMAKE_SIZE}" "${TEMPLATE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
+endforeach()
+
+# Generate and build custom examples
+
 foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
     if(${EXAMPLE_NAME} STREQUAL "shared")
         continue()
@@ -84,12 +122,13 @@ foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
     endif()
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
-        if(USE_DFU)
+        if(USE_BIN)
             add_custom_command(TARGET "${EXAMPLE_NAME}"
                     POST_BUILD
                     COMMAND "${CMAKE_OBJCOPY}" "${EXAMPLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}" -Obinary "${EXAMPLE_NAME}.bin"
             )
-        else()
+        endif()
+        if(USE_HEX)
             add_custom_command(TARGET "${EXAMPLE_NAME}"
                     POST_BUILD
                     COMMAND "${CMAKE_OBJCOPY}" "${EXAMPLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}" -Oihex "${EXAMPLE_NAME}.hex"
@@ -98,5 +137,5 @@ foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
     endif()
 
     add_dependencies(size "${EXAMPLE_NAME}")
-    add_custom_command(TARGET size POST_BUILD COMMAND "${CMAKE_SIZE}" "${EXAMPLE_NAME}")
+    add_custom_command(TARGET size POST_BUILD COMMAND "${CMAKE_SIZE}" "${EXAMPLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
 endforeach()

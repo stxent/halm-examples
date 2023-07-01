@@ -23,16 +23,19 @@ struct Timer;
 struct Watchdog;
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
+void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 struct Interface *boardSetupAdc(void);
 struct Interface *boardSetupAdcOneShot(void);
 struct Timer *boardSetupAdcTimer(void);
+struct Interrupt *boardSetupBod(void);
 struct Interrupt *boardSetupButton(void);
+struct Interface *boardSetupFlash(void);
 struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSpi(void);
 struct Timer *boardSetupTimer(void);
-struct Watchdog *boardSetupWdt(void);
+struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC11XX_DEFAULT_SHARED_BOARD_H_ */

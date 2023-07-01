@@ -7,6 +7,8 @@ project(halm-examples NONE)
 include(ExternalProject)
 
 # Build options
+option(USE_BIN "Convert executables to Binary format." OFF)
+option(USE_HEX "Convert executables to Intel HEX format." ON)
 option(USE_LTO "Enable Link Time Optimization." OFF)
 
 set(PATH_XCORE "${PROJECT_SOURCE_DIR}/xcore")
@@ -22,6 +24,8 @@ foreach(BUNDLE_NAME ${BUNDLE_LIST})
     set(FLAGS_BUNDLE "")
     list(APPEND FLAGS_BUNDLE -DBUNDLE=${BUNDLE_NAME})
     list(APPEND FLAGS_BUNDLE -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+    list(APPEND FLAGS_BUNDLE -DUSE_BIN=${USE_BIN})
+    list(APPEND FLAGS_BUNDLE -DUSE_HEX=${USE_HEX})
     list(APPEND FLAGS_BUNDLE -DUSE_LTO=${USE_LTO})
 
     set(BUNDLE_TOOLCHAIN_FILE ${PROJECT_SOURCE_DIR}/examples/${BUNDLE_NAME}/toolchain)

@@ -1,0 +1,46 @@
+/*
+ * {{group.name}}/work_queue/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/work_queue.h>
+#include <halm/timer.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+static const struct WorkQueueConfig wqConfig = {
+    .size = 4
+};
+/*----------------------------------------------------------------------------*/
+static void blinkTask(void *argument)
+{
+  pinToggle(*(struct Pin *)argument);
+}
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  wqAdd(WQ_DEFAULT, blinkTask, argument);
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  boardSetupClockExt();
+
+  /* Initialize peripherals */
+  struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
+  timerSetCallback(timer, onTimerOverflow, &led);
+
+  /* Initialize Work Queue */
+  WQ_DEFAULT = init(WorkQueue, &wqConfig);
+  assert(WQ_DEFAULT);
+
+  /* Start event generation and queue handler */
+  timerEnable(timer);
+  wqStart(WQ_DEFAULT);
+
+  return 0;
+}

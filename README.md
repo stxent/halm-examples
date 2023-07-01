@@ -27,4 +27,6 @@ Useful settings
 ---------------
 
 * CMAKE_BUILD_TYPE — option specifies the build type.
+* USE_BIN — enable generation of executables in Binary format.
+* USE_HEX — enable generation of executables in Intel HEX format.
 * USE_LTO — option enables Link Time Optimization.
