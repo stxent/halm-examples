@@ -48,7 +48,7 @@ struct PwmPackage
 {
   struct Timer *timer;
   struct Pwm *output;
-  struct Pwm *outputs[2];
+  struct Pwm *outputs[3];
 };
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
@@ -66,7 +66,7 @@ struct Timer *boardSetupCounterTimer(void);
 struct Interface *boardSetupEeprom(void);
 struct Interface *boardSetupFlash(void);
 struct Interface *boardSetupI2C(void);
-struct PwmPackage boardSetupPwm(void);
+struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSpi(void);
 struct Timer *boardSetupTimer(void);

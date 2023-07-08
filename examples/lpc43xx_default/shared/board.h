@@ -13,6 +13,7 @@
 #define BOARD_BUTTON      PIN(PORT_2, 7)
 #define BOARD_CAP_0       PIN(7, 3)
 #define BOARD_CAP_1       PIN(2, 13)
+#define BOARD_CAP_TIMER   PIN(PORT_6, 2)
 #define BOARD_CAPTURE     BOARD_CAP_0
 #define BOARD_PHY_RESET   PIN(PORT_5, 2)
 #define BOARD_LED_0       PIN(PORT_5, 7)
@@ -90,7 +91,6 @@ struct Interrupt *boardSetupBod(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupCan(struct Timer *);
 struct CapturePackage boardSetupCapture(void);
-struct Timer *boardSetupCounterTimer(void);
 struct Interface *boardSetupDac(void);
 struct StreamPackage boardSetupDacDma(void);
 struct Interface *boardSetupEeprom(void);
@@ -102,7 +102,6 @@ struct Interface *boardSetupI2CSlave(void);
 struct Interface *boardSetupI2CSlave0(void);
 struct Interface *boardSetupI2CSlave1(void);
 struct StreamPackage boardSetupI2S(void);
-struct PwmPackage boardSetupPwm(bool);
 struct Timer *boardSetupRit(void);
 struct RtClock *boardSetupRtc(bool);
 struct Interface *boardSetupSdio(bool);
@@ -116,10 +115,33 @@ struct Interface *boardSetupSpiDma0(void);
 struct Interface *boardSetupSpiDma1(void);
 struct Interface *boardSetupSpifi(void);
 struct Timer *boardSetupTimer(void);
+struct Timer *boardSetupTimerAlarm(void);
+struct Timer *boardSetupTimerRIT(void);
+struct Timer *boardSetupTimerSCT(void);
 struct Entity *boardSetupUsb(void);
 struct Entity *boardSetupUsb0(void);
 struct Entity *boardSetupUsb1(void);
 struct Watchdog *boardSetupWdt(bool);
 struct Watchdog *boardSetupWwdt(bool);
+
+/* Counter timer alias */
+struct Timer *boardSetupCounterTimer(void);
+/* General Purpose Timer */
+struct Timer *boardSetupCounterTimerGPT(void);
+/* State Configurable Timer alias */
+struct Timer *boardSetupCounterTimerSCT(void);
+/* Low part of the State Configurable Timer */
+struct Timer *boardSetupCounterTimerSCTDivided(void);
+/* Unified State Configurable Timer */
+struct Timer *boardSetupCounterTimerSCTUnified(void);
+
+/* PWM alias */
+struct PwmPackage boardSetupPwm(bool);
+/* State Configurable Timer alias */
+struct PwmPackage boardSetupPwmSCT(bool);
+/* High part of the State Configurable Timer */
+struct PwmPackage boardSetupPwmSCTDivided(bool);
+/* Unified State Configurable Timer */
+struct PwmPackage boardSetupPwmSCTUnified(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC43XX_DEFAULT_SHARED_BOARD_H_ */

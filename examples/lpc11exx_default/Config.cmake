@@ -8,8 +8,8 @@ set(PLATFORM "LPC11EXX")
 
 # Define template list
 set(TEMPLATES_LIST
-        blinking_led
         eeprom
         flash
-        gptimer
+        systick
+        timer
 )

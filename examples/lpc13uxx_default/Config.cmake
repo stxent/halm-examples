@@ -10,16 +10,19 @@ set(PLATFORM "LPC13UXX")
 set(TEMPLATES_LIST
         adc
         adc_oneshot
-        blinking_led
         bod
+        capture
         clock_out
+        counter
         eeprom
         flash
-        gptimer
         i2c
         pin_int
+        pwm
         serial
         spi
+        systick
+        timer
         usb_cdc
         wdt
 )

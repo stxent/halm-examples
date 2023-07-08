@@ -17,9 +17,12 @@
 #include <halm/platform/lpc/eeprom.h>
 #include <halm/platform/lpc/flash.h>
 #include <halm/platform/lpc/gptimer.h>
+#include <halm/platform/lpc/gptimer_capture.h>
+#include <halm/platform/lpc/gptimer_counter.h>
 #include <halm/platform/lpc/i2c.h>
 #include <halm/platform/lpc/i2c_slave.h>
 #include <halm/platform/lpc/i2s_dma.h>
+#include <halm/platform/lpc/lpc43xx/atimer.h>
 #include <halm/platform/lpc/pin_int.h>
 #include <halm/platform/lpc/rit.h>
 #include <halm/platform/lpc/rtc.h>
@@ -37,10 +40,20 @@
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupCounterTimer(void)
+    __attribute__((alias("boardSetupCounterTimerGPT")));
+struct Timer *boardSetupCounterTimerSCT(void)
+    __attribute__((alias("boardSetupCounterTimerSCTDivided")));
+
 struct Interface *boardSetupI2C(void)
     __attribute__((alias("boardSetupI2C1")));
 struct Interface *boardSetupI2CSlave(void)
     __attribute__((alias("boardSetupI2CSlave1")));
+
+struct PwmPackage boardSetupPwm(bool)
+    __attribute__((alias("boardSetupPwmSCT")));
+struct PwmPackage boardSetupPwmSCT(bool)
+    __attribute__((alias("boardSetupPwmSCTDivided")));
 
 struct Interface *boardSetupSpi(void)
     __attribute__((alias("boardSetupSpi0")));
@@ -329,7 +342,52 @@ struct Interface *boardSetupCan(struct Timer *timer)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupCounterTimer(void)
+struct CapturePackage boardSetupCapture(void)
+{
+  static const struct GpTimerCaptureUnitConfig captureTimerConfig = {
+      .frequency = 1000000,
+      .channel = 2
+  };
+
+  struct GpTimerCaptureUnit * const timer =
+      init(GpTimerCaptureUnit, &captureTimerConfig);
+  assert(timer != NULL);
+
+  struct Capture * const capture =
+      gpTimerCaptureCreate(timer, BOARD_CAP_TIMER, PIN_RISING, PIN_PULLDOWN);
+  assert(capture != NULL);
+
+  return (struct CapturePackage){(struct Timer *)timer, capture};
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupCounterTimerGPT(void)
+{
+  static const struct GpTimerCounterConfig counterTimerConfig = {
+      .edge = PIN_RISING,
+      .pin = BOARD_CAP_TIMER,
+      .channel = 2
+  };
+
+  struct Timer * const timer = init(GpTimerCounter, &counterTimerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupCounterTimerSCTDivided(void)
+{
+  static const struct SctCounterConfig counterTimerConfig = {
+      .pin = BOARD_CAPTURE,
+      .edge = PIN_RISING,
+      .part = SCT_LOW,
+      .channel = 0
+  };
+
+  struct Timer * const timer = init(SctCounter, &counterTimerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupCounterTimerSCTUnified(void)
 {
   static const struct SctCounterConfig counterTimerConfig = {
       .pin = BOARD_CAPTURE,
@@ -503,14 +561,8 @@ struct StreamPackage boardSetupI2S(void)
   };
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwm(bool unified)
+struct PwmPackage boardSetupPwmSCTDivided(bool centered __attribute__((unused)))
 {
-  static const struct SctPwmUnitConfig pwmTimerUnifiedConfig = {
-      .frequency = 1000000,
-      .resolution = 20000,
-      .part = SCT_UNIFIED,
-      .channel = 0
-  };
   static const struct SctPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
       .resolution = 20000,
@@ -518,8 +570,7 @@ struct PwmPackage boardSetupPwm(bool unified)
       .channel = 0
   };
 
-  struct SctPwmUnit * const timer = init(SctPwmUnit,
-      unified ? &pwmTimerUnifiedConfig : &pwmTimerConfig);
+  struct SctPwmUnit * const timer = init(SctPwmUnit, &pwmTimerConfig);
   assert(timer != NULL);
 
   struct Pwm * const pwm0 = sctPwmCreate(timer, BOARD_PWM_0);
@@ -536,11 +587,30 @@ struct PwmPackage boardSetupPwm(bool unified)
   };
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupRit(void)
+struct PwmPackage boardSetupPwmSCTUnified(bool centered __attribute__((unused)))
 {
-  struct Timer * const timer = init(Rit, NULL);
+  static const struct SctPwmUnitConfig pwmTimerConfig = {
+      .frequency = 1000000,
+      .resolution = 20000,
+      .part = SCT_UNIFIED,
+      .channel = 0
+  };
+
+  struct SctPwmUnit * const timer = init(SctPwmUnit, &pwmTimerConfig);
   assert(timer != NULL);
-  return timer;
+
+  struct Pwm * const pwm0 = sctPwmCreate(timer, BOARD_PWM_0);
+  assert(pwm0 != NULL);
+  struct Pwm * const pwm1 = sctPwmCreate(timer, BOARD_PWM_1);
+  assert(pwm1 != NULL);
+  struct Pwm * const pwm2 = sctPwmCreateDoubleEdge(timer, BOARD_PWM_2);
+  assert(pwm2 != NULL);
+
+  return (struct PwmPackage){
+      (struct Timer *)timer,
+      pwm0,
+      {pwm0, pwm1, pwm2}
+  };
 }
 /*----------------------------------------------------------------------------*/
 struct RtClock *boardSetupRtc(bool restart)
@@ -556,8 +626,13 @@ struct RtClock *boardSetupRtc(bool restart)
     while (!clockReady(RtcOsc));
   }
 
+  /* Non-blocking initialization */
   struct RtClock * const timer = init(Rtc, &rtcConfig);
   assert(timer != NULL);
+
+  /* Wait for RTC registers to update */
+  while (rtTime(timer) == 0);
+
   return timer;
 }
 /*----------------------------------------------------------------------------*/
@@ -780,6 +855,39 @@ struct Timer *boardSetupTimer(void)
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerAlarm(void)
+{
+  if (!clockReady(RtcOsc))
+  {
+    clockEnable(RtcOsc, NULL);
+    while (!clockReady(RtcOsc));
+  }
+
+  struct Timer * const timer = init(Atimer, NULL);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerRIT(void)
+{
+  struct Timer * const timer = init(Rit, NULL);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerSCT(void)
+{
+  static const struct SctTimerConfig timerConfig = {
+      .frequency = 1000000,
+      .part = SCT_UNIFIED,
+      .channel = 0
+  };
+
+  struct Timer * const timer = init(SctUnifiedTimer, &timerConfig);
   assert(timer != NULL);
   return timer;
 }

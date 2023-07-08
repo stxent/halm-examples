@@ -93,7 +93,7 @@ struct Interface *boardSetupFlash(void);
 struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupI2CSlave(void);
 struct StreamPackage boardSetupI2S(void);
-struct PwmPackage boardSetupPwm(void);
+struct PwmPackage boardSetupPwm(bool);
 struct Timer *boardSetupRit(void);
 struct RtClock *boardSetupRtc(bool);
 struct Interface *boardSetupSdio(bool);
@@ -107,6 +107,7 @@ struct Interface *boardSetupSpiDma0(void);
 struct Interface *boardSetupSpiDma1(void);
 struct Interface *boardSetupSpiSdio(void);
 struct Timer *boardSetupTimer(void);
+struct Timer *boardSetupTimerRIT(void);
 struct Entity *boardSetupUsb(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/

@@ -68,42 +68,65 @@ list_directories(EXAMPLES_LIST "${PROJECT_SOURCE_DIR}/${BUNDLE}")
 # Generate and build templated examples
 
 foreach(TEMPLATE_NAME ${TEMPLATES_LIST})
+    string(FIND ${TEMPLATE_NAME} ":" _template_config_used)
+
+    if(NOT _template_config_used EQUAL -1)
+        string(REGEX REPLACE "([^:]+):\"?([^\"]+)\"?" "\\1;\\2" _splitted_name ${TEMPLATE_NAME})
+        list(GET _splitted_name 0 _template_name_raw)
+        list(GET _splitted_name 1 _template_config)
+    else()
+        set(_template_name_raw ${TEMPLATE_NAME})
+        set(_template_config "")
+    endif()
+
+    string(FIND ${_template_name_raw} "=" _template_rename_used)
+
+    if(NOT _template_rename_used EQUAL -1)
+        string(REGEX REPLACE "([^:]+)=(.+)" "\\1;\\2" _splitted_name ${_template_name_raw})
+        list(GET _splitted_name 0 _template_alias)
+        list(GET _splitted_name 1 _template_name)
+    else()
+        set(_template_alias ${_template_name_raw})
+        set(_template_name ${_template_name_raw})
+    endif()
+
     string(TOLOWER ${PLATFORM} _platform_name)
     string(TOLOWER ${FAMILY} _family_name)
-    set(TEMPLATE_SOURCE "${PROJECT_BINARY_DIR}/${TEMPLATE_NAME}/main.c")
+    set(TEMPLATE_SOURCE "${PROJECT_BINARY_DIR}/${_template_alias}/main.c")
 
     add_custom_command(
         OUTPUT ${TEMPLATE_SOURCE}
         COMMAND "${PROJECT_SOURCE_DIR}/../tools/make_example.py"
+                --alias=${_template_alias}
                 --bundle=${BUNDLE}
-                --config="${TEMPLATES_CONFIG}"
+                --config="${_template_config}"
                 --family=${_family_name}
                 --output=${PROJECT_BINARY_DIR}
                 --platform=${_platform_name}
-                ${TEMPLATE_NAME}
-        DEPENDS "${PROJECT_SOURCE_DIR}/../templates/${TEMPLATE_NAME}.jinja2"
+                ${_template_name}
+        DEPENDS "${PROJECT_SOURCE_DIR}/../templates/${_template_name}.jinja2"
     )
 
-    add_executable("${TEMPLATE_NAME}" ${TEMPLATE_SOURCE})
-    target_link_libraries("${TEMPLATE_NAME}" PRIVATE halm shared)
+    add_executable("${_template_alias}" ${TEMPLATE_SOURCE})
+    target_link_libraries("${_template_alias}" PRIVATE halm shared)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
         if(USE_BIN)
-            add_custom_command(TARGET "${TEMPLATE_NAME}"
+            add_custom_command(TARGET "${_template_alias}"
                     POST_BUILD
-                    COMMAND "${CMAKE_OBJCOPY}" "${TEMPLATE_NAME}${CMAKE_EXECUTABLE_SUFFIX}" -Obinary "${TEMPLATE_NAME}.bin"
+                    COMMAND "${CMAKE_OBJCOPY}" "${_template_alias}${CMAKE_EXECUTABLE_SUFFIX}" -Obinary "${_template_alias}.bin"
             )
         endif()
         if(USE_HEX)
-            add_custom_command(TARGET "${TEMPLATE_NAME}"
+            add_custom_command(TARGET "${_template_alias}"
                     POST_BUILD
-                    COMMAND "${CMAKE_OBJCOPY}" "${TEMPLATE_NAME}${CMAKE_EXECUTABLE_SUFFIX}" -Oihex "${TEMPLATE_NAME}.hex"
+                    COMMAND "${CMAKE_OBJCOPY}" "${_template_alias}${CMAKE_EXECUTABLE_SUFFIX}" -Oihex "${_template_alias}.hex"
             )
         endif()
     endif()
 
-    add_dependencies(size "${TEMPLATE_NAME}")
-    add_custom_command(TARGET size POST_BUILD COMMAND "${CMAKE_SIZE}" "${TEMPLATE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
+    add_dependencies(size "${_template_alias}")
+    add_custom_command(TARGET size POST_BUILD COMMAND "${CMAKE_SIZE}" "${_template_alias}${CMAKE_EXECUTABLE_SUFFIX}")
 endforeach()
 
 # Generate and build custom examples

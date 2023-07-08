@@ -40,6 +40,8 @@ def parse_config(text):
         except ValueError:
             pass
 
+        options[parts[0]] = parts[1]
+
     return options
 
 def make_example(platform, family, bundle, config, name):
@@ -63,6 +65,7 @@ def make_example(platform, family, bundle, config, name):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--alias', dest='alias', help='output example name', default='')
     parser.add_argument('--bundle', dest='bundle', help='bundle name', default='')
     parser.add_argument('--config', dest='config', help='code configuration options', default='')
     parser.add_argument('--family', dest='family', help='processor family name', default='')
@@ -75,7 +78,8 @@ def main():
         text = make_example(options.platform, options.family, options.bundle, options.config, name)
 
         if options.output:
-            example_path = os.path.abspath(f'{options.output}/{name}')
+            output_name = options.alias if options.alias else name
+            example_path = os.path.abspath(f'{options.output}/{output_name}')
             os.makedirs(example_path, exist_ok=True)
 
             with open(f'{example_path}/main.c', 'wb') as stream:

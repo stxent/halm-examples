@@ -204,7 +204,7 @@ struct Interface *boardSetupI2C(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwm(void)
+struct PwmPackage boardSetupPwm(bool centered __attribute__((unused)))
 {
   static const struct GpTimerPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
@@ -223,7 +223,7 @@ struct PwmPackage boardSetupPwm(void)
   return (struct PwmPackage){
       (struct Timer *)timer,
       pwm0,
-      {pwm0, pwm1}
+      {pwm0, pwm1, NULL}
   };
 }
 /*----------------------------------------------------------------------------*/

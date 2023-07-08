@@ -10,13 +10,13 @@ set(PLATFORM "LPC11XX")
 set(TEMPLATES_LIST
         adc
         adc_oneshot
-        blinking_led
         bod
         flash
-        gptimer
         i2c
         pin_int
         serial
         spi
+        systick
+        timer
         wdt
 )

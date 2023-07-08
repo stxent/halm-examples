@@ -6,23 +6,21 @@ set(FAMILY "NUMICRO")
 # Set platform type
 set(PLATFORM "M48X")
 
-# Define template configuration
-set(TEMPLATES_CONFIG "SERIAL_DMA_TIMER=true")
-
 # Define template list
 set(TEMPLATES_LIST
         adc
         adc_dma
-        blinking_led
         can
         flash
-        gptimer
         i2c
         mmcsd
         pin_int
+        pwm_bpwm=pwm:PWM_SUFFIX=BPWM
         serial
         spi
         spi_dma
+        systick
+        timer
         usb_cdc
         usb_msc
         wdt

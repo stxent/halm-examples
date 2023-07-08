@@ -1,7 +1,6 @@
 /*
- * lpc13uxx_default/capture/main.c
- * Copyright (C) 2023 xent
- * Project is distributed under the terms of the GNU General Public License v3.0
+ * {{group.name}}/capture/main.c
+ * Automatically generated file
  */
 
 #include "board.h"
@@ -33,24 +32,36 @@ int main(void)
   const struct Pin ledOverflow = pinInit(BOARD_LED_1);
   pinOutput(ledOverflow, BOARD_LED_INV);
 
+{%- if config.CAPTURE_SUFFIX is defined %}
+
+  struct CapturePackage capture = boardSetupCapture{{config.CAPTURE_SUFFIX}}();
+{%- else %}
+
   struct CapturePackage capture = boardSetupCapture();
+{%- endif %}
   captureSetCallback(capture.input, onCaptureEvent, &captureEvent);
   captureEnable(capture.input);
   timerSetOverflow(capture.timer, timerGetFrequency(capture.timer) * 5);
   timerSetCallback(capture.timer, onTimerOverflow, &overflowEvent);
   timerEnable(capture.timer);
 
-  struct PwmPackage pwm = boardSetupPwm();
+{%- if config.PWM_SUFFIX is defined %}
+
+  struct PwmPackage pwm = boardSetupPwm{{config.PWM_SUFFIX}}(false);
+{%- else %}
+
+  struct PwmPackage pwm = boardSetupPwm(false);
+{%- endif %}
   pwmSetEdges(pwm.output, 0, timerGetOverflow(pwm.timer) / 2);
   pwmEnable(pwm.output);
   timerEnable(pwm.timer);
 
-  const uint32_t CAPTURE_FREQUENCY =
-      timerGetFrequency(capture.timer);
-  const uint32_t PWM_FREQUENCY =
+  const uint32_t outFrequency =
       timerGetFrequency(pwm.timer) / timerGetOverflow(pwm.timer);
-  const uint32_t MAX_PERIOD = CAPTURE_FREQUENCY / PWM_FREQUENCY + 1;
-  const uint32_t MIN_PERIOD = CAPTURE_FREQUENCY / PWM_FREQUENCY - 1;
+  const uint32_t outPeriodTicks =
+      timerGetFrequency(capture.timer) / outFrequency;
+  const uint32_t maxPeriodValue = outPeriodTicks + outPeriodTicks / 100;
+  const uint32_t minPeriodValue = outPeriodTicks - outPeriodTicks / 100;
 
   while (1)
   {
@@ -64,7 +75,7 @@ int main(void)
       const uint32_t currentTime = captureGetValue(capture.input);
       const uint32_t period = currentTime - previousTime;
 
-      if (period >= MIN_PERIOD && period <= MAX_PERIOD)
+      if (period >= minPeriodValue && period <= maxPeriodValue)
         pinToggle(ledCapture);
       previousTime = currentTime;
     }

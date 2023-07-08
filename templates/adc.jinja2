@@ -29,14 +29,14 @@ int main(void)
 
   struct Interface * const adc = boardSetupAdc();
   ifSetCallback(adc, onConversionCompleted, &event);
+{%- if config.ADC_CALIBRATE is defined and config.ADC_CALIBRATE %}
 
-{% if config.ADC_CALIBRATE is defined and config.ADC_CALIBRATE %}
   /* Calibrate ADC */
   ifSetParam(adc, IF_ADC_CALIBRATE, NULL);
   while (!event)
     barrier();
   event = false;
-{% endif %}
+{%- endif %}
 
   /* Enable converter */
   ifSetParam(adc, IF_ENABLE, NULL);

@@ -390,7 +390,7 @@ struct StreamPackage boardSetupI2S(void)
   };
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwm(void)
+struct PwmPackage boardSetupPwm(bool centered __attribute__((unused)))
 {
   static const struct GpPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
@@ -413,13 +413,6 @@ struct PwmPackage boardSetupPwm(void)
       pwm0,
       {pwm0, pwm1, pwm2}
   };
-}
-/*----------------------------------------------------------------------------*/
-struct Timer *boardSetupRit(void)
-{
-  struct Timer * const timer = init(Rit, NULL);
-  assert(timer != NULL);
-  return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct RtClock *boardSetupRtc(bool restart)
@@ -580,6 +573,13 @@ struct Timer *boardSetupTimer(void)
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerRIT(void)
+{
+  struct Timer * const timer = init(Rit, NULL);
   assert(timer != NULL);
   return timer;
 }

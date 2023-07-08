@@ -1,10 +1,10 @@
 /*
- * {{group.name}}/clock_out/main.c
+ * {{group.name}}/counter/main.c
  * Automatically generated file
  */
 
 #include "board.h"
-#include <halm/clock.h>
+#include <halm/pwm.h>
 #include <halm/timer.h>
 #include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
@@ -31,8 +31,19 @@ int main(void)
 {%- endif %}
   timerEnable(counterTimer);
 
-  const struct ClockClass * const outClock = boardSetupClockOutput(100);
-  const uint32_t outFrequency = clockFrequency(outClock);
+{%- if config.PWM_SUFFIX is defined %}
+
+  struct PwmPackage pwm = boardSetupPwm{{config.PWM_SUFFIX}}(false);
+{%- else %}
+
+  struct PwmPackage pwm = boardSetupPwm(false);
+{%- endif %}
+  pwmSetEdges(pwm.output, 0, timerGetOverflow(pwm.timer) / 2);
+  pwmEnable(pwm.output);
+  timerEnable(pwm.timer);
+
+  const uint32_t outFrequency =
+      timerGetFrequency(pwm.timer) / timerGetOverflow(pwm.timer);
   const uint32_t maxCounterValue = (outFrequency + outFrequency / 100) / 10;
   const uint32_t minCounterValue = (outFrequency - outFrequency / 100) / 10;
 

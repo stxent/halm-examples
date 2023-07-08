@@ -10,6 +10,9 @@
 #include <halm/pin.h>
 #include <stddef.h>
 /*----------------------------------------------------------------------------*/
+#define BOARD_BPWM_0      PIN(PORT_A, 3)
+#define BOARD_BPWM_1      PIN(PORT_A, 4)
+#define BOARD_BPWM        BOARD_BPWM_0
 #define BOARD_BUTTON_0    PIN(PORT_G, 15)
 #define BOARD_BUTTON_1    PIN(PORT_F, 11)
 #define BOARD_BUTTON      BOARD_BUTTON_0
@@ -18,10 +21,6 @@
 #define BOARD_LED_2       PIN(PORT_H, 2)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     true
-#define BOARD_PWM_0       PIN(PORT_A, 3)
-#define BOARD_PWM_1       PIN(PORT_A, 4)
-#define BOARD_PWM_2       PIN(PORT_A, 5)
-#define BOARD_PWM         BOARD_PWM_0
 #define BOARD_SPI_CS      PIN(PORT_C, 9)
 #define BOARD_QSPI_CS     PIN(PORT_C, 3)
 #define BOARD_UART_BUFFER 512
@@ -55,13 +54,15 @@ void boardSetupClockPll(void);
 struct Interface *boardSetupAdc(void);
 struct Interface *boardSetupAdcDma(void);
 struct Timer *boardSetupAdcTimer(void);
-struct PwmPackage boardSetupBpwm(bool);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupCan(struct Timer *);
 struct Interface *boardSetupFlash(void);
 struct Entity *boardSetupFsUsb(void);
 struct Entity *boardSetupHsUsb(void);
 struct Interface *boardSetupI2C(void);
+struct PwmPackage boardSetupPwm(bool);
+struct PwmPackage boardSetupPwmBPWM(bool);
+struct PwmPackage boardSetupPwmEPWM(bool);
 struct Interface *boardSetupQspi(void);
 struct Interface *boardSetupSdio(bool);
 struct Interface *boardSetupSerial(void);

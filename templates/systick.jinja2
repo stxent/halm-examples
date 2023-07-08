@@ -1,11 +1,11 @@
 /*
- * {{group.name}}/gptimer/main.c
+ * {{group.name}}/systick/main.c
  * Automatically generated file
  */
 
 #include "board.h"
-#include <halm/timer.h>
-#include <xcore/memory.h>
+#include <halm/core/cortex/systick.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -21,7 +21,13 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  struct Timer * const timer = boardSetupTimer();
+  /*
+   * Core frequency and SysTick resolution must be kept in mind
+   * when configuring timer overflow.
+   */
+  struct Timer * const timer = init(SysTick, NULL);
+  assert(timer != NULL);
+
   timerSetOverflow(timer, timerGetFrequency(timer) / 2);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);

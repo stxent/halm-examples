@@ -8,14 +8,16 @@ set(PLATFORM "STM32F1XX")
 
 # Define template list
 set(TEMPLATES_LIST
-        blinking_led
         can
-        gptimer
         mmcsd_spi
         pin_int
+        pm_sleep
         serial
         serial_dma
+        software_timer
         spi
+        systick
+        timer
         usb_cdc
         wdt
         work_queue

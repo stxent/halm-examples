@@ -6,32 +6,39 @@ set(FAMILY "LPC")
 # Set platform type
 set(PLATFORM "LPC17XX")
 
-# Define template configuration
-set(TEMPLATES_CONFIG "SERIAL_DMA_TIMER=true")
-
 # Define template list
 set(TEMPLATES_LIST
         adc
         adc_dma
         adc_oneshot
-        blinking_led
         bod
         can
+        capture
         clock_out
+        counter
         dac
         dac_dma
         flash
-        gptimer
         i2c
         i2s
         mmcsd
         mmcsd_spi
         pin_int
+        pm_shutdown
+        pm_sleep
+        pm_suspend
+        pwm
+        rtc
         serial
-        serial_dma
+        serial_dma:SERIAL_DMA_TIMER=true
+        software_timer
         spi
         spi_dma
+        systick
+        timer
+        timer_rit=timer:TIMER_SUFFIX=RIT
         usb_cdc
         usb_msc
         wdt
+        work_queue
 )

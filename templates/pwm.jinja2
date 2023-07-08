@@ -1,0 +1,70 @@
+/*
+ * {{group.name}}/pwm/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/pwm.h>
+#include <halm/timer.h>
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  static uint32_t iteration = 0;
+
+  struct PwmPackage * const pwm = argument;
+  const uint32_t resolution = timerGetOverflow(pwm->timer);
+  const uint32_t duration = (iteration / 100) % (resolution + 1);
+  const uint32_t trailing = duration < resolution ?
+      ((iteration + duration) % resolution) : resolution;
+
+  if (pwm->outputs[1] != NULL)
+    pwmSetEdges(pwm->outputs[1], 0, iteration % (resolution + 1));
+  if (pwm->outputs[2] != NULL)
+    pwmSetEdges(pwm->outputs[2], iteration % resolution, trailing);
+
+  ++iteration;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  static const bool PWM_CENTERED = false;
+
+  boardSetupClockExt();
+
+{%- if config.PWM_SUFFIX is defined %}
+
+  struct PwmPackage pwm = boardSetupPwm{{config.PWM_SUFFIX}}(PWM_CENTERED);
+{%- else %}
+
+  struct PwmPackage pwm = boardSetupPwm(PWM_CENTERED);
+{%- endif %}
+  timerSetFrequency(pwm.timer, 10000);
+  timerSetOverflow(pwm.timer, 10);
+  timerEnable(pwm.timer);
+
+  /* Reference PWM output */
+  pwmSetEdges(pwm.outputs[0], 0, timerGetOverflow(pwm.timer) / 2);
+  pwmEnable(pwm.outputs[0]);
+
+  if (pwm.outputs[1] != NULL)
+  {
+    /* Single-edge PWM output */
+    pwmSetEdges(pwm.outputs[1], 0, 0);
+    pwmEnable(pwm.outputs[1]);
+  }
+
+  if (pwm.outputs[2] != NULL)
+  {
+    /* Double-edge PWM output */
+    pwmSetEdges(pwm.outputs[2], 0, 0);
+    pwmEnable(pwm.outputs[2]);
+  }
+
+  struct Timer * const eventTimer = boardSetupTimer();
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
+  timerSetCallback(eventTimer, onTimerOverflow, &pwm);
+  timerEnable(eventTimer);
+
+  while (1);
+  return 0;
+}

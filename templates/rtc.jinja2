@@ -1,12 +1,10 @@
 /*
- * lpc43xx_default/rtc/main.c
- * Copyright (C) 2015 xent
- * Project is distributed under the terms of the GNU General Public License v3.0
+ * {{group.name}}/rtc/main.c
+ * Automatically generated file
  */
 
 #include "board.h"
 #include <xcore/realtime.h>
-#include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */
 #define RTC_ALARM_PERIOD 5
@@ -36,10 +34,7 @@ int main(void)
   pinOutput(context.led, BOARD_LED_INV);
 
   pinSet(context.led);
-  /* Non-blocking initialization */
   context.rtc = boardSetupRtc(false);
-  /* Wait for RTC registers update */
-  while (rtTime(context.rtc) == 0);
   pinReset(context.led);
 
   rtSetCallback(context.rtc, onTimerAlarm, &context);

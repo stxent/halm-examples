@@ -6,22 +6,22 @@ set(FAMILY "NUMICRO")
 # Set platform type
 set(PLATFORM "M03X")
 
-# Define template configuration
-set(TEMPLATES_CONFIG "ADC_CALIBRATE=true,SERIAL_DMA_TIMER=true")
-
 # Define template list
 set(TEMPLATES_LIST
-        adc
-        adc_dma
-        blinking_led
+        adc:ADC_CALIBRATE=true
+        adc_dma:ADC_CALIBRATE=true
         flash
-        gptimer
         i2c
         pin_int
+        pm_sleep
+        pwm_bpwm=pwm:PWM_SUFFIX=BPWM
         serial
-        serial_dma
+        serial_dma:SERIAL_DMA_TIMER=true
+        software_timer
         spi
         spi_dma
+        systick
+        timer
         usb_cdc
         wdt
         work_queue

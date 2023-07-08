@@ -13,13 +13,13 @@ static void onSerialEvent(void *argument)
 {
   *(bool *)argument = true;
 }
+{% if config.SERIAL_DMA_TIMER is defined and config.SERIAL_DMA_TIMER -%}
 /*----------------------------------------------------------------------------*/
-{% if config.SERIAL_DMA_TIMER is defined and config.SERIAL_DMA_TIMER %}
 static void onTimerOverflow(void *argument)
 {
   *(bool *)argument = true;
 }
-{% endif %}
+{% endif -%}
 /*----------------------------------------------------------------------------*/
 static void transferData(struct Interface *interface, struct Pin led)
 {
@@ -60,12 +60,13 @@ int main(void)
   res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
   assert(res == E_OK);
 
-{% if config.SERIAL_DMA_TIMER is defined and config.SERIAL_DMA_TIMER %}
+{%- if config.SERIAL_DMA_TIMER is defined and config.SERIAL_DMA_TIMER %}
+
   struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer) / 10);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
-{% endif %}
+{%- endif %}
 
   /* Suppress warning */
   (void)res;

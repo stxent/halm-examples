@@ -25,6 +25,9 @@
 #include <halm/platform/numicro/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+struct PwmPackage boardSetupPwm(bool)
+    __attribute__((alias("boardSetupPwmBPWM")));
+
 struct Entity *boardSetupUsb(void)
     __attribute__((alias("boardSetupHsUsb")));
 /*----------------------------------------------------------------------------*/
@@ -173,36 +176,6 @@ struct Timer *boardSetupAdcTimer(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupBpwm(bool centered)
-{
-  const struct BpwmUnitConfig bpwmTimerConfig = {
-      .frequency = 1000000,
-      .resolution = 20000,
-      .channel = 0,
-      .centered = centered
-  };
-  const bool inversion = centered;
-
-  clockEnable(bpwmTimerConfig.channel ? Bpwm1Clock : Bpwm0Clock,
-      &bpwmClockConfig);
-
-  struct BpwmUnit * const timer = init(BpwmUnit, &bpwmTimerConfig);
-  assert(timer != NULL);
-
-  struct Pwm * const pwm0 = bpwmCreate(timer, BOARD_PWM_0, inversion);
-  assert(pwm0 != NULL);
-  struct Pwm * const pwm1 = bpwmCreate(timer, BOARD_PWM_1, inversion);
-  assert(pwm1 != NULL);
-  struct Pwm * const pwm2 = bpwmCreate(timer, BOARD_PWM_2, inversion);
-  assert(pwm2 != NULL);
-
-  return (struct PwmPackage){
-      (struct Timer *)timer,
-      pwm0,
-      {pwm0, pwm1, pwm2}
-  };
-}
-/*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupButton(void)
 {
   static const struct PinIntConfig buttonIntConfig = {
@@ -300,6 +273,34 @@ struct Interface *boardSetupI2C(void)
   struct Interface * const interface = init(I2C, &i2cConfig);
   assert(interface != NULL);
   return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct PwmPackage boardSetupPwmBPWM(bool centered)
+{
+  const struct BpwmUnitConfig bpwmTimerConfig = {
+      .frequency = 1000000,
+      .resolution = 20000,
+      .channel = 0,
+      .centered = centered
+  };
+  const bool inversion = centered;
+
+  clockEnable(bpwmTimerConfig.channel ? Bpwm1Clock : Bpwm0Clock,
+      &bpwmClockConfig);
+
+  struct BpwmUnit * const timer = init(BpwmUnit, &bpwmTimerConfig);
+  assert(timer != NULL);
+
+  struct Pwm * const pwm0 = bpwmCreate(timer, BOARD_BPWM_0, inversion);
+  assert(pwm0 != NULL);
+  struct Pwm * const pwm1 = bpwmCreate(timer, BOARD_BPWM_1, inversion);
+  assert(pwm1 != NULL);
+
+  return (struct PwmPackage){
+      (struct Timer *)timer,
+      pwm0,
+      {pwm0, pwm1, NULL}
+  };
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupQspi(void)

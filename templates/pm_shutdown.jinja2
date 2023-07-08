@@ -1,15 +1,13 @@
 /*
- * lpc43xx_default/pm_shutdown/main.c
- * Copyright (C) 2023 xent
- * Project is distributed under the terms of the GNU General Public License v3.0
+ * {{group.name}}/pm_shutdown/main.c
+ * Automatically generated file
  */
 
 #include "board.h"
 #include <halm/delay.h>
-#include <halm/platform/lpc/backup_domain.h>
+#include <halm/platform/{{group.family}}/backup_domain.h>
 #include <halm/pm.h>
 #include <xcore/realtime.h>
-#include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between wake-ups in seconds */
 #define RTC_ALARM_PERIOD  10
@@ -32,10 +30,7 @@ int main(void)
   const uint32_t state = restartFlag ? backup[1] : 0;
   const unsigned int phase = (state % 3) + 1;
 
-  /* Non-blocking initialization */
   struct RtClock * const rtc = boardSetupRtc(restartFlag);
-  /* Wait for RTC registers update */
-  while (rtTime(rtc) == 0);
   rtSetAlarm(rtc, rtTime(rtc) + RTC_ALARM_PERIOD);
 
   for (unsigned int i = 0; i < 5; ++i)
