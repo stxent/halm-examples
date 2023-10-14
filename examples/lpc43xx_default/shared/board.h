@@ -113,7 +113,7 @@ struct Interface *boardSetupSpi1(void);
 struct Interface *boardSetupSpiDma(void);
 struct Interface *boardSetupSpiDma0(void);
 struct Interface *boardSetupSpiDma1(void);
-struct Interface *boardSetupSpifi(void);
+struct Interface *boardSetupSpim(struct Timer *);
 struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimerAlarm(void);
 struct Timer *boardSetupTimerRIT(void);

@@ -20,6 +20,7 @@ set(TEMPLATES_LIST
         dac_dma
         flash
         i2c
+        i2c_slave
         i2s
         mmcsd
         mmcsd_spi
@@ -31,11 +32,11 @@ set(TEMPLATES_LIST
         rtc
         serial
         serial_dma:SERIAL_DMA_TIMER=true
-        software_timer
         spi
         spi_dma
         systick
         timer
+        timer_factory
         timer_rit=timer:TIMER_SUFFIX=RIT
         usb_cdc
         usb_msc

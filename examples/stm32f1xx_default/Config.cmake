@@ -14,10 +14,10 @@ set(TEMPLATES_LIST
         pm_sleep
         serial
         serial_dma
-        software_timer
         spi
         systick
         timer
+        timer_factory
         usb_cdc
         wdt
         work_queue

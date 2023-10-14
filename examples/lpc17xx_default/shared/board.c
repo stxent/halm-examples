@@ -99,9 +99,9 @@ void boardSetupClockExt(void)
 const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
 {
   const struct ClockOutputConfig clockOutputConfig = {
-      .source = CLOCK_MAIN,
       .divisor = divisor,
-      .pin = PIN(1, 27)
+      .pin = PIN(1, 27),
+      .source = CLOCK_MAIN
   };
 
   clockEnable(ClockOutput, &clockOutputConfig);
@@ -113,9 +113,9 @@ const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
 void boardSetupClockPll(void)
 {
   static const struct PllConfig sysPllConfig = {
-      .source = CLOCK_EXTERNAL,
       .divisor = 4,
-      .multiplier = 32
+      .multiplier = 32,
+      .source = CLOCK_EXTERNAL
   };
   static const struct GenericClockConfig mainClockConfigPll = {
       .source = CLOCK_PLL
@@ -591,9 +591,9 @@ struct Entity *boardSetupUsb(void)
       .source = CLOCK_USB_PLL
   };
   static const struct PllConfig usbPllConfig = {
-      .source = CLOCK_EXTERNAL,
       .divisor = 4,
-      .multiplier = 16
+      .multiplier = 16,
+      .source = CLOCK_EXTERNAL
   };
 
   /* Objects */

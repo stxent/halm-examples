@@ -45,9 +45,9 @@ void boardSetupClockExt(void)
 void boardSetupClockPll(void)
 {
   static const struct SystemPllConfig systemPllConfig = {
-      .source = CLOCK_EXTERNAL,
       .divisor = 1,
-      .multiplier = 6
+      .multiplier = 6,
+      .source = CLOCK_EXTERNAL
   };
   static const struct SystemClockConfig systemClockConfigPll = {
       .source = CLOCK_PLL

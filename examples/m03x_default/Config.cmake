@@ -17,11 +17,11 @@ set(TEMPLATES_LIST
         pwm_bpwm=pwm:PWM_SUFFIX=BPWM
         serial
         serial_dma:SERIAL_DMA_TIMER=true
-        software_timer
         spi
         spi_dma
         systick
         timer
+        timer_factory
         usb_cdc
         wdt
         work_queue

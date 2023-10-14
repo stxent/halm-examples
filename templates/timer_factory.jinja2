@@ -1,0 +1,57 @@
+/*
+ * {{group.name}}/timer_factory/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/timer_factory.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  pinToggle(*(const struct Pin *)argument);
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  boardSetupClockPll();
+
+  struct Pin output0 = pinInit(BOARD_LED_0);
+  pinOutput(output0, BOARD_LED_INV);
+  struct Pin output1 = pinInit(BOARD_LED_1);
+  pinOutput(output1, BOARD_LED_INV);
+  struct Pin output2 = pinInit(BOARD_LED_2);
+  pinOutput(output2, BOARD_LED_INV);
+
+  struct Timer * const tickTimer = boardSetupTimer();
+  timerSetOverflow(tickTimer, timerGetFrequency(tickTimer) / 1000);
+
+  const struct TimerFactoryConfig factoryConfig = {
+      .timer = tickTimer
+  };
+  struct TimerFactory * const timerFactory = init(TimerFactory, &factoryConfig);
+  assert(timerFactory != NULL);
+
+  struct Timer * const timer0 = timerFactoryCreate(timerFactory);
+  assert(timer0 != NULL);
+  timerSetCallback(timer0, onTimerOverflow, &output0);
+  timerSetOverflow(timer0, 199);
+  timerEnable(timer0);
+
+  struct Timer * const timer1 = timerFactoryCreate(timerFactory);
+  assert(timer1 != NULL);
+  timerSetCallback(timer1, onTimerOverflow, &output1);
+  timerSetOverflow(timer1, 37);
+  timerEnable(timer1);
+
+  struct Timer * const timer2 = timerFactoryCreate(timerFactory);
+  assert(timer2 != NULL);
+  timerSetCallback(timer2, onTimerOverflow, &output2);
+  timerSetOverflow(timer2, 97);
+  timerEnable(timer2);
+
+  timerEnable(tickTimer);
+
+  while (1);
+  return 0;
+}

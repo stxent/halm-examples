@@ -146,12 +146,12 @@ void boardSetupClockInt(void)
 const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
 {
   static const struct ClockOutputConfig clockOutputConfig = {
-      .source = CLOCK_IDIVE,
-      .pin = PIN(PORT_CLK, 2)
+      .pin = PIN(PORT_CLK, 2),
+      .source = CLOCK_IDIVE
   };
   const struct GenericDividerConfig divEConfig = {
-      .source = CLOCK_EXTERNAL,
-      .divisor = divisor
+      .divisor = divisor,
+      .source = CLOCK_EXTERNAL
   };
 
   clockEnable(DividerE, &divEConfig);
@@ -166,9 +166,9 @@ const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
 void boardSetupClockPll(void)
 {
   static const struct PllConfig systemPllConfig = {
-      .source = CLOCK_EXTERNAL,
       .divisor = 2,
-      .multiplier = 17
+      .multiplier = 17,
+      .source = CLOCK_EXTERNAL
   };
 
   clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
@@ -294,8 +294,8 @@ struct Interface *boardSetupCan(struct Timer *timer)
 {
   /* Clocks */
   static const struct GenericDividerConfig divBConfig = {
-      .source = CLOCK_AUDIO_PLL,
-      .divisor = 3
+      .divisor = 3,
+      .source = CLOCK_AUDIO_PLL
   };
 
   /* Objects */
@@ -640,8 +640,8 @@ struct Interface *boardSetupSdio(bool wide)
 {
   /* Clocks */
   static const struct GenericDividerConfig divDConfig = {
-      .source = CLOCK_PLL,
-      .divisor = 2
+      .divisor = 2,
+      .source = CLOCK_PLL
   };
 
   /* Objects */
@@ -802,13 +802,8 @@ struct Interface *boardSetupSpiDma1(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSpifi(void)
+struct Interface *boardSetupSpim(struct Timer *timer __attribute__((unused)))
 {
-  /* Clocks */
-  static const struct GenericClockConfig source = {
-      .source = CLOCK_IDIVA
-  };
-
   /* Objects */
   static const struct SpifiConfig spifiConfig = {
       .cs = PIN(PORT_3, 8),
@@ -838,7 +833,7 @@ struct Interface *boardSetupSpifi(void)
 
   clockEnable(DividerA, &config);
   while (!clockReady(DividerA));
-  clockEnable(SpifiClock, &source);
+  clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_IDIVA});
   while (!clockReady(SpifiClock));
 
   struct Interface * const interface = init(Spifi, &spifiConfig);
@@ -895,13 +890,10 @@ struct Timer *boardSetupTimerSCT(void)
 struct Entity *boardSetupUsb0(void)
 {
   /* Clocks */
-  static const struct GenericClockConfig usb0ClockConfig = {
-      .source = CLOCK_USB_PLL
-  };
   static const struct PllConfig usbPllConfig = {
-      .source = CLOCK_EXTERNAL,
       .divisor = 1,
-      .multiplier = 40
+      .multiplier = 40,
+      .source = CLOCK_EXTERNAL
   };
 
   /* Objetcs */
@@ -918,7 +910,7 @@ struct Entity *boardSetupUsb0(void)
   clockEnable(UsbPll, &usbPllConfig);
   while (!clockReady(UsbPll));
 
-  clockEnable(Usb0Clock, &usb0ClockConfig);
+  clockEnable(Usb0Clock, &(struct GenericClockConfig){CLOCK_USB_PLL});
   while (!clockReady(Usb0Clock));
 
   struct Entity * const usb = init(UsbDevice, &usb0Config);
@@ -930,8 +922,8 @@ struct Entity *boardSetupUsb1(void)
 {
   /* Clocks */
   static const struct GenericDividerConfig divCConfig = {
-      .source = CLOCK_AUDIO_PLL,
-      .divisor = 2
+      .divisor = 2,
+      .source = CLOCK_AUDIO_PLL
   };
 
   /* Objects */

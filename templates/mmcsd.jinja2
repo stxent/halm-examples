@@ -10,7 +10,10 @@
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-static uint8_t arena[2048];
+#define BLOCK_SIZE  512
+#define ARENA_SIZE  (BLOCK_SIZE * 4)
+
+static uint8_t arena[ARENA_SIZE];
 /*----------------------------------------------------------------------------*/
 static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
 {
@@ -101,7 +104,7 @@ int main(void)
   static const bool USE_WIDE_BUS = true;
   static const bool USE_WRITE = false;
 
-  uint64_t capacity;
+  uint64_t capacity = 0;
   uint64_t position = 0;
   struct Interface *card;
   struct Interface *sdmmc;
@@ -129,6 +132,7 @@ int main(void)
   assert(res == E_OK);
   res = ifGetParam(card, IF_SIZE_64, &capacity);
   assert(res == E_OK);
+  assert(capacity != 0);
 
   /* Configure the timer for read/write events */
   struct Timer * const eventTimer = boardSetupTimer();
@@ -148,16 +152,20 @@ int main(void)
     if (USE_WRITE)
     {
       pinWrite(led, !BOARD_LED_INV);
-      if (dataWrite(card, arena, sizeof(arena), position))
+      if (dataWrite(card, arena, BLOCK_SIZE, position))
+        pinWrite(led, BOARD_LED_INV);
+      if (dataWrite(card, arena, ARENA_SIZE, position))
         pinWrite(led, BOARD_LED_INV);
     }
 
     pinWrite(led, !BOARD_LED_INV);
-    if (dataRead(card, arena, sizeof(arena), position))
+    if (dataRead(card, arena, BLOCK_SIZE, position))
+      pinWrite(led, BOARD_LED_INV);
+    if (dataRead(card, arena, ARENA_SIZE, position))
       pinWrite(led, BOARD_LED_INV);
 
     /* Increment position */
-    position += sizeof(arena);
+    position += ARENA_SIZE;
     if (position >= capacity)
       position = 0;
   }

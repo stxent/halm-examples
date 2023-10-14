@@ -13,6 +13,7 @@ set(PATH_XCORE "${PROJECT_SOURCE_DIR}/../xcore" CACHE STRING "Path to the XCORE 
 set(PATH_HALM "${PROJECT_SOURCE_DIR}/../halm" CACHE STRING "Path to the HALM library.")
 
 # Default compiler flags
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(FLAGS_DEFAULT "-pedantic -Wall -Wextra -Wshadow")
 set(FLAGS_PROJECT "-fdata-sections -ffunction-sections")
 set(CMAKE_C_STANDARD 23)

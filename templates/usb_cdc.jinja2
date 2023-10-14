@@ -80,6 +80,7 @@ int main(void)
     {
       if (status & CDC_ACM_SUSPENDED)
       {
+        pinWrite(dataLed, BOARD_LED_INV);
         pinWrite(linkLed, BOARD_LED_INV);
         pinWrite(rateLed, BOARD_LED_INV);
       }

@@ -40,23 +40,23 @@ static const struct ExternalOscConfig extOscConfig = {
 };
 
 static const struct ExtendedClockConfig adcClockConfig = {
-    .source = CLOCK_INTERNAL,
-    .divisor = 2
+    .divisor = 2,
+    .source = CLOCK_INTERNAL
 };
 
 static const struct ExtendedClockConfig bpwmClockConfig = {
-    .source = CLOCK_APB,
-    .divisor = 1
+    .divisor = 1,
+    .source = CLOCK_APB
 };
 
 static const struct ExtendedClockConfig spiClockConfig = {
-    .source = CLOCK_APB,
-    .divisor = 1
+    .divisor = 1,
+    .source = CLOCK_APB
 };
 
 static const struct ExtendedClockConfig uartClockConfig = {
-    .source = CLOCK_APB,
-    .divisor = 1
+    .divisor = 1,
+    .source = CLOCK_APB
 };
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void)
@@ -73,8 +73,8 @@ void boardSetAdcTimerRate(struct Timer *timer,
 void boardSetupClockExt(void)
 {
   static const struct ExtendedClockConfig mainClockConfigExt = {
-      .source = CLOCK_EXTERNAL,
-      .divisor = 1
+      .divisor = 1,
+      .source = CLOCK_EXTERNAL
   };
 
   clockEnable(ExternalOsc, &extOscConfig);
@@ -86,13 +86,13 @@ void boardSetupClockExt(void)
 void boardSetupClockPll(void)
 {
   static const struct ExtendedClockConfig mainClockConfigPll = {
-      .source = CLOCK_PLL,
-      .divisor = 2
+      .divisor = 2,
+      .source = CLOCK_PLL
   };
   static const struct PllConfig systemPllConfig = {
-      .source = CLOCK_EXTERNAL,
       .divisor = 4,
-      .multiplier = 12
+      .multiplier = 12,
+      .source = CLOCK_EXTERNAL
   };
 
   clockEnable(ExternalOsc, &extOscConfig);
@@ -340,8 +340,8 @@ struct Entity *boardSetupUsb(void)
 {
   /* Clocks */
   static const struct ExtendedClockConfig usbClockConfig = {
-      .source = CLOCK_PLL,
-      .divisor = 2
+      .divisor = 2,
+      .source = CLOCK_PLL
   };
 
   /* Objects */

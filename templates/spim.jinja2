@@ -1,0 +1,235 @@
+/*
+ * {{group.name}}/spim/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/spim.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
+/*----------------------------------------------------------------------------*/
+#define CMD_READ_DEVICE_ID          0x90
+#define CMD_READ_DEVICE_ID_DUAL_IO  0x92
+#define CMD_READ_DEVICE_ID_QUAD_IO  0x94
+#define CMD_READ_JEDEC_ID           0x9F
+/*----------------------------------------------------------------------------*/
+struct DeviceId
+{
+  uint8_t manufacturer;
+  uint8_t device;
+} __attribute__((packed));
+
+struct JedecId
+{
+  uint8_t manufacturer;
+  uint8_t type;
+  uint8_t capacity;
+} __attribute__((packed));
+/*----------------------------------------------------------------------------*/
+static bool checkDeviceId(uint8_t manufacturer, uint8_t device)
+{
+  if (manufacturer == 0xEF)
+  {
+    /* Winbond W25Q16 - W25Q02 */
+
+    if (device >= 0x14 && device <= 0x19)
+    {
+      /* Capacity from 16 Mbit to 512 Mbit */
+      return true;
+    }
+    else if (device >= 0x20 && device <= 0x21)
+    {
+      /* Capacity from 1 Gbit to 2 Gbit */
+      return true;
+    }
+  }
+
+  return false;
+}
+/*----------------------------------------------------------------------------*/
+static bool checkJedecId(uint8_t manufacturer, uint8_t type, uint8_t capacity)
+{
+  if (manufacturer == 0xEF && (type == 0x40 || type == 0x70))
+  {
+    /* Winbond W25Q16 - W25Q02 */
+
+    if (capacity >= 0x15 && capacity <= 0x19)
+    {
+      /* Capacity from 16 Mbit to 256 Mbit */
+      return true;
+    }
+    else if (capacity >= 0x20 && capacity <= 0x22)
+    {
+      /* Capacity from 512 Mbit to 2 Gbit */
+      return true;
+    }
+  }
+  else if (manufacturer == 0x20 && type == 0xBA)
+  {
+    /* Micron N25Q032 - N25Q512 */
+
+    if (capacity >= 0x16 && capacity <= 0x19)
+    {
+      /* Capacity from 32 Mbit to 256 Mbit */
+      return true;
+    }
+    else if (capacity == 0x20)
+    {
+      /* 512 Mbit */
+      return true;
+    }
+  }
+
+  return false;
+}
+/*----------------------------------------------------------------------------*/
+static bool hasDeviceId(uint8_t manufacturer)
+{
+  return manufacturer == 0xEF;
+}
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+static bool readDeviceId(struct Interface *interface)
+{
+  struct DeviceId info;
+
+  ifSetParam(interface, IF_SPIM_COMMAND, &((uint8_t){CMD_READ_DEVICE_ID}));
+  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_ADDRESS_24, &((uint32_t){0}));
+  ifSetParam(interface, IF_SPIM_ADDRESS_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_NONE, NULL);
+  ifSetParam(interface, IF_SPIM_DELAY_NONE, NULL);
+  ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
+  ifSetParam(interface, IF_SPIM_DATA_SERIAL, NULL);
+
+  ifRead(interface, &info, sizeof(info));
+  return checkDeviceId(info.manufacturer, info.device);
+}
+/*----------------------------------------------------------------------------*/
+static bool readDeviceIdDual(struct Interface *interface)
+{
+  struct DeviceId info;
+
+  ifSetParam(interface, IF_SPIM_DUAL, NULL);
+  ifSetParam(interface, IF_SPIM_COMMAND,
+      &((uint8_t){CMD_READ_DEVICE_ID_DUAL_IO}));
+  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_ADDRESS_24, &((uint32_t){0}));
+  ifSetParam(interface, IF_SPIM_ADDRESS_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_8, &((uint8_t){0xFF}));
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_DELAY_NONE, NULL);
+  ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
+  ifSetParam(interface, IF_SPIM_DATA_PARALLEL, NULL);
+
+  ifRead(interface, &info, sizeof(info));
+  return checkDeviceId(info.manufacturer, info.device);
+}
+/*----------------------------------------------------------------------------*/
+static bool readDeviceIdQuad(struct Interface *interface)
+{
+  struct DeviceId info;
+
+  ifSetParam(interface, IF_SPIM_QUAD, NULL);
+  ifSetParam(interface, IF_SPIM_COMMAND,
+      &((uint8_t){CMD_READ_DEVICE_ID_QUAD_IO}));
+  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_ADDRESS_24, &((uint32_t){0}));
+  ifSetParam(interface, IF_SPIM_ADDRESS_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_8, &((uint8_t){0xFF}));
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_DELAY_LENGTH, &((uint8_t){2}));
+  ifSetParam(interface, IF_SPIM_DELAY_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
+  ifSetParam(interface, IF_SPIM_DATA_PARALLEL, NULL);
+
+  ifRead(interface, &info, sizeof(info));
+  return checkDeviceId(info.manufacturer, info.device);
+}
+/*----------------------------------------------------------------------------*/
+static bool readJedecId(struct Interface *interface, bool *extended)
+{
+  struct JedecId info;
+
+  ifSetParam(interface, IF_SPIM_COMMAND, &((uint8_t){CMD_READ_JEDEC_ID}));
+  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_ADDRESS_24, &((uint32_t){0}));
+  ifSetParam(interface, IF_SPIM_ADDRESS_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_NONE, NULL);
+  ifSetParam(interface, IF_SPIM_DELAY_NONE, NULL);
+  ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
+  ifSetParam(interface, IF_SPIM_DATA_SERIAL, NULL);
+
+  ifRead(interface, &info, sizeof(info));
+
+  if (checkJedecId(info.manufacturer, info.type, info.capacity))
+  {
+    *extended = hasDeviceId(info.manufacturer);
+    return true;
+  }
+  else
+    return false;
+}
+/*----------------------------------------------------------------------------*/
+static bool memoryTestSequence(struct Interface *interface)
+{
+  bool extended = false;
+
+  if (!readJedecId(interface, &extended))
+    return false;
+
+  if (extended)
+  {
+    if (!readDeviceId(interface))
+      return false;
+
+    if (!readDeviceIdDual(interface))
+      return false;
+
+    if (!readDeviceIdQuad(interface))
+      return false;
+  }
+
+  return true;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  bool event = false;
+
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+{%- if config.SPIM_TIMER is defined and config.SPIM_TIMER %}
+
+  struct Timer * const pollTimer = boardSetupAdcTimer();
+{%- else %}
+
+  struct Timer * const pollTimer = NULL;
+{%- endif %}
+  struct Interface * const spim = boardSetupSpim(pollTimer);
+
+  struct Timer * const eventTimer = boardSetupTimer();
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
+  timerSetCallback(eventTimer, onTimerOverflow, &event);
+  timerEnable(eventTimer);
+
+  while (1)
+  {
+    while (!event)
+      barrier();
+    event = false;
+
+    pinWrite(led, !BOARD_LED_INV);
+    if (memoryTestSequence(spim))
+      pinWrite(led, BOARD_LED_INV);
+  }
+
+  return 0;
+}

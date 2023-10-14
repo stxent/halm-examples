@@ -22,6 +22,7 @@ set(TEMPLATES_LIST
         eeprom
         flash
         i2c
+        i2c_slave
         i2s
         mmcsd
         pin_int
@@ -33,6 +34,7 @@ set(TEMPLATES_LIST
         serial_dma:SERIAL_DMA_TIMER=true
         spi
         spi_dma
+        spim
         systick
         timer
         timer_alarm=timer:TIMER_SUFFIX=Alarm
