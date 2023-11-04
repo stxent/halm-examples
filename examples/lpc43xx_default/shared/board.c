@@ -281,7 +281,7 @@ struct Interrupt *boardSetupButton(void)
 {
   static const struct PinIntConfig buttonIntConfig = {
       .pin = BOARD_BUTTON,
-      .event = PIN_FALLING,
+      .event = INPUT_FALLING,
       .pull = PIN_PULLUP
   };
 
@@ -354,7 +354,7 @@ struct CapturePackage boardSetupCapture(void)
   assert(timer != NULL);
 
   struct Capture * const capture =
-      gpTimerCaptureCreate(timer, BOARD_CAP_TIMER, PIN_RISING, PIN_PULLDOWN);
+      gpTimerCaptureCreate(timer, BOARD_CAP_TIMER, INPUT_RISING, PIN_PULLDOWN);
   assert(capture != NULL);
 
   return (struct CapturePackage){(struct Timer *)timer, capture};
@@ -363,7 +363,7 @@ struct CapturePackage boardSetupCapture(void)
 struct Timer *boardSetupCounterTimerGPT(void)
 {
   static const struct GpTimerCounterConfig counterTimerConfig = {
-      .edge = PIN_RISING,
+      .edge = INPUT_RISING,
       .pin = BOARD_CAP_TIMER,
       .channel = 2
   };
@@ -377,7 +377,7 @@ struct Timer *boardSetupCounterTimerSCTDivided(void)
 {
   static const struct SctCounterConfig counterTimerConfig = {
       .pin = BOARD_CAPTURE,
-      .edge = PIN_RISING,
+      .edge = INPUT_RISING,
       .part = SCT_LOW,
       .channel = 0
   };
@@ -391,7 +391,7 @@ struct Timer *boardSetupCounterTimerSCTUnified(void)
 {
   static const struct SctCounterConfig counterTimerConfig = {
       .pin = BOARD_CAPTURE,
-      .edge = PIN_RISING,
+      .edge = INPUT_RISING,
       .part = SCT_UNIFIED,
       .channel = 0
   };
@@ -561,23 +561,26 @@ struct StreamPackage boardSetupI2S(void)
   };
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwmSCTDivided(bool centered __attribute__((unused)))
+struct PwmPackage boardSetupPwmSCTDivided(bool centered)
 {
-  static const struct SctPwmUnitConfig pwmTimerConfig = {
+  const struct SctPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
       .resolution = 20000,
       .part = SCT_HIGH,
-      .channel = 0
+      .channel = 0,
+      .centered = centered
   };
+  const bool inversion = centered;
 
   struct SctPwmUnit * const timer = init(SctPwmUnit, &pwmTimerConfig);
   assert(timer != NULL);
 
-  struct Pwm * const pwm0 = sctPwmCreate(timer, BOARD_PWM_0);
+  struct Pwm * const pwm0 = sctPwmCreate(timer, BOARD_PWM_0, inversion);
   assert(pwm0 != NULL);
-  struct Pwm * const pwm1 = sctPwmCreate(timer, BOARD_PWM_1);
+  struct Pwm * const pwm1 = sctPwmCreate(timer, BOARD_PWM_1, inversion);
   assert(pwm1 != NULL);
-  struct Pwm * const pwm2 = sctPwmCreateDoubleEdge(timer, BOARD_PWM_2);
+  struct Pwm * const pwm2 = sctPwmCreateDoubleEdge(timer, BOARD_PWM_2,
+      inversion);
   assert(pwm2 != NULL);
 
   return (struct PwmPackage){
@@ -587,23 +590,26 @@ struct PwmPackage boardSetupPwmSCTDivided(bool centered __attribute__((unused)))
   };
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwmSCTUnified(bool centered __attribute__((unused)))
+struct PwmPackage boardSetupPwmSCTUnified(bool centered)
 {
-  static const struct SctPwmUnitConfig pwmTimerConfig = {
+  const struct SctPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
       .resolution = 20000,
       .part = SCT_UNIFIED,
-      .channel = 0
+      .channel = 0,
+      .centered = centered
   };
+  const bool inversion = centered;
 
   struct SctPwmUnit * const timer = init(SctPwmUnit, &pwmTimerConfig);
   assert(timer != NULL);
 
-  struct Pwm * const pwm0 = sctPwmCreate(timer, BOARD_PWM_0);
+  struct Pwm * const pwm0 = sctPwmCreate(timer, BOARD_PWM_0, inversion);
   assert(pwm0 != NULL);
-  struct Pwm * const pwm1 = sctPwmCreate(timer, BOARD_PWM_1);
+  struct Pwm * const pwm1 = sctPwmCreate(timer, BOARD_PWM_1, inversion);
   assert(pwm1 != NULL);
-  struct Pwm * const pwm2 = sctPwmCreateDoubleEdge(timer, BOARD_PWM_2);
+  struct Pwm * const pwm2 = sctPwmCreateDoubleEdge(timer, BOARD_PWM_2,
+      inversion);
   assert(pwm2 != NULL);
 
   return (struct PwmPackage){

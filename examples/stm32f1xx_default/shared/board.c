@@ -107,7 +107,7 @@ struct Interrupt *boardSetupButton(void)
 {
   static const struct ExtiConfig buttonIntConfig = {
       .pin = BOARD_BUTTON,
-      .event = PIN_FALLING,
+      .event = INPUT_FALLING,
       .pull = PIN_PULLUP
   };
 
@@ -125,7 +125,7 @@ struct Interface *boardSetupCan(struct Timer *timer)
       .txBuffers = 4,
       .rx = PIN(PORT_B, 8),
       .tx = PIN(PORT_B, 9),
-      .channel = 0
+      .channel = CAN1
   };
 
   struct Interface * const interface = init(Can, &canConfig);

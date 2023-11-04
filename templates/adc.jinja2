@@ -33,7 +33,7 @@ int main(void)
 
   /* Calibrate ADC */
   ifSetParam(adc, IF_ADC_CALIBRATE, NULL);
-  while (!event)
+  while (ifGetParam(adc, IF_STATUS, NULL) == E_BUSY)
     barrier();
   event = false;
 {%- endif %}

@@ -143,7 +143,7 @@ struct Interrupt *boardSetupButton(void)
 {
   static const struct PinIntConfig buttonIntConfig = {
       .pin = BOARD_BUTTON,
-      .event = PIN_FALLING,
+      .event = INPUT_FALLING,
       .pull = PIN_PULLUP
   };
 
@@ -164,7 +164,7 @@ struct CapturePackage boardSetupCapture(void)
   assert(timer != NULL);
 
   struct Capture * const capture =
-      gpTimerCaptureCreate(timer, BOARD_CAPTURE, PIN_RISING, PIN_PULLDOWN);
+      gpTimerCaptureCreate(timer, BOARD_CAPTURE, INPUT_RISING, PIN_PULLDOWN);
   assert(capture != NULL);
 
   return (struct CapturePackage){(struct Timer *)timer, capture};
@@ -173,7 +173,7 @@ struct CapturePackage boardSetupCapture(void)
 struct Timer *boardSetupCounterTimer(void)
 {
   static const struct GpTimerCounterConfig counterTimerConfig = {
-      .edge = PIN_RISING,
+      .edge = INPUT_RISING,
       .pin = BOARD_CAPTURE,
       .channel = GPTIMER_CT32B0
   };
