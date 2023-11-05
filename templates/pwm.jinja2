@@ -9,20 +9,33 @@
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
+  static const uint32_t PWM_LEVELS[] = {0, 2, 4, 6, 8, 10, 12, 14, 16};
   static uint32_t iteration = 0;
 
   struct PwmPackage * const pwm = argument;
   const uint32_t resolution = timerGetOverflow(pwm->timer);
-  const uint32_t duration = (iteration / 100) % (resolution + 1);
-  const uint32_t trailing = duration < resolution ?
-      ((iteration + duration) % resolution) : resolution;
+  const uint32_t duration =
+      (iteration / ARRAY_SIZE(PWM_LEVELS)) % ARRAY_SIZE(PWM_LEVELS);
+  uint32_t leading = iteration % ARRAY_SIZE(PWM_LEVELS);
+  uint32_t trailing = leading + duration;
+
+  if (trailing >= ARRAY_SIZE(PWM_LEVELS))
+    trailing -= ARRAY_SIZE(PWM_LEVELS);
+  leading = PWM_LEVELS[leading] * resolution / 16;
+  trailing = PWM_LEVELS[trailing] * resolution / 16;
 
   if (pwm->outputs[1] != NULL)
-    pwmSetEdges(pwm->outputs[1], 0, iteration % (resolution + 1));
+    pwmSetEdges(pwm->outputs[1], 0, leading);
+
   if (pwm->outputs[2] != NULL)
-    pwmSetEdges(pwm->outputs[2], iteration % resolution, trailing);
+    pwmSetEdges(pwm->outputs[2], leading, trailing);
 
   ++iteration;
+}
+/*----------------------------------------------------------------------------*/
+static void onUnitOverflow(void *argument)
+{
+  pinToggle(*(const struct Pin *)argument);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)
@@ -31,6 +44,9 @@ int main(void)
 
   boardSetupClockExt();
 
+  struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
 {%- if config.PWM_SUFFIX is defined %}
 
   struct PwmPackage pwm = boardSetupPwm{{config.PWM_SUFFIX}}(PWM_CENTERED);
@@ -38,8 +54,9 @@ int main(void)
 
   struct PwmPackage pwm = boardSetupPwm(PWM_CENTERED);
 {%- endif %}
-  timerSetFrequency(pwm.timer, 10000);
-  timerSetOverflow(pwm.timer, 10);
+  timerSetCallback(pwm.timer, onUnitOverflow, &led);
+  timerSetFrequency(pwm.timer, 100000);
+  timerSetOverflow(pwm.timer, 100);
   timerEnable(pwm.timer);
 
   /* Reference PWM output */

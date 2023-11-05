@@ -20,9 +20,12 @@ struct Interface;
 struct Interrupt;
 struct Timer;
 /*----------------------------------------------------------------------------*/
+size_t boardGetAdcPinCount(void);
+void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 struct Timer *boardSetupAdcTimer(void);
+struct Interface *boardSetupAdcDma(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupCan(struct Timer *);
 struct Interface *boardSetupSerial(void);

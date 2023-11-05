@@ -5,6 +5,7 @@
 
 #include "board.h"
 #include <halm/delay.h>
+#include <halm/generic/i2c.h>
 #include <halm/timer.h>
 #include <xcore/interface.h>
 #include <xcore/memory.h>
@@ -32,35 +33,56 @@ static void fillBuffer(uint8_t *buffer, size_t length, uint8_t iteration)
     buffer[i] = (uint8_t)(iteration + i);
 }
 /*----------------------------------------------------------------------------*/
-static void deviceConfigIO(struct Interface *interface)
+static void deviceConfigIO(struct Interface *interface, bool zerocopy)
 {
-  const uint32_t address = DEVICE_ADDRESS;
-  const uint32_t rate = DEVICE_RATE;
   enum Result res;
 
-  res = ifSetParam(interface, IF_ADDRESS, &address);
+  res = ifSetParam(interface, IF_ADDRESS, &(uint32_t){DEVICE_ADDRESS});
   assert(res == E_OK);
-  res = ifSetParam(interface, IF_RATE, &rate);
+  res = ifSetParam(interface, IF_RATE, &(uint32_t){DEVICE_RATE});
+  assert(res == E_OK);
+  res = ifSetParam(interface, zerocopy ? IF_ZEROCOPY : IF_BLOCKING, NULL);
   assert(res == E_OK);
 
   (void)res; /* Suppress warning */
 }
 /*----------------------------------------------------------------------------*/
 static void deviceRead(struct Interface *interface, uint32_t position,
-    void *buffer, size_t length)
+    void *buffer, size_t length, bool zerocopy)
 {
   uint8_t packet[ADDRESS_SIZE];
 
   for (size_t i = 0; i < ADDRESS_SIZE; ++i)
     packet[i] = position >> ((ADDRESS_SIZE - 1 - i) * 8);
 
-  deviceConfigIO(interface);
-  if (ifWrite(interface, packet, sizeof(packet)) == sizeof(packet))
+  deviceConfigIO(interface, zerocopy);
+
+  if (!zerocopy)
+  {
+    if (ifWrite(interface, packet, sizeof(packet)) == sizeof(packet))
+      ifRead(interface, buffer, length);
+  }
+  else
+  {
+    ifWrite(interface, packet, sizeof(packet));
+    udelay(2 * 9 * 1000 * (sizeof(packet) + 1) / (DEVICE_RATE / 1000));
+
+    if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+    {
+      ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+      return;
+    }
+
     ifRead(interface, buffer, length);
+    udelay(2 * 9 * 1000 * (length + 1) / (DEVICE_RATE / 1000));
+
+    if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+      ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+  }
 }
 /*----------------------------------------------------------------------------*/
 static void deviceWrite(struct Interface *interface, uint32_t position,
-    const void *buffer, size_t length)
+    const void *buffer, size_t length, bool zerocopy)
 {
   uint8_t packet[length + ADDRESS_SIZE];
 
@@ -68,8 +90,16 @@ static void deviceWrite(struct Interface *interface, uint32_t position,
     packet[i] = position >> ((ADDRESS_SIZE - 1 - i) * 8);
   memcpy(packet + ADDRESS_SIZE, buffer, length);
 
-  deviceConfigIO(interface);
+  deviceConfigIO(interface, zerocopy);
   ifWrite(interface, packet, sizeof(packet));
+
+  if (zerocopy)
+  {
+    udelay(2 * 9 * 1000 * (sizeof(packet) + 1) / (DEVICE_RATE / 1000));
+
+    if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+      ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+  }
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -79,6 +109,8 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const bool USE_ZEROCOPY = true;
+
   uint8_t buffer[16];
   uint8_t iteration = 0;
   bool event = false;
@@ -105,14 +137,14 @@ int main(void)
 
     /* Write memory page */
     fillBuffer(buffer, sizeof(buffer), iteration);
-    deviceWrite(i2c, 0, buffer, sizeof(buffer));
+    deviceWrite(i2c, 0, buffer, sizeof(buffer), USE_ZEROCOPY);
 
     /* Wait for page program operation */
     mdelay(10);
 
     /* Read and verify memory page */
     memset(buffer, 0, sizeof(buffer));
-    deviceRead(i2c, 0, buffer, sizeof(buffer));
+    deviceRead(i2c, 0, buffer, sizeof(buffer), USE_ZEROCOPY);
 
     if (checkBuffer(buffer, sizeof(buffer), iteration))
       pinWrite(led, BOARD_LED_INV);

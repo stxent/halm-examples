@@ -570,7 +570,7 @@ struct PwmPackage boardSetupPwmSCTDivided(bool centered)
       .channel = 0,
       .centered = centered
   };
-  const bool inversion = centered;
+  const bool inversion = false;
 
   struct SctPwmUnit * const timer = init(SctPwmUnit, &pwmTimerConfig);
   assert(timer != NULL);
@@ -599,7 +599,7 @@ struct PwmPackage boardSetupPwmSCTUnified(bool centered)
       .channel = 0,
       .centered = centered
   };
-  const bool inversion = centered;
+  const bool inversion = false;
 
   struct SctPwmUnit * const timer = init(SctPwmUnit, &pwmTimerConfig);
   assert(timer != NULL);

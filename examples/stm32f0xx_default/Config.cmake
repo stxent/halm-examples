@@ -8,6 +8,7 @@ set(PLATFORM "STM32F0XX")
 
 # Define template list
 set(TEMPLATES_LIST
+        adc_dma:ADC_CALIBRATE=true
         can
         pin_int
         serial

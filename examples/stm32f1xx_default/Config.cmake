@@ -8,6 +8,8 @@ set(PLATFORM "STM32F1XX")
 
 # Define template list
 set(TEMPLATES_LIST
+        adc
+        adc_dma
         can
         mmcsd_spi
         pin_int

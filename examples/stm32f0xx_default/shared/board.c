@@ -5,6 +5,7 @@
  */
 
 #include "board.h"
+#include <halm/platform/stm32/adc_dma.h>
 #include <halm/platform/stm32/can.h>
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
@@ -15,6 +16,13 @@
 #include <halm/platform/stm32/spi.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+const PinNumber adcPinArray[] = {
+    PIN(PORT_A, 0),
+    PIN(PORT_A, 1),
+    PIN(PORT_A, 2),
+    0
+};
+
 static const struct BusClockConfig ahbClockConfig = {
     .divisor = 1
 };
@@ -26,6 +34,17 @@ static const struct BusClockConfig apbClockConfig = {
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 8000000
 };
+/*----------------------------------------------------------------------------*/
+size_t boardGetAdcPinCount(void)
+{
+  return ARRAY_SIZE(adcPinArray) - 1;
+}
+/*----------------------------------------------------------------------------*/
+void boardSetAdcTimerRate(struct Timer *timer,
+    size_t count __attribute__((unused)), uint32_t rate)
+{
+  timerSetOverflow(timer, timerGetFrequency(timer) / rate);
+}
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
@@ -65,12 +84,33 @@ void boardSetupClockPll(void)
   clockEnable(MainClock, &ahbClockConfig);
 }
 /*----------------------------------------------------------------------------*/
+struct Interface *boardSetupAdcDma(void)
+{
+  static const struct AdcDmaConfig adcDmaConfig = {
+      .pins = adcPinArray,
+      .event = ADC_TIM1_CC4,
+      .sensitivity = INPUT_TOGGLE,
+      .channel = 0,
+      .dma = DMA1_STREAM1
+  };
+
+  clockEnable(InternalOsc14, NULL);
+  while (!clockReady(InternalOsc14));
+
+  clockEnable(AdcClock, &(struct AdcClockConfig){ADC_CLOCK_INTERNAL_14});
+
+  struct Interface * const interface = init(AdcDma, &adcDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
 struct Timer *boardSetupAdcTimer(void)
 {
+  /* ADC triggers TIM1_TRGO and TIM1_CC4 */
   static const struct GpTimerConfig adcTimerConfig = {
       .frequency = 10000,
-      .channel = TIM2,
-      .event = 4
+      .channel = TIM1,
+      .event = TIM_EVENT_CC4
   };
 
   struct Timer * const timer = init(GpTimer, &adcTimerConfig);

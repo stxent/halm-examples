@@ -5,6 +5,8 @@
  */
 
 #include "board.h"
+#include <halm/platform/stm32/adc.h>
+#include <halm/platform/stm32/adc_dma.h>
 #include <halm/platform/stm32/can.h>
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
@@ -19,6 +21,13 @@
 struct Interface *boardSetupSpiSdio(void)
     __attribute__((alias("boardSetupSpi")));
 /*----------------------------------------------------------------------------*/
+const PinNumber adcPinArray[] = {
+    PIN(PORT_C, 0),
+    PIN(PORT_C, 5),
+    PIN(PORT_A, 0),
+    0
+};
+
 static const struct BusClockConfig ahbClockConfig = {
     .divisor = 1
 };
@@ -36,6 +45,17 @@ static const struct ExternalOscConfig extOscConfig = {
 };
 /*----------------------------------------------------------------------------*/
 DECLARE_WQ_IRQ(WQ_LP, FLASH_ISR)
+/*----------------------------------------------------------------------------*/
+size_t boardGetAdcPinCount(void)
+{
+  return ARRAY_SIZE(adcPinArray) - 1;
+}
+/*----------------------------------------------------------------------------*/
+void boardSetAdcTimerRate(struct Timer *timer,
+    size_t count __attribute__((unused)), uint32_t rate)
+{
+  timerSetOverflow(timer, timerGetFrequency(timer) / rate);
+}
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
@@ -90,12 +110,42 @@ void boardSetupLowPriorityWQ(void)
   (void)wq;
 }
 /*----------------------------------------------------------------------------*/
+struct Interface *boardSetupAdc(void)
+{
+  static const struct AdcConfig adcConfig = {
+      .pins = adcPinArray,
+      .event = ADC_INJ_TIM3_CC4,
+      .sensitivity = INPUT_TOGGLE,
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(Adc, &adcConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupAdcDma(void)
+{
+  static const struct AdcDmaConfig adcDmaConfig = {
+      .pins = adcPinArray,
+      .event = ADC_TIM3_TRGO,
+      .sensitivity = INPUT_RISING,
+      .channel = 0,
+      .dma = DMA1_STREAM1
+  };
+
+  struct Interface * const interface = init(AdcDma, &adcDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
 struct Timer *boardSetupAdcTimer(void)
 {
+  /* ADC triggers TIM3_TRGO and TIM3_CC4 */
   static const struct GpTimerConfig adcTimerConfig = {
       .frequency = 10000,
-      .channel = TIM4,
-      .event = 4
+      .channel = TIM3,
+      .event = TIM_EVENT_CC4
   };
 
   struct Timer * const timer = init(GpTimer, &adcTimerConfig);
