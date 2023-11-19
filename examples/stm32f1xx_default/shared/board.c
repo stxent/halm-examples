@@ -11,6 +11,7 @@
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
 #include <halm/platform/stm32/gptimer.h>
+#include <halm/platform/stm32/i2c.h>
 #include <halm/platform/stm32/iwdg.h>
 #include <halm/platform/stm32/serial.h>
 #include <halm/platform/stm32/serial_dma.h>
@@ -179,6 +180,22 @@ struct Interface *boardSetupCan(struct Timer *timer)
   };
 
   struct Interface * const interface = init(Can, &canConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2C(void)
+{
+  static const struct I2CConfig i2cConfig = {
+      .rate = 100000,
+      .scl = PIN(PORT_B, 6),
+      .sda = PIN(PORT_B, 7),
+      .channel = I2C1,
+      .rxDma = DMA1_STREAM7,
+      .txDma = DMA1_STREAM6
+  };
+
+  struct Interface * const interface = init(I2C, &i2cConfig);
   assert(interface != NULL);
   return interface;
 }

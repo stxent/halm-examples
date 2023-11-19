@@ -10,6 +10,7 @@ set(PLATFORM "STM32F0XX")
 set(TEMPLATES_LIST
         adc_dma:ADC_CALIBRATE=true
         can
+        i2c
         pin_int
         serial
         serial_dma

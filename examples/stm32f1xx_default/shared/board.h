@@ -44,6 +44,7 @@ struct Interface *boardSetupAdcDma(void);
 struct Timer *boardSetupAdcTimer(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupCan(struct Timer *);
+struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);
 struct Interface *boardSetupSpi(void);
