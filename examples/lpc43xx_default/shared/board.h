@@ -122,7 +122,7 @@ struct Entity *boardSetupUsb(void);
 struct Entity *boardSetupUsb0(void);
 struct Entity *boardSetupUsb1(void);
 struct Watchdog *boardSetupWdt(bool);
-struct Watchdog *boardSetupWwdt(bool);
+struct Watchdog *boardSetupWwdt(void);
 
 /* Counter timer alias */
 struct Timer *boardSetupCounterTimer(void);

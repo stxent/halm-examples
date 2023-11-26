@@ -24,4 +24,5 @@ set(TEMPLATES_LIST
         timer
         usb_cdc
         wdt
+        wdt_timer
 )

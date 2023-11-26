@@ -36,7 +36,6 @@
 #include <halm/platform/lpc/sct_pwm.h>
 #include <halm/platform/lpc/sct_timer.h>
 #include <halm/platform/lpc/usb_device.h>
-#include <halm/platform/lpc/wdt.h>
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
@@ -962,23 +961,25 @@ struct Entity *boardSetupUsb1(void)
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
+struct Watchdog *boardSetupWdt(bool disarmed)
 {
-  static const struct WdtConfig wdtConfig = {
-      .period = 5000
+  const struct WwdtConfig wwdtConfig = {
+      .period = 5000,
+      .window = 0,
+      .disarmed = disarmed
   };
 
-  struct Watchdog * const timer = init(Wdt, &wdtConfig);
+  struct Watchdog * const timer = init(Wwdt, &wwdtConfig);
   assert(timer != NULL);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWwdt(bool disarmed)
+struct Watchdog *boardSetupWwdt(void)
 {
   const struct WwdtConfig wwdtConfig = {
       .period = 5000,
-      .window = disarmed ? 0 : 1000,
-      .disarmed = disarmed
+      .window = 1000,
+      .disarmed = false
   };
 
   struct Watchdog * const timer = init(Wwdt, &wwdtConfig);

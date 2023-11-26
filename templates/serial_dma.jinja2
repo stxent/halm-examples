@@ -53,7 +53,13 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
+{%- if config.SERIAL_DMA_SUFFIX is defined %}
+
+  struct Interface * const serial = boardSetupSerialDma{{config.SERIAL_DMA_SUFFIX}}();
+{%- else %}
+
   struct Interface * const serial = boardSetupSerialDma();
+{%- endif %}
   ifSetCallback(serial, onSerialEvent, &event);
   res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
   assert(res == E_OK);

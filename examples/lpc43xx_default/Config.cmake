@@ -43,4 +43,6 @@ set(TEMPLATES_LIST
         usb_cdc
         usb_msc
         wdt
+        wdt_timer
+        work_queue
 )

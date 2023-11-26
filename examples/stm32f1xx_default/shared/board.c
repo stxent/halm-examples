@@ -106,9 +106,8 @@ void boardSetupLowPriorityWQ(void)
       .priority = 0
   };
 
-  struct WorkQueue * const wq = init(WorkQueueIrq, &wqIrqConfig);
-  assert(wq != NULL);
-  (void)wq;
+  WQ_LP = init(WorkQueueIrq, &wqIrqConfig);
+  assert(WQ_LP != NULL);
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupAdc(void)

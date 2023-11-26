@@ -20,7 +20,7 @@
 #include <halm/platform/lpc/serial.h>
 #include <halm/platform/lpc/spi.h>
 #include <halm/platform/lpc/usb_device.h>
-#include <halm/platform/lpc/wdt.h>
+#include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 static const PinNumber adcPinArray[] = {
@@ -318,7 +318,7 @@ struct Entity *boardSetupUsb(void)
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
+struct Watchdog *boardSetupWdt(bool disarmed)
 {
   /* Clocks */
   static const struct WdtOscConfig wdtOscConfig = {
@@ -327,14 +327,39 @@ struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
   };
 
   /* Objects */
-  static const struct WdtConfig wdtConfig = {
-      .period = 5000
+  const struct WwdtConfig wwdtConfig = {
+      .period = 5000,
+      .window = 0,
+      .disarmed = disarmed
   };
 
   clockEnable(WdtOsc, &wdtOscConfig);
   while (!clockReady(WdtOsc));
 
-  struct Watchdog * const timer = init(Wdt, &wdtConfig);
+  struct Watchdog * const timer = init(Wwdt, &wwdtConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Watchdog *boardSetupWwdt(void)
+{
+  /* Clocks */
+  static const struct WdtOscConfig wdtOscConfig = {
+      .frequency = WDT_FREQ_2100,
+      .divisor = 2
+  };
+
+  /* Objects */
+  const struct WwdtConfig wwdtConfig = {
+      .period = 5000,
+      .window = 1000,
+      .disarmed = false
+  };
+
+  clockEnable(WdtOsc, &wdtOscConfig);
+  while (!clockReady(WdtOsc));
+
+  struct Watchdog * const timer = init(Wwdt, &wwdtConfig);
   assert(timer != NULL);
   return timer;
 }

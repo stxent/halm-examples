@@ -72,5 +72,6 @@ struct Interface *boardSetupSpi(void);
 struct Timer *boardSetupTimer(void);
 struct Entity *boardSetupUsb(void);
 struct Watchdog *boardSetupWdt(bool);
+struct Watchdog *boardSetupWwdt(void);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC13UXX_DEFAULT_SHARED_BOARD_H_ */

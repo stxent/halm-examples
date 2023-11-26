@@ -31,7 +31,7 @@ int main(void)
   mdelay(100);
   pinToggle(failLed);
 
-  struct Watchdog * const wdt = boardSetupWwdt(false);
+  struct Watchdog * const wdt = boardSetupWwdt();
   watchdogSetCallback(wdt, onTimerOverflow, &event);
 
   if (watchdogFired(wdt))

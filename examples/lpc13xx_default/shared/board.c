@@ -20,7 +20,7 @@
 #include <halm/platform/lpc/serial_poll.h>
 #include <halm/platform/lpc/spi.h>
 #include <halm/platform/lpc/usb_device.h>
-#include <halm/platform/lpc/wdt.h>
+#include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 static const PinNumber adcPinArray[] = {
@@ -336,8 +336,10 @@ struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
   };
 
   /* Objects */
-  static const struct WdtConfig wdtConfig = {
-      .period = 5000
+  const struct WwdtConfig wwdtConfig = {
+      .period = 5000,
+      .window = 0,
+      .disarmed = disarmed
   };
 
   clockEnable(WdtOsc, &wdtOscConfig);
@@ -346,7 +348,7 @@ struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
   clockEnable(WdtClock, &wdtClockConfig);
   while (!clockReady(WdtClock));
 
-  struct Watchdog * const timer = init(Wdt, &wdtConfig);
+  struct Watchdog * const timer = init(Wwdt, &wwdtConfig);
   assert(timer != NULL);
   return timer;
 }

@@ -13,7 +13,8 @@
 #define BLOCK_SIZE  512
 #define ARENA_SIZE  (BLOCK_SIZE * 4)
 
-static uint8_t arena[ARENA_SIZE];
+/* Buffer should be aligned on a size of a DMA burst transfer */
+static uint8_t arena[ARENA_SIZE] __attribute__((aligned (64)));
 /*----------------------------------------------------------------------------*/
 static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
 {
@@ -113,8 +114,10 @@ int main(void)
 
   boardSetupClockPll();
 
-  const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, BOARD_LED_INV);
+  const struct Pin rLed = pinInit(BOARD_LED_1);
+  pinOutput(rLed, BOARD_LED_INV);
+  const struct Pin wLed = pinInit(BOARD_LED_0);
+  pinOutput(wLed, BOARD_LED_INV);
 
   /* Initialize SDMMC layer */
   sdmmc = boardSetupSdio(USE_WIDE_BUS);
@@ -149,20 +152,40 @@ int main(void)
       barrier();
     event = false;
 
+    bool ok;
+
+    /* Write test */
     if (USE_WRITE)
     {
-      pinWrite(led, !BOARD_LED_INV);
-      if (dataWrite(card, arena, BLOCK_SIZE, position))
-        pinWrite(led, BOARD_LED_INV);
-      if (dataWrite(card, arena, ARENA_SIZE, position))
-        pinWrite(led, BOARD_LED_INV);
+      ok = true;
+      pinWrite(wLed, !BOARD_LED_INV);
+
+      /* Single-block write */
+      if (!dataWrite(card, arena, BLOCK_SIZE, position))
+        ok = false;
+
+      /* Multi-block write */
+      if (!dataWrite(card, arena, ARENA_SIZE, position))
+        ok = false;
+
+      if (ok)
+        pinWrite(wLed, BOARD_LED_INV);
     }
 
-    pinWrite(led, !BOARD_LED_INV);
-    if (dataRead(card, arena, BLOCK_SIZE, position))
-      pinWrite(led, BOARD_LED_INV);
-    if (dataRead(card, arena, ARENA_SIZE, position))
-      pinWrite(led, BOARD_LED_INV);
+    /* Read test */
+    ok = true;
+    pinWrite(rLed, !BOARD_LED_INV);
+
+    /* Single-block read */
+    if (!dataRead(card, arena, BLOCK_SIZE, position))
+      ok = false;
+
+    /* Multi-block read */
+    if (!dataRead(card, arena, ARENA_SIZE, position))
+      ok = false;
+
+    if (ok)
+      pinWrite(rLed, BOARD_LED_INV);
 
     /* Increment position */
     position += ARENA_SIZE;

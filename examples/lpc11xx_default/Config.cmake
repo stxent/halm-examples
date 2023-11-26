@@ -19,4 +19,5 @@ set(TEMPLATES_LIST
         systick
         timer
         wdt
+        wdt_timer
 )
