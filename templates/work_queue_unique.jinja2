@@ -1,0 +1,101 @@
+/*
+ * {{group.name}}/work_queue_unique/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/timer_factory.h>
+#include <halm/generic/work_queue_unique.h>
+#include <halm/timer.h>
+#include <xcore/asm.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+static const struct WorkQueueUniqueConfig wqConfig = {
+    .size = 4
+};
+/*----------------------------------------------------------------------------*/
+static void blinkTask(void *argument)
+{
+  pinToggle(*(struct Pin *)argument);
+  wqStop(WQ_DEFAULT);
+}
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  wqAdd(WQ_DEFAULT, blinkTask, argument);
+}
+/*----------------------------------------------------------------------------*/
+static void onWorkQueueProcess(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  bool event = false;
+
+  boardSetupClockExt();
+
+  /* Initialize peripherals */
+
+  struct Pin output0 = pinInit(BOARD_LED_0);
+  pinOutput(output0, BOARD_LED_INV);
+  struct Pin output1 = pinInit(BOARD_LED_1);
+  pinOutput(output1, BOARD_LED_INV);
+  struct Pin output2 = pinInit(BOARD_LED_2);
+  pinOutput(output2, BOARD_LED_INV);
+
+  /* Base timer for batch processing of queued tasks */
+
+  struct Timer * const baseTimer = boardSetupTimer();
+  timerSetOverflow(baseTimer, timerGetFrequency(baseTimer));
+  timerSetCallback(baseTimer, onWorkQueueProcess, &event);
+
+  /* Timer Factory is used to create three timers adding tasks to the queue */
+
+  struct Timer * const tickTimer = boardSetupAdcTimer();
+  timerSetOverflow(tickTimer, timerGetFrequency(tickTimer) / 1000);
+
+  const struct TimerFactoryConfig factoryConfig = {
+      .timer = tickTimer
+  };
+  struct TimerFactory * const timerFactory = init(TimerFactory, &factoryConfig);
+  assert(timerFactory != NULL);
+
+  struct Timer * const timer0 = timerFactoryCreate(timerFactory);
+  assert(timer0 != NULL);
+  timerSetCallback(timer0, onTimerOverflow, &output0);
+  timerSetOverflow(timer0, 199);
+  timerEnable(timer0);
+
+  struct Timer * const timer1 = timerFactoryCreate(timerFactory);
+  assert(timer1 != NULL);
+  timerSetCallback(timer1, onTimerOverflow, &output1);
+  timerSetOverflow(timer1, 37);
+  timerEnable(timer1);
+
+  struct Timer * const timer2 = timerFactoryCreate(timerFactory);
+  assert(timer2 != NULL);
+  timerSetCallback(timer2, onTimerOverflow, &output2);
+  timerSetOverflow(timer2, 97);
+  timerEnable(timer2);
+
+  /* Initialize Work Queue */
+  WQ_DEFAULT = init(WorkQueueUnique, &wqConfig);
+  assert(WQ_DEFAULT);
+
+  /* Start event generation and queue handler */
+  timerEnable(baseTimer);
+  timerEnable(tickTimer);
+
+  while (1)
+  {
+    while (!event)
+      barrier();
+    event = false;
+
+    wqStart(WQ_DEFAULT);
+  }
+
+  return 0;
+}

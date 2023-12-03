@@ -57,8 +57,6 @@ struct Timer *boardSetupAdcTimer(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupCan(struct Timer *);
 struct Interface *boardSetupFlash(void);
-struct Entity *boardSetupFsUsb(void);
-struct Entity *boardSetupHsUsb(void);
 struct Interface *boardSetupI2C(void);
 struct PwmPackage boardSetupPwm(bool);
 struct PwmPackage boardSetupPwmBPWM(bool);
@@ -70,6 +68,8 @@ struct Interface *boardSetupSpi(void);
 struct Interface *boardSetupSpiDma(void);
 struct Timer *boardSetupTimer(void);
 struct Entity *boardSetupUsb(void);
+struct Entity *boardSetupUsbFs(void);
+struct Entity *boardSetupUsbHs(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* M48X_DEFAULT_SHARED_BOARD_H_ */

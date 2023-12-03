@@ -29,7 +29,7 @@ struct PwmPackage boardSetupPwm(bool)
     __attribute__((alias("boardSetupPwmBPWM")));
 
 struct Entity *boardSetupUsb(void)
-    __attribute__((alias("boardSetupHsUsb")));
+    __attribute__((alias("boardSetupUsbHs")));
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
     PIN(PORT_B, 0),
@@ -217,50 +217,6 @@ struct Interface *boardSetupFlash(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupFsUsb(void)
-{
-  /* Clocks */
-  static const struct ExtendedClockConfig usbClockConfig = {
-      .divisor = 10,
-      .source = CLOCK_PLL
-  };
-
-  /* Objects */
-  static const struct UsbDeviceConfig usbConfig = {
-      .dm = PIN(PORT_A, 13),
-      .dp = PIN(PORT_A, 14),
-      .vbus = PIN(PORT_A, 12),
-      .vid = 0x15A2,
-      .pid = 0x0044,
-      .channel = 0
-  };
-
-  assert(clockReady(SystemPll));
-  clockEnable(UsbClock, &usbClockConfig);
-
-  struct Entity * const usb = init(UsbDevice, &usbConfig);
-  assert(usb != NULL);
-  return usb;
-}
-/*----------------------------------------------------------------------------*/
-struct Entity *boardSetupHsUsb(void)
-{
-  static const struct UsbDeviceConfig hsUsbConfig = {
-      .dm = PIN(PORT_HSUSB, PIN_HSUSB_DM),
-      .dp = PIN(PORT_HSUSB, PIN_HSUSB_DP),
-      .vbus = PIN(PORT_HSUSB, PIN_HSUSB_VBUS),
-      .vid = 0x15A2,
-      .pid = 0x0044,
-      .channel = 0
-  };
-
-  assert(clockReady(ExternalOsc));
-
-  struct Entity * const usb = init(HsUsbDevice, &hsUsbConfig);
-  assert(usb != NULL);
-  return usb;
-}
-/*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C(void)
 {
   static const struct I2CConfig i2cConfig = {
@@ -424,6 +380,50 @@ struct Timer *boardSetupTimer(void)
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer != NULL);
   return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Entity *boardSetupUsbFs(void)
+{
+  /* Clocks */
+  static const struct ExtendedClockConfig usbClockConfig = {
+      .divisor = 10,
+      .source = CLOCK_PLL
+  };
+
+  /* Objects */
+  static const struct UsbDeviceConfig usbConfig = {
+      .dm = PIN(PORT_A, 13),
+      .dp = PIN(PORT_A, 14),
+      .vbus = PIN(PORT_A, 12),
+      .vid = 0x15A2,
+      .pid = 0x0044,
+      .channel = 0
+  };
+
+  assert(clockReady(SystemPll));
+  clockEnable(UsbClock, &usbClockConfig);
+
+  struct Entity * const usb = init(UsbDevice, &usbConfig);
+  assert(usb != NULL);
+  return usb;
+}
+/*----------------------------------------------------------------------------*/
+struct Entity *boardSetupUsbHs(void)
+{
+  static const struct UsbDeviceConfig hsUsbConfig = {
+      .dm = PIN(PORT_HSUSB, PIN_HSUSB_DM),
+      .dp = PIN(PORT_HSUSB, PIN_HSUSB_DP),
+      .vbus = PIN(PORT_HSUSB, PIN_HSUSB_VBUS),
+      .vid = 0x15A2,
+      .pid = 0x0044,
+      .channel = 0
+  };
+
+  assert(clockReady(ExternalOsc));
+
+  struct Entity * const usb = init(HsUsbDevice, &hsUsbConfig);
+  assert(usb != NULL);
+  return usb;
 }
 /*----------------------------------------------------------------------------*/
 struct Watchdog *boardSetupWdt(bool disarmed)

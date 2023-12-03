@@ -45,4 +45,5 @@ set(TEMPLATES_LIST
         wdt
         wdt_timer
         work_queue
+        work_queue_unique
 )

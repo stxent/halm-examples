@@ -35,7 +35,7 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpiSdio(void)
-    __attribute__((alias("boardSetupSpi0")));
+    __attribute__((alias("boardSetupSpiDma0")));
 
 struct Interface *boardSetupSpi(void)
     __attribute__((alias("boardSetupSpi1")));
@@ -430,8 +430,6 @@ struct Interface *boardSetupSdio(bool wide __attribute__((unused)))
 {
   static const uint32_t SDIO_POLL_RATE = 5000;
   static const uint8_t SPI_SDIO_MODE = 3;
-
-  boardSetupLowPriorityWQ();
 
   /* Helper timer for SDIO status polling */
   struct Timer * const timer = boardSetupAdcTimer();

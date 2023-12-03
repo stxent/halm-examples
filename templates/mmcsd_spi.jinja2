@@ -9,6 +9,7 @@
 #include <halm/generic/spi.h>
 #include <halm/timer.h>
 #include <assert.h>
+#include <stdalign.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
 #define BLOCK_SIZE      512
@@ -16,7 +17,7 @@
 #define SDIO_POLL_RATE  5000
 
 /* Buffer should be aligned on a size of a DMA burst transfer */
-static uint8_t arena[ARENA_SIZE] __attribute__((aligned (64)));
+static alignas(64) uint8_t arena[ARENA_SIZE];
 /*----------------------------------------------------------------------------*/
 static void markBuffer(uint8_t *buffer, size_t size, uint32_t iteration)
 {
