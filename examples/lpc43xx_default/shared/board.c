@@ -39,6 +39,11 @@
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupAdcTimer(void)
+    __attribute__((alias("boardSetupTimer3")));
+struct Timer *boardSetupTimer(void)
+    __attribute__((alias("boardSetupTimer0")));
+
 struct Timer *boardSetupCounterTimer(void)
     __attribute__((alias("boardSetupCounterTimerGPT")));
 struct Timer *boardSetupCounterTimerSCT(void)
@@ -249,19 +254,6 @@ struct StreamPackage boardSetupAdcStream(void)
   assert(stream != NULL);
 
   return (struct StreamPackage){(struct Interface *)interface, stream, NULL};
-}
-/*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-{
-  static const struct GpTimerConfig adcTimerConfig = {
-      .frequency = 4000000,
-      .event = GPTIMER_MATCH3,
-      .channel = 3
-  };
-
-  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
-  assert(timer != NULL);
-  return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupBod(void)
@@ -641,7 +633,7 @@ struct RtClock *boardSetupRtc(bool restart)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSdio(bool wide)
+struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
 {
   /* Clocks */
   static const struct GenericDividerConfig divDConfig = {
@@ -650,13 +642,15 @@ struct Interface *boardSetupSdio(bool wide)
   };
 
   /* Objects */
-  static const struct SdmmcConfig sdmmcConfig1Bit = {
+  const struct SdmmcConfig sdmmcConfig1Bit = {
+      .timer = timer,
       .rate = 1000000,
       .clk = PIN(PORT_CLK, 0),
       .cmd = PIN(PORT_1, 6),
       .dat0 = PIN(PORT_1, 9)
   };
-  static const struct SdmmcConfig sdmmcConfig4Bit = {
+  const struct SdmmcConfig sdmmcConfig4Bit = {
+      .timer = timer,
       .rate = 1000000,
       .clk = PIN(PORT_CLK, 0),
       .cmd = PIN(PORT_1, 6),
@@ -846,12 +840,25 @@ struct Interface *boardSetupSpim(struct Timer *timer __attribute__((unused)))
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupTimer(void)
+struct Timer *boardSetupTimer0(void)
 {
   static const struct GpTimerConfig timerConfig = {
       .frequency = 1000000,
       .event = GPTIMER_MATCH0,
       .channel = 0
+  };
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimer3(void)
+{
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 4000000,
+      .event = GPTIMER_MATCH3, /* Used as an ADC trigger */
+      .channel = 3
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);

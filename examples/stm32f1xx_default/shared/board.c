@@ -19,6 +19,11 @@
 #include <halm/platform/stm32/usb_device.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupAdcTimer(void)
+    __attribute__((alias("boardSetupTimer3")));
+struct Timer *boardSetupTimer(void)
+    __attribute__((alias("boardSetupTimer2")));
+
 struct Interface *boardSetupSpiSdio(void)
     __attribute__((alias("boardSetupSpi")));
 /*----------------------------------------------------------------------------*/
@@ -139,20 +144,6 @@ struct Interface *boardSetupAdcDma(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-{
-  /* ADC triggers TIM3_TRGO and TIM3_CC4 */
-  static const struct GpTimerConfig adcTimerConfig = {
-      .frequency = 10000,
-      .channel = TIM3,
-      .event = TIM_EVENT_CC4
-  };
-
-  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
-  assert(timer != NULL);
-  return timer;
-}
-/*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupButton(void)
 {
   static const struct ExtiConfig buttonIntConfig = {
@@ -252,11 +243,25 @@ struct Interface *boardSetupSpi(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupTimer(void)
+struct Timer *boardSetupTimer2(void)
 {
   static const struct GpTimerConfig timerConfig = {
       .frequency = 10000,
       .channel = TIM2
+  };
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimer3(void)
+{
+  /* ADC triggers TIM3_TRGO and TIM3_CC4 */
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 10000,
+      .channel = TIM3,
+      .event = TIM_EVENT_CC4
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);

@@ -157,8 +157,7 @@ static bool readJedecId(struct Interface *interface, bool *extended)
 
   ifSetParam(interface, IF_SPIM_COMMAND, &((uint8_t){CMD_READ_JEDEC_ID}));
   ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
-  ifSetParam(interface, IF_SPIM_ADDRESS_24, &((uint32_t){0}));
-  ifSetParam(interface, IF_SPIM_ADDRESS_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_ADDRESS_NONE, NULL);
   ifSetParam(interface, IF_SPIM_POST_ADDRESS_NONE, NULL);
   ifSetParam(interface, IF_SPIM_DELAY_NONE, NULL);
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));

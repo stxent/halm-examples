@@ -103,46 +103,39 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t length,
 int main(void)
 {
   static const uint32_t SDMMC_RATE = 6000000;
+  static const bool USE_BUSY_TIMER = true;
   static const bool USE_WIDE_BUS = true;
   static const bool USE_WRITE = false;
 
-  uint64_t capacity = 0;
-  uint64_t position = 0;
-  struct Interface *card;
-  struct Interface *sdmmc;
   enum Result res;
-  bool event = false;
+  bool event = true;
 
   boardSetupClockPll();
 
-  const struct Pin rLed = pinInit(BOARD_LED_1);
-  pinOutput(rLed, BOARD_LED_INV);
-  const struct Pin wLed = pinInit(BOARD_LED_0);
-  pinOutput(wLed, BOARD_LED_INV);
+  const struct Pin cdLed = pinInit(BOARD_LED_2);
+  pinOutput(cdLed, !BOARD_LED_INV);
+  const struct Pin rxLed = pinInit(BOARD_LED_1);
+  pinOutput(rxLed, BOARD_LED_INV);
+  const struct Pin txLed = pinInit(BOARD_LED_0);
+  pinOutput(txLed, BOARD_LED_INV);
+
+  /* Configure the timer for timeout calculations */
+  struct Timer * const busyTimer = USE_BUSY_TIMER ? boardSetupAdcTimer() : NULL;
 
   /* Initialize SDMMC layer */
-  sdmmc = boardSetupSdio(USE_WIDE_BUS);
-  res = ifSetParam(sdmmc, IF_RATE, &SDMMC_RATE);
+  struct Interface * const sdio = boardSetupSdio(USE_WIDE_BUS, busyTimer);
+  res = ifSetParam(sdio, IF_RATE, &SDMMC_RATE);
   assert(res == E_OK);
-
-  /* Initialize SD Card layer */
-  const struct MMCSDConfig cardConfig = {
-      .interface = sdmmc,
-      .crc = true
-  };
-  card = init(MMCSD, &cardConfig);
-  assert(card != NULL);
-  res = ifSetParam(card, IF_ZEROCOPY, NULL);
-  assert(res == E_OK);
-  res = ifGetParam(card, IF_SIZE_64, &capacity);
-  assert(res == E_OK);
-  assert(capacity != 0);
 
   /* Configure the timer for read/write events */
   struct Timer * const eventTimer = boardSetupTimer();
-  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer) * 2);
   timerSetCallback(eventTimer, onTimerOverflow, &event);
   timerEnable(eventTimer);
+
+  struct Interface *card = NULL;
+  uint64_t capacity = 0;
+  uint64_t position = 0;
 
   /* Suppress warning */
   (void)res;
@@ -153,13 +146,50 @@ int main(void)
       barrier();
     event = false;
 
-    bool ok;
+    bool unmount = false;
+
+    if (card == NULL)
+    {
+      /* Initialize SD Card layer */
+      const struct MMCSDConfig cardConfig = {
+          .interface = sdio,
+          .crc = true
+      };
+
+      pinWrite(cdLed, BOARD_LED_INV);
+      pinWrite(rxLed, BOARD_LED_INV);
+      pinWrite(txLed, BOARD_LED_INV);
+      card = init(MMCSD, &cardConfig);
+
+      if (card != NULL)
+      {
+        bool ok = true;
+
+        capacity = 0;
+        position = 0;
+
+        if (ifSetParam(card, IF_ZEROCOPY, NULL) != E_OK)
+          ok = false;
+        if (ifGetParam(card, IF_SIZE_64, &capacity) != E_OK || !capacity)
+          ok = false;
+
+        if (!ok)
+        {
+          deinit(card);
+          card = NULL;
+        }
+      }
+
+      if (card == NULL)
+        pinWrite(cdLed, !BOARD_LED_INV);
+    }
 
     /* Write test */
-    if (USE_WRITE)
+    if (USE_WRITE && card != NULL)
     {
-      ok = true;
-      pinWrite(wLed, !BOARD_LED_INV);
+      bool ok = true;
+
+      pinWrite(txLed, !BOARD_LED_INV);
 
       /* Single-block write */
       if (!dataWrite(card, arena, BLOCK_SIZE, position))
@@ -170,28 +200,45 @@ int main(void)
         ok = false;
 
       if (ok)
-        pinWrite(wLed, BOARD_LED_INV);
+        pinWrite(txLed, BOARD_LED_INV);
+      else
+        unmount = true;
     }
 
     /* Read test */
-    ok = true;
-    pinWrite(rLed, !BOARD_LED_INV);
+    if (card != NULL)
+    {
+      bool ok = true;
 
-    /* Single-block read */
-    if (!dataRead(card, arena, BLOCK_SIZE, position))
-      ok = false;
+      pinWrite(rxLed, !BOARD_LED_INV);
 
-    /* Multi-block read */
-    if (!dataRead(card, arena, ARENA_SIZE, position))
-      ok = false;
+      /* Single-block read */
+      if (!dataRead(card, arena, BLOCK_SIZE, position))
+        ok = false;
 
-    if (ok)
-      pinWrite(rLed, BOARD_LED_INV);
+      /* Multi-block read */
+      if (!dataRead(card, arena, ARENA_SIZE, position))
+        ok = false;
+
+      if (ok)
+        pinWrite(rxLed, BOARD_LED_INV);
+      else
+        unmount = true;
+    }
+
+    if (unmount)
+    {
+      deinit(card);
+      card = NULL;
+    }
 
     /* Increment position */
-    position += ARENA_SIZE;
-    if (position >= capacity)
-      position = 0;
+    if (card != NULL)
+    {
+      position += ARENA_SIZE;
+      if (position >= capacity)
+        position = 0;
+    }
   }
 
   return 0;

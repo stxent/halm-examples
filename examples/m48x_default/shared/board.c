@@ -281,16 +281,18 @@ struct Interface *boardSetupQspi(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSdio(bool wide)
+struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
 {
-  static const struct SdhConfig sdhConfig1Bit = {
+  const struct SdhConfig sdhConfig1Bit = {
+      .timer = timer,
       .rate = 1000000,
       .clk = PIN(PORT_E, 6),
       .cmd = PIN(PORT_E, 7),
       .dat0 = PIN(PORT_E, 2),
       .channel = 0
   };
-  static const struct SdhConfig sdhConfig4Bit = {
+  const struct SdhConfig sdhConfig4Bit = {
+      .timer = timer,
       .rate = 1000000,
       .clk = PIN(PORT_E, 6),
       .cmd = PIN(PORT_E, 7),

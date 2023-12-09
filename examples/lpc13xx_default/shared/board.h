@@ -70,6 +70,10 @@ struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialPoll(void);
 struct Interface *boardSetupSpi(void);
 struct Timer *boardSetupTimer(void);
+struct Timer *boardSetupTimer16B0(void);
+struct Timer *boardSetupTimer16B1(void);
+struct Timer *boardSetupTimer32B0(void);
+struct Timer *boardSetupTimer32B1(void);
 struct Entity *boardSetupUsb(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/

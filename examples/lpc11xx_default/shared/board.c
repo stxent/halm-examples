@@ -18,6 +18,11 @@
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupAdcTimer(void)
+    __attribute__((alias("boardSetupTimer32B0")));
+struct Timer *boardSetupTimer(void)
+    __attribute__((alias("boardSetupTimer32B1")));
+/*----------------------------------------------------------------------------*/
 static const PinNumber adcPinArray[] = {
     PIN(1, 10),
     0
@@ -92,19 +97,6 @@ struct Interface *boardSetupAdcOneShot(void)
   struct Interface * const interface = init(AdcOneShot, &adcOneShotConfig);
   assert(interface != NULL);
   return interface;
-}
-/*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-{
-  static const struct GpTimerConfig adcTimerConfig = {
-      .frequency = 1000000,
-      .event = GPTIMER_MATCH0,
-      .channel = GPTIMER_CT32B0
-  };
-
-  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
-  assert(timer != NULL);
-  return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupBod(void)
@@ -185,7 +177,46 @@ struct Interface *boardSetupSpi(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupTimer(void)
+struct Timer *boardSetupTimer16B0(void)
+{
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 10000,
+      .event = GPTIMER_MATCH0,
+      .channel = GPTIMER_CT16B0
+  };
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimer16B1(void)
+{
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 10000,
+      .event = GPTIMER_MATCH0,
+      .channel = GPTIMER_CT16B1
+  };
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimer32B0(void)
+{
+  static const struct GpTimerConfig adcTimerConfig = {
+      .frequency = 1000000,
+      .event = GPTIMER_MATCH0, /* Used as an ADC trigger */
+      .channel = GPTIMER_CT32B0
+  };
+
+  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimer32B1(void)
 {
   static const struct GpTimerConfig timerConfig = {
       .frequency = 1000000,

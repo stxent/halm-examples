@@ -34,6 +34,11 @@
 #include <halm/platform/lpc/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupAdcTimer(void)
+    __attribute__((alias("boardSetupTimer1")));
+struct Timer *boardSetupTimer(void)
+    __attribute__((alias("boardSetupTimer0")));
+
 struct Interface *boardSetupSpiSdio(void)
     __attribute__((alias("boardSetupSpiDma0")));
 
@@ -68,11 +73,7 @@ void boardSetAdcTimerRate(struct Timer *timer, size_t count, uint32_t rate)
 /*----------------------------------------------------------------------------*/
 void boardResetClock(void)
 {
-  static const struct GenericClockConfig mainClockConfigInt = {
-      .source = CLOCK_INTERNAL
-  };
-
-  clockEnable(MainClock, &mainClockConfigInt);
+  clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
 
   if (clockReady(UsbPll))
     clockDisable(UsbPll);
@@ -86,14 +87,10 @@ void boardResetClock(void)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
-  static const struct GenericClockConfig mainClockConfigExt = {
-      .source = CLOCK_EXTERNAL
-  };
-
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(MainClock, &mainClockConfigExt);
+  clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
 }
 /*----------------------------------------------------------------------------*/
 const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
@@ -117,9 +114,6 @@ void boardSetupClockPll(void)
       .multiplier = 32,
       .source = CLOCK_EXTERNAL
   };
-  static const struct GenericClockConfig mainClockConfigPll = {
-      .source = CLOCK_PLL
-  };
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -127,7 +121,7 @@ void boardSetupClockPll(void)
   clockEnable(SystemPll, &sysPllConfig);
   while (!clockReady(SystemPll));
 
-  clockEnable(MainClock, &mainClockConfigPll);
+  clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupLowPriorityWQ(void)
@@ -198,19 +192,6 @@ struct StreamPackage boardSetupAdcStream(void)
   assert(stream != NULL);
 
   return (struct StreamPackage){(struct Interface *)interface, stream, NULL};
-}
-/*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-{
-  static const struct GpTimerConfig adcTimerConfig = {
-      .frequency = 1000000,
-      .event = GPTIMER_MATCH1,
-      .channel = 1
-  };
-
-  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
-  assert(timer != NULL);
-  return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupBod(void)
@@ -426,19 +407,27 @@ struct RtClock *boardSetupRtc(bool restart)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSdio(bool wide __attribute__((unused)))
+struct Interface *boardSetupSdio(bool wide __attribute__((unused)),
+    struct Timer *timer)
 {
+  static const size_t SDIO_MAX_BLOCKS = 32768 >> 9; /* RAM size / block size */
   static const uint32_t SDIO_POLL_RATE = 5000;
   static const uint8_t SPI_SDIO_MODE = 3;
 
-  /* Helper timer for SDIO status polling */
-  struct Timer * const timer = boardSetupAdcTimer();
-  assert(timerGetFrequency(timer) >= 10 * SDIO_POLL_RATE);
-  timerSetOverflow(timer, timerGetFrequency(timer) / SDIO_POLL_RATE);
+  /* Configure helper timer for SDIO status polling */
+  if (timer != NULL)
+  {
+    assert(timerGetFrequency(timer) >= 10 * SDIO_POLL_RATE);
+    timerSetOverflow(timer, timerGetFrequency(timer) / SDIO_POLL_RATE);
+  }
 
   struct Interface *sdio;
   struct Interface *spi;
   enum Result res;
+
+  /* Initialize and start a Work Queue for CRC computation */
+  boardSetupLowPriorityWQ();
+  wqStart(WQ_LP);
 
   /* Initialize SPI layer */
   spi = boardSetupSpiSdio();
@@ -451,8 +440,8 @@ struct Interface *boardSetupSdio(bool wide __attribute__((unused)))
   const struct SdioSpiConfig sdioSpiConfig = {
       .interface = spi,
       .timer = timer,
-      .wq = NULL,
-      .blocks = 0,
+      .wq = WQ_LP,
+      .blocks = SDIO_MAX_BLOCKS,
       .cs = BOARD_SDIO_CS
   };
   sdio = init(SdioSpi, &sdioSpiConfig);
@@ -561,12 +550,25 @@ struct Interface *boardSetupSpiDma1(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupTimer(void)
+struct Timer *boardSetupTimer0(void)
 {
   static const struct GpTimerConfig timerConfig = {
       .frequency = 1000000,
       .event = GPTIMER_MATCH0,
       .channel = 0
+  };
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimer1(void)
+{
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 1000000,
+      .event = GPTIMER_MATCH1, /* Used as an ADC trigger */
+      .channel = 1
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);

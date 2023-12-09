@@ -62,7 +62,7 @@ struct PwmPackage boardSetupPwm(bool);
 struct PwmPackage boardSetupPwmBPWM(bool);
 struct PwmPackage boardSetupPwmEPWM(bool);
 struct Interface *boardSetupQspi(void);
-struct Interface *boardSetupSdio(bool);
+struct Interface *boardSetupSdio(bool, struct Timer *);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSpi(void);
 struct Interface *boardSetupSpiDma(void);

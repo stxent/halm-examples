@@ -36,6 +36,10 @@ struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSpi(void);
 struct Timer *boardSetupTimer(void);
+struct Timer *boardSetupTimer16B0(void);
+struct Timer *boardSetupTimer16B1(void);
+struct Timer *boardSetupTimer32B0(void);
+struct Timer *boardSetupTimer32B1(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC11XX_DEFAULT_SHARED_BOARD_H_ */

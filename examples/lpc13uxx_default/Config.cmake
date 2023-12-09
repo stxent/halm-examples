@@ -23,6 +23,7 @@ set(TEMPLATES_LIST
         spi
         systick
         timer
+        timer_rit=timer:TIMER_SUFFIX=RIT
         usb_cdc
         wdt
         wdt_timer

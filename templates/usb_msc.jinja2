@@ -5,7 +5,9 @@
 
 #include "board.h"
 #include <halm/generic/mmcsd.h>
+#include <halm/timer.h>
 #include <halm/usb/msc.h>
+#include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 static uint8_t arena[16384];
@@ -35,6 +37,8 @@ static enum Result interfaceGetParam(void *, int, void *);
 static enum Result interfaceSetParam(void *, int, const void *);
 static size_t interfaceRead(void *, void *, size_t);
 static size_t interfaceWrite(void *, const void *, size_t);
+static void onMassStorageEvent(void *);
+static void onTimerOverflow(void *);
 /*----------------------------------------------------------------------------*/
 const struct InterfaceClass * const InterfaceWrapper =
     &(const struct InterfaceClass){
@@ -116,47 +120,54 @@ static size_t interfaceWrite(void *object, const void *buffer, size_t length)
   return ifWrite(interface->pipe, buffer, length);
 }
 /*----------------------------------------------------------------------------*/
+static void onMassStorageEvent(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
 int main(void)
 {
   static const uint32_t SDMMC_RATE = 6000000;
-  static const bool USE_INDICATION = true;
+  static const bool USE_BUSY_TIMER = true;
   static const bool USE_WIDE_BUS = true;
+
+  struct Interface *card = NULL;
+  enum Result res;
+  bool event = true;
 
   boardSetupClockPll();
 
-  struct Interface *card;
-  struct Interface *sdmmc;
-  struct Interface *wrapper;
-  enum Result res;
+  const struct Pin cdLed = pinInit(BOARD_LED_2);
+  pinOutput(cdLed, !BOARD_LED_INV);
+
+  /* Configure the timer for timeout calculations */
+  struct Timer * const busyTimer = USE_BUSY_TIMER ? boardSetupAdcTimer() : NULL;
 
   /* Initialize SDMMC layer */
-  sdmmc = boardSetupSdio(USE_WIDE_BUS);
-  res = ifSetParam(sdmmc, IF_RATE, &SDMMC_RATE);
+  struct Interface * const sdio = boardSetupSdio(USE_WIDE_BUS, busyTimer);
+  res = ifSetParam(sdio, IF_RATE, &SDMMC_RATE);
   assert(res == E_OK);
+  (void)res; /* Suppress warning */
 
-  /* Optional wrapper for R/W operations indication */
-  if (USE_INDICATION)
-  {
-    const struct InterfaceWrapperConfig wrapperConfig = {
-        .pipe = sdmmc,
-        .rx = BOARD_LED_1,
-        .tx = BOARD_LED_0
-    };
-    wrapper = init(InterfaceWrapper, &wrapperConfig);
-    assert(wrapper != NULL);
-  }
-  else
-    wrapper = NULL;
-
-  /* Initialize SD Card layer */
-  const struct MMCSDConfig cardConfig = {
-      .interface = wrapper,
-      .crc = true
+  /* Wrapper for indication of SDIO read/write operations */
+  const struct InterfaceWrapperConfig wrapperConfig = {
+      .pipe = sdio,
+      .rx = BOARD_LED_1,
+      .tx = BOARD_LED_0
   };
-  card = init(MMCSD, &cardConfig);
-  assert(card != NULL);
-  res = ifSetParam(card, IF_ZEROCOPY, NULL);
-  assert(res == E_OK);
+  struct Interface * const wrapper = init(InterfaceWrapper, &wrapperConfig);
+  assert(wrapper != NULL);
+
+  /* Configure the timer for mount events */
+  struct Timer * const eventTimer = boardSetupTimer();
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer) * 2);
+  timerSetCallback(eventTimer, onTimerOverflow, &event);
+  timerEnable(eventTimer);
 
   /* Initialize USB peripheral */
   struct Entity * const usb = boardSetupUsb();
@@ -175,13 +186,52 @@ int main(void)
   };
   struct Msc * const msc = init(Msc, &config);
   assert(msc != NULL);
+  mscSetCallback(msc, onMassStorageEvent, &event);
 
-  mscAttachUnit(msc, 0, card);
   usbDevSetConnected(usb, true);
 
-  /* Suppress warning */
-  (void)res;
+  while (1)
+  {
+    while (!event)
+      barrier();
+    event = false;
 
-  while (1);
+    if (card == NULL)
+    {
+      /* Initialize SD Card layer */
+      const struct MMCSDConfig cardConfig = {
+          .interface = wrapper,
+          .crc = true
+      };
+
+      pinWrite(cdLed, BOARD_LED_INV);
+      card = init(MMCSD, &cardConfig);
+
+      if (card != NULL)
+      {
+        res = ifSetParam(card, IF_ZEROCOPY, NULL);
+        assert(res == E_OK);
+        (void)res; /* Suppress warning */
+
+        mscAttachUnit(msc, 0, card);
+      }
+
+      if (card == NULL)
+        pinWrite(cdLed, !BOARD_LED_INV);
+    }
+    else
+    {
+      if (mscIsUnitFailed(msc, 0))
+      {
+        mscDetachUnit(msc, 0);
+
+        deinit(card);
+        card = NULL;
+
+        pinWrite(cdLed, !BOARD_LED_INV);
+      }
+    }
+  }
+
   return 0;
 }

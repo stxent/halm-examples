@@ -34,5 +34,7 @@ struct Interface *boardSetupSerialDma(void);
 struct Interface *boardSetupSpi(void);
 struct Watchdog *boardSetupWdt(bool);
 struct Timer *boardSetupTimer(void);
+struct Timer *boardSetupTimer1(void);
+struct Timer *boardSetupTimer14(void);
 /*----------------------------------------------------------------------------*/
 #endif /* STM32F0XX_DEFAULT_SHARED_BOARD_H_ */
