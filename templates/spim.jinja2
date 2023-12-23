@@ -7,6 +7,8 @@
 #include <halm/generic/spim.h>
 #include <halm/timer.h>
 #include <xcore/memory.h>
+#include <assert.h>
+#include <string.h>
 /*----------------------------------------------------------------------------*/
 #define CMD_READ_DEVICE_ID          0x90
 #define CMD_READ_DEVICE_ID_DUAL_IO  0x92
@@ -106,7 +108,9 @@ static bool readDeviceId(struct Interface *interface)
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
   ifSetParam(interface, IF_SPIM_DATA_SERIAL, NULL);
 
+  memset(&info, 0, sizeof(info));
   ifRead(interface, &info, sizeof(info));
+
   return checkDeviceId(info.manufacturer, info.device);
 }
 /*----------------------------------------------------------------------------*/
@@ -126,7 +130,9 @@ static bool readDeviceIdDual(struct Interface *interface)
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
   ifSetParam(interface, IF_SPIM_DATA_PARALLEL, NULL);
 
+  memset(&info, 0, sizeof(info));
   ifRead(interface, &info, sizeof(info));
+
   return checkDeviceId(info.manufacturer, info.device);
 }
 /*----------------------------------------------------------------------------*/
@@ -147,7 +153,9 @@ static bool readDeviceIdQuad(struct Interface *interface)
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
   ifSetParam(interface, IF_SPIM_DATA_PARALLEL, NULL);
 
+  memset(&info, 0, sizeof(info));
   ifRead(interface, &info, sizeof(info));
+
   return checkDeviceId(info.manufacturer, info.device);
 }
 /*----------------------------------------------------------------------------*/
@@ -163,6 +171,7 @@ static bool readJedecId(struct Interface *interface, bool *extended)
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
   ifSetParam(interface, IF_SPIM_DATA_SERIAL, NULL);
 
+  memset(&info, 0, sizeof(info));
   ifRead(interface, &info, sizeof(info));
 
   if (checkJedecId(info.manufacturer, info.type, info.capacity))
@@ -198,7 +207,10 @@ static bool memoryTestSequence(struct Interface *interface)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const uint32_t SPIM_TEST_RATE = 4000000;
+
   bool event = false;
+  enum Result res;
 
   boardSetupClockExt();
 
@@ -213,11 +225,16 @@ int main(void)
   struct Timer * const pollTimer = NULL;
 {%- endif %}
   struct Interface * const spim = boardSetupSpim(pollTimer);
+  res = ifSetParam(spim, IF_RATE, &SPIM_TEST_RATE);
+  assert(res == E_OK || res == E_INVALID);
 
   struct Timer * const eventTimer = boardSetupTimer();
   timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
   timerSetCallback(eventTimer, onTimerOverflow, &event);
   timerEnable(eventTimer);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {

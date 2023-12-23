@@ -66,6 +66,7 @@ struct Interface *boardSetupSdio(bool, struct Timer *);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSpi(void);
 struct Interface *boardSetupSpiDma(void);
+struct Interface *boardSetupSpim(struct Timer *);
 struct Timer *boardSetupTimer(void);
 struct Entity *boardSetupUsb(void);
 struct Entity *boardSetupUsbFs(void);

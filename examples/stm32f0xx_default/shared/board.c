@@ -54,15 +54,11 @@ void boardSetAdcTimerRate(struct Timer *timer,
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
-  static const struct SystemClockConfig systemClockConfigExt = {
-      .source = CLOCK_EXTERNAL
-  };
-
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
   clockEnable(ApbClock, &apbClockConfig);
-  clockEnable(SystemClock, &systemClockConfigExt);
+  clockEnable(SystemClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
 
   clockEnable(MainClock, &ahbClockConfig);
 }
@@ -74,9 +70,6 @@ void boardSetupClockPll(void)
       .multiplier = 6,
       .source = CLOCK_EXTERNAL
   };
-  static const struct SystemClockConfig systemClockConfigPll = {
-      .source = CLOCK_PLL
-  };
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -85,7 +78,7 @@ void boardSetupClockPll(void)
   while (!clockReady(SystemPll));
 
   clockEnable(ApbClock, &apbClockConfig);
-  clockEnable(SystemClock, &systemClockConfigPll);
+  clockEnable(SystemClock, &(struct GenericClockConfig){CLOCK_PLL});
 
   clockEnable(MainClock, &ahbClockConfig);
 }

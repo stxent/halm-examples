@@ -6,6 +6,39 @@ set(FAMILY "LPC")
 # Set platform type
 set(PLATFORM "LPC43XX")
 
+# Available memory regions
+math(EXPR ADDRESS_FLASH "0x1A000000")
+math(EXPR ADDRESS_SDRAM "0x28000000")
+math(EXPR ADDRESS_SPIFI "0x14000000")
+math(EXPR ADDRESS_SRAM1 "0x10080000")
+
+# Linker script settings
+if(TARGET_NOR)
+    if(USE_DFU)
+        set(DFU_LENGTH 65536)
+    else()
+        set(DFU_LENGTH 0)
+    endif()
+
+    math(EXPR FW_LENGTH "4 * 1024 * 1024 - ${DFU_LENGTH}")
+    math(EXPR FW_ORIGIN "${ADDRESS_SPIFI} + ${DFU_LENGTH}")
+elseif(TARGET_SDRAM)
+    math(EXPR FW_LENGTH "4 * 1024 * 1024")
+    math(EXPR FW_ORIGIN "${ADDRESS_SDRAM}")
+elseif(TARGET_SRAM)
+    math(EXPR FW_LENGTH "72 * 1024")
+    math(EXPR FW_ORIGIN "${ADDRESS_SRAM1}")
+else()
+    if(USE_DFU)
+        set(DFU_LENGTH 32768)
+    else()
+        set(DFU_LENGTH 0)
+    endif()
+
+    math(EXPR FW_LENGTH "256 * 1024 - ${DFU_LENGTH}")
+    math(EXPR FW_ORIGIN "${ADDRESS_FLASH} + ${DFU_LENGTH}")
+endif()
+
 # Define template list
 set(TEMPLATES_LIST
         adc

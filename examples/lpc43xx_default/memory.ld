@@ -8,7 +8,7 @@ EXTERN(vectorTable)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x1A000000, LENGTH = 256K
+  ROM (rx)   : ORIGIN = ${FW_ORIGIN}, LENGTH = ${FW_LENGTH}
   RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 32K - 32
   EEPROM (r) : ORIGIN = 0x20040000, LENGTH = 16K - 128
 
@@ -41,7 +41,7 @@ SECTIONS
 
     . = ALIGN(4);
     _sidata = .;
-  } >FLASH =0xFF
+  } >ROM =0xFF
 
   .data : AT(_sidata) ALIGN(4)
   {

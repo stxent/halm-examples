@@ -20,6 +20,7 @@
 #include <halm/platform/numicro/serial_dma.h>
 #include <halm/platform/numicro/spi.h>
 #include <halm/platform/numicro/spi_dma.h>
+#include <halm/platform/numicro/spim.h>
 #include <halm/platform/numicro/qspi.h>
 #include <halm/platform/numicro/usb_device.h>
 #include <halm/platform/numicro/wdt.h>
@@ -368,6 +369,25 @@ struct Interface *boardSetupSpiDma(void)
   clockEnable(Spi0Clock, &spiClockConfig);
 
   struct Interface * const interface = init(SpiDma, &spiDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSpim(struct Timer *timer)
+{
+  const struct SpimConfig spimConfig = {
+      .timer = timer,
+      .rate = 2000000,
+      .cs = PIN(PORT_C, 3),
+      .io0 = PIN(PORT_C, 0),
+      .io1 = PIN(PORT_C, 1),
+      .io2 = PIN(PORT_C, 5),
+      .io3 = PIN(PORT_C, 4),
+      .sck = PIN(PORT_C, 2),
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(Spim, &spimConfig);
   assert(interface != NULL);
   return interface;
 }

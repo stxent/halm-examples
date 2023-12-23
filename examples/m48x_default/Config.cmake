@@ -19,6 +19,7 @@ set(TEMPLATES_LIST
         serial
         spi
         spi_dma
+        spim:SPIM_TIMER=true
         systick
         timer
         usb_cdc

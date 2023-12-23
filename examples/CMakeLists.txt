@@ -6,8 +6,13 @@ cmake_policy(SET CMP0069 NEW)
 project(examples C)
 
 option(USE_BIN "Convert executables to binary format." OFF)
-option(USE_HEX "Convert executables to Intel HEX format." ON)
+option(USE_HEX "Convert executables to Intel HEX format." OFF)
+option(USE_DFU "Enable memory layout compatible with a bootloader." OFF)
 option(USE_LTO "Enable Link Time Optimization." OFF)
+
+option(TARGET_NOR "Use external NOR Flash for an artifact if available." OFF)
+option(TARGET_SDRAM "Use external SDRAM for an artifact if available." OFF)
+option(TARGET_SRAM "Use embedded SRAM for an artifact if available." OFF)
 
 set(PATH_XCORE "${PROJECT_SOURCE_DIR}/../xcore" CACHE STRING "Path to the XCORE library.")
 set(PATH_HALM "${PROJECT_SOURCE_DIR}/../halm" CACHE STRING "Path to the HALM library.")
