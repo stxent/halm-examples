@@ -79,7 +79,6 @@ size_t boardGetAdcPinCount(void);
 void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
 void boardResetClock(void);
 void boardSetupClockExt(void);
-void boardSetupClockInt(void);
 const struct ClockClass *boardSetupClockOutput(uint32_t divisor);
 void boardSetupClockPll(void);
 struct Interface *boardSetupAdc(void);

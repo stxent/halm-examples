@@ -78,28 +78,31 @@ const PinNumber adcPinArray[] = {
 };
 
 static const struct PllConfig audioPllConfig = {
-    .source = CLOCK_EXTERNAL,
     .divisor = 4,
-    .multiplier = 40
+    .multiplier = 40,
+    .source = CLOCK_EXTERNAL
 };
 
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
+
+static struct ClockSettings sharedClockSettings
+    __attribute__((section(".shared")));
 /*----------------------------------------------------------------------------*/
 static void enablePeriphClock(const void *clock)
 {
-  if (!clockReady(clock))
-  {
-    if (clockReady(SystemPll))
-      clockEnable(clock, &(struct GenericClockConfig){CLOCK_PLL});
-    else if (clockReady(ExternalOsc))
-      clockEnable(clock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
-    else
-      clockEnable(clock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+  if (clockReady(clock))
+    clockDisable(clock);
 
-    while (!clockReady(clock));
-  }
+  if (clockReady(SystemPll))
+    clockEnable(clock, &(struct GenericClockConfig){CLOCK_PLL});
+  else if (clockReady(ExternalOsc))
+    clockEnable(clock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
+  else
+    clockEnable(clock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+
+  while (!clockReady(clock));
 }
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void)
@@ -134,17 +137,16 @@ void boardResetClock(void)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
+  loadClockSettings(&sharedClockSettings);
   clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
 
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
+  if (!clockReady(ExternalOsc))
+  {
+    clockEnable(ExternalOsc, &extOscConfig);
+    while (!clockReady(ExternalOsc));
+  }
 
   clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
-}
-/*----------------------------------------------------------------------------*/
-void boardSetupClockInt(void)
-{
-  clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
 }
 /*----------------------------------------------------------------------------*/
 const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
@@ -153,12 +155,12 @@ const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
       .pin = PIN(PORT_CLK, 2),
       .source = CLOCK_IDIVE
   };
-  const struct GenericDividerConfig divEConfig = {
+  const struct GenericDividerConfig divConfig = {
       .divisor = divisor,
       .source = CLOCK_EXTERNAL
   };
 
-  clockEnable(DividerE, &divEConfig);
+  clockEnable(DividerE, &divConfig);
   while (!clockReady(DividerE));
 
   clockEnable(ClockOutput, &clockOutputConfig);
@@ -170,18 +172,25 @@ const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
 void boardSetupClockPll(void)
 {
   static const struct PllConfig systemPllConfig = {
-      .divisor = 2,
+      .divisor = 1,
       .multiplier = 17,
       .source = CLOCK_EXTERNAL
   };
 
+  loadClockSettings(&sharedClockSettings);
   clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
 
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
+  if (!clockReady(ExternalOsc))
+  {
+    clockEnable(ExternalOsc, &extOscConfig);
+    while (!clockReady(ExternalOsc));
+  }
 
-  clockEnable(SystemPll, &systemPllConfig);
-  while (!clockReady(SystemPll));
+  if (!clockReady(SystemPll))
+  {
+    clockEnable(SystemPll, &systemPllConfig);
+    while (!clockReady(SystemPll));
+  }
 
   clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
 }
@@ -284,7 +293,7 @@ struct Interrupt *boardSetupButton(void)
 struct Interface *boardSetupCan(struct Timer *timer)
 {
   /* Clocks */
-  static const struct GenericDividerConfig divBConfig = {
+  static const struct GenericDividerConfig divConfig = {
       .divisor = 3,
       .source = CLOCK_AUDIO_PLL
   };
@@ -308,7 +317,7 @@ struct Interface *boardSetupCan(struct Timer *timer)
   }
 
   /* Make 40 MHz clock for CAN, clock should be less than 50 MHz */
-  clockEnable(DividerB, &divBConfig);
+  clockEnable(DividerB, &divConfig);
   while (!clockReady(DividerB));
 
   /* Override default config */
@@ -636,8 +645,8 @@ struct RtClock *boardSetupRtc(bool restart)
 struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
 {
   /* Clocks */
-  static const struct GenericDividerConfig divDConfig = {
-      .divisor = 2,
+  static const struct GenericDividerConfig divConfig = {
+      .divisor = 4,
       .source = CLOCK_PLL
   };
 
@@ -663,10 +672,10 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
   assert(clockReady(SystemPll));
 
   /* Make 51 MHz clock for SDMMC */
-  clockEnable(DividerD, &divDConfig);
-  while (!clockReady(DividerD));
+  clockEnable(DividerC, &divConfig);
+  while (!clockReady(DividerC));
 
-  clockEnable(SdioClock, &(struct GenericClockConfig){CLOCK_IDIVD});
+  clockEnable(SdioClock, &(struct GenericClockConfig){CLOCK_IDIVC});
   while (!clockReady(SdioClock));
 
   struct Interface * const interface = init(Sdmmc,
@@ -817,22 +826,24 @@ struct Interface *boardSetupSpim(struct Timer *timer __attribute__((unused)))
   };
 
   /* Maximum possible frequency for SPIFI is 104 MHz */
-  struct GenericDividerConfig config;
+  struct GenericDividerConfig divConfig;
 
   if (clockReady(SystemPll))
   {
-    config.divisor = 2;
-    config.source = CLOCK_PLL;
+    /* Make 102 MHz for SPIFI */
+    divConfig.divisor = 2;
+    divConfig.source = CLOCK_PLL;
   }
   else
   {
-    config.divisor = 1;
-    config.source = clockReady(ExternalOsc) ? CLOCK_EXTERNAL : CLOCK_INTERNAL;
+    divConfig.divisor = 1;
+    divConfig.source = clockReady(ExternalOsc) ?
+        CLOCK_EXTERNAL : CLOCK_INTERNAL;
   }
 
-  clockEnable(DividerA, &config);
-  while (!clockReady(DividerA));
-  clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_IDIVA});
+  clockEnable(DividerD, &divConfig);
+  while (!clockReady(DividerD));
+  clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_IDIVD});
   while (!clockReady(SpifiClock));
 
   struct Interface * const interface = init(Spifi, &spifiConfig);
@@ -933,7 +944,7 @@ struct Entity *boardSetupUsb0(void)
 struct Entity *boardSetupUsb1(void)
 {
   /* Clocks */
-  static const struct GenericDividerConfig divCConfig = {
+  static const struct GenericDividerConfig divConfig = {
       .divisor = 2,
       .source = CLOCK_AUDIO_PLL
   };
@@ -957,10 +968,10 @@ struct Entity *boardSetupUsb1(void)
   }
 
   /* Make 60 MHz clock required for USB1 */
-  clockEnable(DividerC, &divCConfig);
-  while (!clockReady(DividerC));
+  clockEnable(DividerA, &divConfig);
+  while (!clockReady(DividerA));
 
-  clockEnable(Usb1Clock, &(struct GenericClockConfig){CLOCK_IDIVC});
+  clockEnable(Usb1Clock, &(struct GenericClockConfig){CLOCK_IDIVA});
   while (!clockReady(Usb1Clock));
 
   struct Entity * const usb = init(UsbDevice, &usb1Config);

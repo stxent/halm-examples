@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 xent
+ * Copyright (C) 2024 xent
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
@@ -8,13 +8,16 @@ EXTERN(vectorTable)
 
 MEMORY
 {
-  ROM (rx)    : ORIGIN = ${ROM_ORIGIN}, LENGTH = ${ROM_LENGTH}
-  RAM (rwx)   : ORIGIN = 0x20000000, LENGTH = 128K
+  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 1024K
+  RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 128K
 
-  CONFIG (r)  : ORIGIN = 0x00300000, LENGTH = 16
-  AHB (rw)    : ORIGIN = 0x40000000, LENGTH = 1M
-  CRYPTO (rw) : ORIGIN = 0x50000000, LENGTH = 1M
-  PPB (rw)    : ORIGIN = 0xE0000000, LENGTH = 1M
+  /* TODO Round sizes */
+  APB1 (rw)  : ORIGIN = 0x40000000, LENGTH = 30K
+  APB2 (rw)  : ORIGIN = 0x40010000, LENGTH = 19K
+  AHB1 (rw)  : ORIGIN = 0x40020000, LENGTH = 384K
+  AHB2 (rw)  : ORIGIN = 0x50000000, LENGTH = 387K
+  AHB3 (rw)  : ORIGIN = 0xA0000000, LENGTH = 4K
+  PPB (rw)   : ORIGIN = 0xE0000000, LENGTH = 1M
 }
 
 SECTIONS
@@ -33,7 +36,7 @@ SECTIONS
 
     . = ALIGN(4);
     _sidata = .;
-  } >ROM =0xFF
+  } >FLASH =0xFF
 
   .data : AT(_sidata) ALIGN(4)
   {
@@ -59,20 +62,30 @@ SECTIONS
     heapStart = .;
   } >RAM
 
-  .config :
+  .apb1 :
   {
-    CONFIG_DOMAIN = .;
-  } >CONFIG
+    APB1_DOMAIN = .;
+  } >APB1
 
-  .ahb :
+  .apb2 :
   {
-    AHB_APB_DOMAIN = .;
-  } >AHB
+    APB2_DOMAIN = .;
+  } >APB2
 
-  .crypto :
+  .ahb1 :
   {
-    CRYPTO_DOMAIN = .;
-  } >CRYPTO
+    AHB1_DOMAIN = .;
+  } >AHB1
+
+  .ahb2 :
+  {
+    AHB2_DOMAIN = .;
+  } >AHB2
+
+  .ahb3 :
+  {
+    AHB3_DOMAIN = .;
+  } >AHB3
 
   .ppb :
   {

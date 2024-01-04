@@ -16,8 +16,8 @@ else()
     set(DFU_LENGTH 0)
 endif()
 
-math(EXPR FW_LENGTH "512 * 1024 - ${DFU_LENGTH}")
-math(EXPR FW_ORIGIN "${ADDRESS_FLASH} + ${DFU_LENGTH}")
+math(EXPR ROM_LENGTH "512 * 1024 - ${DFU_LENGTH}")
+math(EXPR ROM_ORIGIN "${ADDRESS_FLASH} + ${DFU_LENGTH}")
 
 # Define template list
 set(TEMPLATES_LIST
