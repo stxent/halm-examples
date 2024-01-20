@@ -2,7 +2,6 @@
 # Project is distributed under the terms of the GNU General Public License v3.0
 
 cmake_minimum_required(VERSION 3.21)
-cmake_policy(SET CMP0054 NEW)
 project(halm-examples NONE)
 include(ExternalProject)
 
@@ -71,7 +70,16 @@ foreach(BUNDLE_NAME ${BUNDLE_LIST})
             BUILD_ALWAYS 1
     )
 
+    set(BUNDLE_HALM_DEFCONFIG ${PROJECT_SOURCE_DIR}/examples/${BUNDLE_NAME}/halm.config)
+    execute_process(
+            COMMAND kconfig-conf --defconfig=${BUNDLE_HALM_DEFCONFIG} ${PATH_HALM}/Kconfig
+            WORKING_DIRECTORY ${PATH_HALM}
+            OUTPUT_QUIET
+    )
+    file(RENAME ${PATH_HALM}/.config ${CMAKE_BINARY_DIR}/${BUNDLE_NAME}/halm.config)
+
     add_custom_target(${BUNDLE_NAME}_bundle ALL DEPENDS ${BUNDLE_NAME})
-    add_custom_command(TARGET size POST_BUILD
+    add_custom_command(TARGET size
+            POST_BUILD
             COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${BUNDLE_NAME} --target size)
 endforeach()

@@ -2,9 +2,9 @@
 # Project is distributed under the terms of the GNU General Public License v3.0
 
 cmake_minimum_required(VERSION 3.21)
-cmake_policy(SET CMP0069 NEW)
 project(examples C)
 
+# Project configuration
 option(USE_BIN "Convert executables to binary format." OFF)
 option(USE_HEX "Convert executables to Intel HEX format." OFF)
 option(USE_DFU "Enable memory layout compatible with a bootloader." OFF)
@@ -19,18 +19,14 @@ set(PATH_HALM "${PROJECT_SOURCE_DIR}/../halm" CACHE STRING "Path to the HALM lib
 
 # Default compiler flags
 set(CMAKE_COLOR_DIAGNOSTICS ON)
-set(FLAGS_DEFAULT "-pedantic -Wall -Wextra -Wshadow")
-set(FLAGS_PROJECT "-fdata-sections -ffunction-sections")
+set(FLAGS_PROJECT "-fdata-sections -ffunction-sections -pedantic -Wall -Wextra -Wshadow")
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_EXTENSIONS OFF)
-set(CMAKE_C_FLAGS_INIT "${CMAKE_C_FLAGS_INIT} ${FLAGS_DEFAULT}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_INIT} ${FLAGS_PROJECT} ${FLAGS_CPU}")
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 
 if(USE_LTO)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        set(CMAKE_C_COMPILE_OPTIONS_IPO -flto -ffat-lto-objects)
+        set(CMAKE_C_COMPILE_OPTIONS_IPO -flto=auto -ffat-lto-objects)
     endif()
 endif()
 
@@ -41,18 +37,17 @@ include("${PROJECT_SOURCE_DIR}/${BUNDLE}/Config.cmake" OPTIONAL)
 if(EXISTS "${PROJECT_SOURCE_DIR}/${BUNDLE}/memory.ld")
     configure_file("${PROJECT_SOURCE_DIR}/${BUNDLE}/memory.ld" "${PROJECT_BINARY_DIR}/memory.ld")
     set(FLAGS_LINKER "--specs=nosys.specs --specs=nano.specs -Xlinker --gc-sections -T \"${PROJECT_BINARY_DIR}/memory.ld\"")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
 endif()
 
 # Configure XCORE library
 add_subdirectory(${PATH_XCORE} xcore)
 
 # Configure HALM library, HALM_CONFIG_FILE should be defined
-set(HALM_CONFIG_FILE "${PROJECT_SOURCE_DIR}/${BUNDLE}/halm.config" CACHE INTERNAL "Path to the library configuration file" FORCE)
+set(HALM_CONFIG_FILE "${PROJECT_BINARY_DIR}/halm.config" CACHE INTERNAL "Path to the library configuration file" FORCE)
 add_subdirectory(${PATH_HALM} halm)
 
 # Build examples
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../xcore/cmake")
+list(APPEND CMAKE_MODULE_PATH "${PATH_XCORE}/cmake")
 include(ListDirectories)
 
 add_custom_target(size)
@@ -101,19 +96,20 @@ foreach(TEMPLATE_NAME ${TEMPLATES_LIST})
     set(TEMPLATE_SOURCE "${PROJECT_BINARY_DIR}/${_template_alias}/main.c")
 
     add_custom_command(
-        OUTPUT ${TEMPLATE_SOURCE}
-        COMMAND "${PROJECT_SOURCE_DIR}/../tools/make_example.py"
-                --alias=${_template_alias}
-                --bundle=${BUNDLE}
-                --config="${_template_config}"
-                --family=${_family_name}
-                --output=${PROJECT_BINARY_DIR}
-                --platform=${_platform_name}
-                ${_template_name}
-        DEPENDS "${PROJECT_SOURCE_DIR}/../templates/${_template_name}.jinja2"
+            OUTPUT ${TEMPLATE_SOURCE}
+            COMMAND "${PROJECT_SOURCE_DIR}/../tools/make_example.py"
+                    --alias=${_template_alias}
+                    --bundle=${BUNDLE}
+                    --config="${_template_config}"
+                    --family=${_family_name}
+                    --output=${PROJECT_BINARY_DIR}
+                    --platform=${_platform_name}
+                    ${_template_name}
+            DEPENDS "${PROJECT_SOURCE_DIR}/../templates/${_template_name}.jinja2"
     )
 
     add_executable("${_template_alias}" ${TEMPLATE_SOURCE})
+    target_link_options("${_template_alias}" PRIVATE SHELL:${FLAGS_CPU} SHELL:${FLAGS_LINKER})
     target_link_libraries("${_template_alias}" PRIVATE halm shared)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
@@ -135,7 +131,7 @@ foreach(TEMPLATE_NAME ${TEMPLATES_LIST})
     add_custom_command(TARGET size POST_BUILD COMMAND "${CMAKE_SIZE}" "${_template_alias}${CMAKE_EXECUTABLE_SUFFIX}")
 endforeach()
 
-# Generate and build custom examples
+# Build platform-specific examples
 
 foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
     if(${EXAMPLE_NAME} STREQUAL "shared")
@@ -144,6 +140,7 @@ foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
 
     file(GLOB_RECURSE EXAMPLE_SOURCES "${BUNDLE}/${EXAMPLE_NAME}/*.c")
     add_executable("${EXAMPLE_NAME}" ${EXAMPLE_SOURCES})
+    target_link_options("${EXAMPLE_NAME}" PRIVATE SHELL:${FLAGS_CPU} SHELL:${FLAGS_LINKER})
     target_link_libraries("${EXAMPLE_NAME}" PRIVATE halm)
 
     if(TARGET shared)
