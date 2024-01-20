@@ -21,14 +21,17 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
+  struct Timer * const timer = init(SysTick, NULL);
+  assert(timer != NULL);
+  const uint32_t frequency = timerGetFrequency(timer);
+
   /*
    * Core frequency and SysTick resolution must be kept in mind
    * when configuring timer overflow.
    */
-  struct Timer * const timer = init(SysTick, NULL);
-  assert(timer != NULL);
+  timerSetOverflow(timer, frequency >= (1 << 24) ?
+      frequency / 20 : frequency / 2);
 
-  timerSetOverflow(timer, timerGetFrequency(timer) / 2);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 

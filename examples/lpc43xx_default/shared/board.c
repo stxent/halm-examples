@@ -38,6 +38,7 @@
 #include <halm/platform/lpc/usb_device.h>
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
+#include <string.h>
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupAdcTimer(void)
     __attribute__((alias("boardSetupTimer3")));
@@ -137,16 +138,17 @@ void boardResetClock(void)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
-  loadClockSettings(&sharedClockSettings);
-  clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
-
-  if (!clockReady(ExternalOsc))
+  if (!loadClockSettings(&sharedClockSettings))
   {
+    clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+
     clockEnable(ExternalOsc, &extOscConfig);
     while (!clockReady(ExternalOsc));
+
+    clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
   }
 
-  clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
+  memset(&sharedClockSettings, 0, sizeof(sharedClockSettings));
 }
 /*----------------------------------------------------------------------------*/
 const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
@@ -177,22 +179,20 @@ void boardSetupClockPll(void)
       .source = CLOCK_EXTERNAL
   };
 
-  loadClockSettings(&sharedClockSettings);
-  clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
-
-  if (!clockReady(ExternalOsc))
+  if (!loadClockSettings(&sharedClockSettings))
   {
+    clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+
     clockEnable(ExternalOsc, &extOscConfig);
     while (!clockReady(ExternalOsc));
-  }
 
-  if (!clockReady(SystemPll))
-  {
     clockEnable(SystemPll, &systemPllConfig);
     while (!clockReady(SystemPll));
+
+    clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
   }
 
-  clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
+  memset(&sharedClockSettings, 0, sizeof(sharedClockSettings));
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupAdc(void)
