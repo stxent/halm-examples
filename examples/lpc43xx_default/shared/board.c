@@ -60,6 +60,11 @@ struct PwmPackage boardSetupPwm(bool)
 struct PwmPackage boardSetupPwmSCT(bool)
     __attribute__((alias("boardSetupPwmSCTDivided")));
 
+struct Interface *boardSetupSerial(void)
+    __attribute__((alias("boardSetupSerial1")));
+struct Interface *boardSetupSerialDma(void)
+    __attribute__((alias("boardSetupSerialDma1")));
+
 struct Interface *boardSetupSpi(void)
     __attribute__((alias("boardSetupSpi0")));
 struct Interface *boardSetupSpiDma(void)
@@ -546,6 +551,9 @@ struct StreamPackage boardSetupI2S(void)
       .slave = false
   };
 
+  /* I2S are connected to the APB1 bus */
+  enablePeriphClock(Apb1Clock);
+
   struct I2SDma * const interface = init(I2SDma, &i2sConfig);
   assert(interface != NULL);
 
@@ -684,7 +692,25 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSerial(void)
+struct Interface *boardSetupSerial0(void)
+{
+  static const struct SerialConfig serialConfig = {
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(PORT_6, 5),
+      .tx = PIN(PORT_6, 4),
+      .channel = 0
+  };
+
+  enablePeriphClock(Usart0Clock);
+
+  struct Interface * const interface = init(Serial, &serialConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerial1(void)
 {
   static const struct SerialConfig serialConfig = {
       .rxLength = BOARD_UART_BUFFER,
@@ -695,21 +721,52 @@ struct Interface *boardSetupSerial(void)
       .channel = 1
   };
 
-  if (serialConfig.channel == 0)
-    enablePeriphClock(Usart0Clock);
-  else if (serialConfig.channel == 1)
-    enablePeriphClock(Uart1Clock);
-  else if (serialConfig.channel == 2)
-    enablePeriphClock(Usart2Clock);
-  else
-    enablePeriphClock(Usart3Clock);
+  enablePeriphClock(Uart1Clock);
 
   struct Interface * const interface = init(Serial, &serialConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSerialDma(void)
+struct Interface *boardSetupSerial2(void)
+{
+  static const struct SerialConfig serialConfig = {
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(PORT_2, 11),
+      .tx = PIN(PORT_2, 10),
+      .channel = 2
+  };
+
+  enablePeriphClock(Usart2Clock);
+
+  struct Interface * const interface = init(Serial, &serialConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerialDma0(void)
+{
+  static const struct SerialDmaConfig serialDmaConfig = {
+      .rxChunks = 4,
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(PORT_6, 5),
+      .tx = PIN(PORT_6, 4),
+      .channel = 0,
+      .dma = {2, 3}
+  };
+
+  enablePeriphClock(Usart0Clock);
+
+  struct Interface * const interface = init(SerialDma, &serialDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerialDma1(void)
 {
   static const struct SerialDmaConfig serialDmaConfig = {
       .rxChunks = 4,
@@ -722,14 +779,27 @@ struct Interface *boardSetupSerialDma(void)
       .dma = {2, 3}
   };
 
-  if (serialDmaConfig.channel == 0)
-    enablePeriphClock(Usart0Clock);
-  else if (serialDmaConfig.channel == 1)
-    enablePeriphClock(Uart1Clock);
-  else if (serialDmaConfig.channel == 2)
-    enablePeriphClock(Usart2Clock);
-  else
-    enablePeriphClock(Usart3Clock);
+  enablePeriphClock(Uart1Clock);
+
+  struct Interface * const interface = init(SerialDma, &serialDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerialDma2(void)
+{
+  static const struct SerialDmaConfig serialDmaConfig = {
+      .rxChunks = 4,
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(PORT_2, 11),
+      .tx = PIN(PORT_2, 10),
+      .channel = 2,
+      .dma = {2, 3}
+  };
+
+  enablePeriphClock(Usart2Clock);
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
   assert(interface != NULL);
