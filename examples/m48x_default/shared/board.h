@@ -16,6 +16,7 @@
 #define BOARD_BUTTON_0    PIN(PORT_G, 15)
 #define BOARD_BUTTON_1    PIN(PORT_F, 11)
 #define BOARD_BUTTON      BOARD_BUTTON_0
+#define BOARD_BUTTON_INV  true
 #define BOARD_LED_0       PIN(PORT_H, 0)
 #define BOARD_LED_1       PIN(PORT_H, 1)
 #define BOARD_LED_2       PIN(PORT_H, 2)

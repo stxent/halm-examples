@@ -181,7 +181,7 @@ struct Interrupt *boardSetupButton(void)
 {
   static const struct PinIntConfig buttonIntConfig = {
       .pin = BOARD_BUTTON,
-      .event = INPUT_FALLING,
+      .event = BOARD_BUTTON_INV ? INPUT_FALLING : INPUT_RISING,
       .pull = PIN_NOPULL
   };
 

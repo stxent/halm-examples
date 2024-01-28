@@ -11,6 +11,7 @@
 #include <stddef.h>
 /*----------------------------------------------------------------------------*/
 #define BOARD_BUTTON      PIN(1, 8)
+#define BOARD_BUTTON_INV  true
 #define BOARD_LED_0       PIN(1, 2)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false

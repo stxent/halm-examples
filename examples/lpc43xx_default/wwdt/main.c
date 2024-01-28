@@ -22,7 +22,7 @@ int main(void)
 
   const struct Pin input = pinInit(BOARD_BUTTON);
   pinInput(input);
-  pinSetPull(input, PIN_PULLDOWN);
+  pinSetPull(input, BOARD_BUTTON_INV ? PIN_PULLUP : PIN_PULLDOWN);
 
   const struct Pin feedLed = pinInit(BOARD_LED_1);
   pinOutput(feedLed, BOARD_LED_INV);
@@ -43,7 +43,7 @@ int main(void)
       barrier();
     event = false;
 
-    if (!pinRead(input))
+    if (pinRead(input) ? !BOARD_BUTTON_INV : BOARD_BUTTON_INV)
     {
       watchdogReload(wdt);
 

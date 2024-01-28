@@ -11,6 +11,7 @@
 #include <stddef.h>
 /*----------------------------------------------------------------------------*/
 #define BOARD_BUTTON      PIN(PORT_2, 7)
+#define BOARD_BUTTON_INV  true
 #define BOARD_CAP_0       PIN(7, 3)
 #define BOARD_CAP_1       PIN(2, 13)
 #define BOARD_CAP_TIMER   PIN(PORT_6, 2)

@@ -12,6 +12,7 @@
 #include <stddef.h>
 /*----------------------------------------------------------------------------*/
 #define BOARD_BUTTON      PIN(2, 10)
+#define BOARD_BUTTON_INV  true
 #define BOARD_CAPTURE     PIN(1, 18)
 #define BOARD_LED_0       PIN(1, 10)
 #define BOARD_LED_1       PIN(1, 9)

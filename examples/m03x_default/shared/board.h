@@ -14,6 +14,7 @@
 #define BOARD_BPWM_1      PIN(PORT_A, 4)
 #define BOARD_BPWM        BOARD_BPWM_0
 #define BOARD_BUTTON      PIN(PORT_B, 15)
+#define BOARD_BUTTON_INV  true
 #define BOARD_LED_0       PIN(PORT_B, 14)
 #define BOARD_LED_1       PIN(PORT_C, 6)
 #define BOARD_LED_2       PIN(PORT_C, 7)
