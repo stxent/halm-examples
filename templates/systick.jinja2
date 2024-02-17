@@ -14,6 +14,7 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  unsigned int iteration = 0;
   bool event = false;
 
   boardSetupClockExt();
@@ -23,15 +24,12 @@ int main(void)
 
   struct Timer * const timer = init(SysTick, NULL);
   assert(timer != NULL);
-  const uint32_t frequency = timerGetFrequency(timer);
 
   /*
    * Core frequency and SysTick resolution must be kept in mind
    * when configuring timer overflow.
    */
-  timerSetOverflow(timer, frequency >= (1 << 24) ?
-      frequency / 20 : frequency / 2);
-
+  timerSetOverflow(timer, timerGetFrequency(timer) / 200);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 
@@ -41,7 +39,11 @@ int main(void)
       barrier();
     event = false;
 
-    pinToggle(led);
+    if (++iteration == 100)
+    {
+      pinToggle(led);
+      iteration = 0;
+    }
   }
 
   return 0;
