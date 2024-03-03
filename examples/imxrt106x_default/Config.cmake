@@ -41,5 +41,6 @@ endif()
 
 # Define template list
 set(TEMPLATES_LIST
+        serial
         systick
 )
