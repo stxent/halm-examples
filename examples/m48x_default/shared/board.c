@@ -79,8 +79,7 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer, [[maybe_unused]] size_t count,
-    uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, size_t, uint32_t rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / rate);
 }

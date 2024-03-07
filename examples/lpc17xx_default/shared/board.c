@@ -365,7 +365,7 @@ struct StreamPackage boardSetupI2S(void)
   };
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwm([[maybe_unused]] bool centered)
+struct PwmPackage boardSetupPwm(bool)
 {
   static const struct GpPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
@@ -402,8 +402,7 @@ struct RtClock *boardSetupRtc(bool restart)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSdio([[maybe_unused]] bool wide,
-    struct Timer *timer)
+struct Interface *boardSetupSdio(bool, struct Timer *timer)
 {
   static const size_t SDIO_MAX_BLOCKS = 32768 >> 9; /* RAM size / block size */
   static const uint32_t SDIO_POLL_RATE = 5000;
@@ -612,7 +611,7 @@ struct Entity *boardSetupUsb(void)
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
+struct Watchdog *boardSetupWdt(bool)
 {
   static const struct WdtConfig wdtConfig = {
       .period = 1000,

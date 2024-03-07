@@ -51,8 +51,7 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer, [[maybe_unused]] size_t count,
-    uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, size_t, uint32_t rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / rate);
 }
@@ -349,7 +348,7 @@ struct Entity *boardSetupUsb(void)
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
+struct Watchdog *boardSetupWdt(bool)
 {
   static const struct IwdgConfig iwdgConfig = {
       .period = 1000

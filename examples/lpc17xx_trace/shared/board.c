@@ -67,8 +67,7 @@ void boardSetupLowPriorityWQ(void)
   assert(WQ_LP != NULL);
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSdio([[maybe_unused]] bool wide,
-    struct Timer *timer)
+struct Interface *boardSetupSdio(bool, struct Timer *timer)
 {
   static const size_t SDIO_MAX_BLOCKS = 32768 >> 9; /* RAM size / block size */
   static const uint32_t SDIO_POLL_RATE = 5000;

@@ -15,16 +15,14 @@ static const char vendorStringEn[] = "Undefined";
 static const char productStringEn[] = "LPC17xx DevBoard";
 static const char serialStringEn[] = "00000001";
 /*----------------------------------------------------------------------------*/
-static void customStringHeader([[maybe_unused]] const void *argument,
-    [[maybe_unused]] enum UsbLangId langid, struct UsbDescriptor *header,
-    void *payload)
+static void customStringHeader(const void *, enum UsbLangId,
+    struct UsbDescriptor *header, void *payload)
 {
   usbStringHeader(header, payload, LANGID_ENGLISH_US);
 }
 /*----------------------------------------------------------------------------*/
-static void customStringWrapper(const void *argument,
-    [[maybe_unused]] enum UsbLangId langid, struct UsbDescriptor *header,
-    void *payload)
+static void customStringWrapper(const void *argument, enum UsbLangId,
+    struct UsbDescriptor *header, void *payload)
 {
   usbStringWrap(header, payload, argument);
 }

@@ -871,7 +871,7 @@ struct Interface *boardSetupSpiDma1(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSpim([[maybe_unused]] struct Timer *timer)
+struct Interface *boardSetupSpim(struct Timer *)
 {
   /* Objects */
   static const struct SpifiConfig spifiConfig = {

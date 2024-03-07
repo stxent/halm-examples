@@ -194,7 +194,7 @@ struct Interface *boardSetupI2C(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwm([[maybe_unused]] bool centered)
+struct PwmPackage boardSetupPwm(bool)
 {
   static const struct GpTimerPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
@@ -354,7 +354,7 @@ struct Entity *boardSetupUsb(void)
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
+struct Watchdog *boardSetupWdt(bool disarmed)
 {
   /* Clocks */
   static const struct WdtOscConfig wdtOscConfig = {

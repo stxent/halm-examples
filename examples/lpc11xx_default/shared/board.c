@@ -227,7 +227,7 @@ struct Timer *boardSetupTimer32B1(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
+struct Watchdog *boardSetupWdt(bool disarmed)
 {
   /* Clocks */
   static const struct WdtOscConfig wdtOscConfig = {
