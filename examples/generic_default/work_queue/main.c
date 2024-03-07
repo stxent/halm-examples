@@ -23,7 +23,7 @@ static void onSignalReceived(void *argument)
   uv_walk(argument, onUvWalk, NULL);
 }
 /*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *argument __attribute__((unused)))
+static void onTimerOverflow([[maybe_unused]] void *argument)
 {
   const enum Result res = wqAdd(WQ_DEFAULT, periodicTask, NULL);
 
@@ -31,13 +31,12 @@ static void onTimerOverflow(void *argument __attribute__((unused)))
   (void)res;
 }
 /*----------------------------------------------------------------------------*/
-static void onUvWalk(uv_handle_t *handle,
-    void *argument __attribute__((unused)))
+static void onUvWalk(uv_handle_t *handle, [[maybe_unused]] void *argument)
 {
   deinit(uv_handle_get_data(handle));
 }
 /*----------------------------------------------------------------------------*/
-static void periodicTask(void *argument __attribute__((unused)))
+static void periodicTask([[maybe_unused]] void *argument)
 {
   static unsigned long iteration = 0;
 
@@ -50,7 +49,7 @@ static void periodicTask(void *argument __attribute__((unused)))
     raise(SIGINT);
 }
 /*----------------------------------------------------------------------------*/
-int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
+int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
 {
   uv_loop_t * const loop = uv_default_loop();
 

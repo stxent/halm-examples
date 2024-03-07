@@ -38,7 +38,7 @@ static int16_t rxBuffers[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
 static int16_t txBuffers[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
 /*----------------------------------------------------------------------------*/
 static void onDataReceived(void *argument, struct StreamRequest *request,
-    enum StreamRequestStatus status __attribute__((unused)))
+    [[maybe_unused]] enum StreamRequestStatus status)
 {
   struct EventTuple * const context = argument;
 
@@ -48,7 +48,7 @@ static void onDataReceived(void *argument, struct StreamRequest *request,
 }
 /*----------------------------------------------------------------------------*/
 static void onDataSent(void *argument, struct StreamRequest *request,
-    enum StreamRequestStatus status __attribute__((unused)))
+    [[maybe_unused]] enum StreamRequestStatus status)
 {
   struct EventTuple * const context = argument;
 

@@ -34,18 +34,13 @@
 #include <halm/platform/lpc/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-    __attribute__((alias("boardSetupTimer1")));
-struct Timer *boardSetupTimer(void)
-    __attribute__((alias("boardSetupTimer0")));
+[[gnu::alias("boardSetupTimer1")]] struct Timer *boardSetupAdcTimer(void);
+[[gnu::alias("boardSetupTimer0")]] struct Timer *boardSetupTimer(void);
 
-struct Interface *boardSetupSpiSdio(void)
-    __attribute__((alias("boardSetupSpiDma0")));
+[[gnu::alias("boardSetupSpiDma0")]] struct Interface *boardSetupSpiSdio(void);
 
-struct Interface *boardSetupSpi(void)
-    __attribute__((alias("boardSetupSpi1")));
-struct Interface *boardSetupSpiDma(void)
-    __attribute__((alias("boardSetupSpiDma1")));
+[[gnu::alias("boardSetupSpi1")]] struct Interface *boardSetupSpi(void);
+[[gnu::alias("boardSetupSpiDma1")]] struct Interface *boardSetupSpiDma(void);
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
     PIN(0, 25),
@@ -370,7 +365,7 @@ struct StreamPackage boardSetupI2S(void)
   };
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwm(bool centered __attribute__((unused)))
+struct PwmPackage boardSetupPwm([[maybe_unused]] bool centered)
 {
   static const struct GpPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
@@ -407,7 +402,7 @@ struct RtClock *boardSetupRtc(bool restart)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSdio(bool wide __attribute__((unused)),
+struct Interface *boardSetupSdio([[maybe_unused]] bool wide,
     struct Timer *timer)
 {
   static const size_t SDIO_MAX_BLOCKS = 32768 >> 9; /* RAM size / block size */
@@ -617,7 +612,7 @@ struct Entity *boardSetupUsb(void)
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
+struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
 {
   static const struct WdtConfig wdtConfig = {
       .period = 1000,

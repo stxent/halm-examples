@@ -17,10 +17,8 @@
 #include <halm/platform/stm32/spi.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-    __attribute__((alias("boardSetupTimer1")));
-struct Timer *boardSetupTimer(void)
-    __attribute__((alias("boardSetupTimer14")));
+[[gnu::alias("boardSetupTimer1")]] struct Timer *boardSetupAdcTimer(void);
+[[gnu::alias("boardSetupTimer14")]] struct Timer *boardSetupTimer(void);
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
     PIN(PORT_A, 0),
@@ -46,8 +44,8 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer,
-    size_t count __attribute__((unused)), uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, [[maybe_unused]] size_t count,
+    uint32_t rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / rate);
 }
@@ -228,7 +226,7 @@ struct Timer *boardSetupTimer14(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
+struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
 {
   static const struct IwdgConfig iwdgConfig = {
       .period = 1000

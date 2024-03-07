@@ -21,7 +21,7 @@ struct EventTuple
 };
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument, struct StreamRequest *request,
-    enum StreamRequestStatus status __attribute__((unused)))
+    [[maybe_unused]] enum StreamRequestStatus status)
 {
   const size_t count = boardGetAdcPinCount();
   const size_t chunks = (request->length >> 1) / count;

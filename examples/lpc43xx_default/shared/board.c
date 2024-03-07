@@ -40,38 +40,30 @@
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-    __attribute__((alias("boardSetupTimer3")));
-struct Timer *boardSetupTimer(void)
-    __attribute__((alias("boardSetupTimer0")));
+[[gnu::alias("boardSetupTimer3")]] struct Timer *boardSetupAdcTimer(void);
+[[gnu::alias("boardSetupTimer0")]] struct Timer *boardSetupTimer(void);
 
-struct Timer *boardSetupCounterTimer(void)
-    __attribute__((alias("boardSetupCounterTimerGPT")));
-struct Timer *boardSetupCounterTimerSCT(void)
-    __attribute__((alias("boardSetupCounterTimerSCTDivided")));
+[[gnu::alias("boardSetupCounterTimerGPT")]]
+    struct Timer *boardSetupCounterTimer(void);
+[[gnu::alias("boardSetupCounterTimerSCTDivided")]]
+    struct Timer *boardSetupCounterTimerSCT(void);
 
-struct Interface *boardSetupI2C(void)
-    __attribute__((alias("boardSetupI2C1")));
-struct Interface *boardSetupI2CSlave(void)
-    __attribute__((alias("boardSetupI2CSlave1")));
+[[gnu::alias("boardSetupI2C1")]] struct Interface *boardSetupI2C(void);
+[[gnu::alias("boardSetupI2CSlave1")]]
+    struct Interface *boardSetupI2CSlave(void);
 
-struct PwmPackage boardSetupPwm(bool)
-    __attribute__((alias("boardSetupPwmSCT")));
-struct PwmPackage boardSetupPwmSCT(bool)
-    __attribute__((alias("boardSetupPwmSCTDivided")));
+[[gnu::alias("boardSetupPwmSCT")]] struct PwmPackage boardSetupPwm(bool);
+[[gnu::alias("boardSetupPwmSCTDivided")]]
+    struct PwmPackage boardSetupPwmSCT(bool);
 
-struct Interface *boardSetupSerial(void)
-    __attribute__((alias("boardSetupSerial1")));
-struct Interface *boardSetupSerialDma(void)
-    __attribute__((alias("boardSetupSerialDma1")));
+[[gnu::alias("boardSetupSerial1")]] struct Interface *boardSetupSerial(void);
+[[gnu::alias("boardSetupSerialDma1")]]
+    struct Interface *boardSetupSerialDma(void);
 
-struct Interface *boardSetupSpi(void)
-    __attribute__((alias("boardSetupSpi0")));
-struct Interface *boardSetupSpiDma(void)
-    __attribute__((alias("boardSetupSpiDma0")));
+[[gnu::alias("boardSetupSpi0")]] struct Interface *boardSetupSpi(void);
+[[gnu::alias("boardSetupSpiDma0")]] struct Interface *boardSetupSpiDma(void);
 
-struct Entity *boardSetupUsb(void)
-    __attribute__((alias("boardSetupUsb0")));
+[[gnu::alias("boardSetupUsb0")]] struct Entity *boardSetupUsb(void);
 
 static void enablePeriphClock(const void *);
 /*----------------------------------------------------------------------------*/
@@ -93,8 +85,7 @@ static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
 
-static struct ClockSettings sharedClockSettings
-    __attribute__((section(".shared")));
+[[gnu::section(".shared")]] static struct ClockSettings sharedClockSettings;
 /*----------------------------------------------------------------------------*/
 static void enablePeriphClock(const void *clock)
 {
@@ -880,7 +871,7 @@ struct Interface *boardSetupSpiDma1(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSpim(struct Timer *timer __attribute__((unused)))
+struct Interface *boardSetupSpim([[maybe_unused]] struct Timer *timer)
 {
   /* Objects */
   static const struct SpifiConfig spifiConfig = {

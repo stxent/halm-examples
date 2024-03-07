@@ -30,7 +30,7 @@
 #define CHUNK_SIZE  1024
 #define BUFFER_SIZE 1056
 
-struct EthHeader
+struct [[gnu::packed]] EthHeader
 {
   /* Ethernet address of destination */
   uint8_t dst[6];
@@ -38,9 +38,9 @@ struct EthHeader
   uint8_t src[6];
   /* Protocol type */
   uint16_t type;
-} __attribute__((packed));
+};
 
-struct TestPacket
+struct [[gnu::packed]] TestPacket
 {
   struct EthHeader header;
   /* Operation code */
@@ -51,7 +51,7 @@ struct TestPacket
   uint32_t length;
   /* Payload */
   uint8_t data[];
-} __attribute__((packed));
+};
 /*----------------------------------------------------------------------------*/
 static void handleEthFrame(struct Interface *, const uint8_t *, size_t);
 static bool phyInit(struct Interface *);

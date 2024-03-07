@@ -14,16 +14,12 @@
 #include <halm/usb/usb_trace.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-    __attribute__((alias("boardSetupTimer1")));
-struct Timer *boardSetupTimer(void)
-    __attribute__((alias("boardSetupTimer0")));
+[[gnu::alias("boardSetupTimer1")]] struct Timer *boardSetupAdcTimer(void);
+[[gnu::alias("boardSetupTimer0")]] struct Timer *boardSetupTimer(void);
 
-struct Interface *boardSetupSpiSdio(void)
-    __attribute__((alias("boardSetupSpi0")));
+[[gnu::alias("boardSetupSpi0")]] struct Interface *boardSetupSpiSdio(void);
 
-struct Interface *boardSetupSpi(void)
-    __attribute__((alias("boardSetupSpi0")));
+[[gnu::alias("boardSetupSpi0")]] struct Interface *boardSetupSpi(void);
 /*----------------------------------------------------------------------------*/
 DECLARE_WQ_IRQ(WQ_LP, SPI_ISR)
 /*----------------------------------------------------------------------------*/
@@ -71,7 +67,7 @@ void boardSetupLowPriorityWQ(void)
   assert(WQ_LP != NULL);
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSdio(bool wide __attribute__((unused)),
+struct Interface *boardSetupSdio([[maybe_unused]] bool wide,
     struct Timer *timer)
 {
   static const size_t SDIO_MAX_BLOCKS = 32768 >> 9; /* RAM size / block size */

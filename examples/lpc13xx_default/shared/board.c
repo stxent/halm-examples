@@ -23,10 +23,8 @@
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-    __attribute__((alias("boardSetupTimer32B0")));
-struct Timer *boardSetupTimer(void)
-    __attribute__((alias("boardSetupTimer32B1")));
+[[gnu::alias("boardSetupTimer32B0")]] struct Timer *boardSetupAdcTimer(void);
+[[gnu::alias("boardSetupTimer32B1")]] struct Timer *boardSetupTimer(void);
 /*----------------------------------------------------------------------------*/
 static const PinNumber adcPinArray[] = {
     PIN(0, 11),
@@ -196,7 +194,7 @@ struct Interface *boardSetupI2C(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwm(bool centered __attribute__((unused)))
+struct PwmPackage boardSetupPwm([[maybe_unused]] bool centered)
 {
   static const struct GpTimerPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
@@ -356,7 +354,7 @@ struct Entity *boardSetupUsb(void)
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
+struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
 {
   /* Clocks */
   static const struct WdtOscConfig wdtOscConfig = {

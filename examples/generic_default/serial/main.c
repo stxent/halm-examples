@@ -85,8 +85,7 @@ static void onTimerOverflow(void *argument)
     raise(SIGINT);
 }
 /*----------------------------------------------------------------------------*/
-static void onUvWalk(uv_handle_t *handle,
-    void *argument __attribute__((unused)))
+static void onUvWalk(uv_handle_t *handle, [[maybe_unused]] void *argument)
 {
   deinit(uv_handle_get_data(handle));
 }

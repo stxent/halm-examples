@@ -20,18 +20,13 @@
 #include <halm/platform/stm32/usb_device.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-    __attribute__((alias("boardSetupTimer2")));
-struct Timer *boardSetupTimer(void)
-    __attribute__((alias("boardSetupTimer5")));
+[[gnu::alias("boardSetupTimer2")]] struct Timer *boardSetupAdcTimer(void);
+[[gnu::alias("boardSetupTimer5")]] struct Timer *boardSetupTimer(void);
 
-struct Interface *boardSetupI2C(void)
-    __attribute__((alias("boardSetupI2C1")));
+[[gnu::alias("boardSetupI2C1")]] struct Interface *boardSetupI2C(void);
 
-struct Interface *boardSetupSpi(void)
-    __attribute__((alias("boardSetupSpi1")));
-struct Interface *boardSetupSpiSdio(void)
-    __attribute__((alias("boardSetupSpi2")));
+[[gnu::alias("boardSetupSpi1")]] struct Interface *boardSetupSpi(void);
+[[gnu::alias("boardSetupSpi2")]] struct Interface *boardSetupSpiSdio(void);
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
     PIN(PORT_A, 0),
@@ -56,8 +51,8 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer,
-    size_t count __attribute__((unused)), uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, [[maybe_unused]] size_t count,
+    uint32_t rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / rate);
 }
@@ -354,7 +349,7 @@ struct Entity *boardSetupUsb(void)
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
+struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
 {
   static const struct IwdgConfig iwdgConfig = {
       .period = 1000

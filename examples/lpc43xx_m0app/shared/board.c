@@ -11,13 +11,12 @@
 #include <halm/platform/lpc/usb_device.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-void boardSetupClockExt(void) __attribute__((alias("boardSetupClock")));
-void boardSetupClockPll(void) __attribute__((alias("boardSetupClock")));
+[[gnu::alias("boardSetupClock")]] void boardSetupClockExt(void);
+[[gnu::alias("boardSetupClock")]] void boardSetupClockPll(void);
 
 static void enablePeriphClock(const void *);
 /*----------------------------------------------------------------------------*/
-static struct ClockSettings sharedClockSettings
-    __attribute__((section(".shared")));
+[[gnu::section(".shared")]] static struct ClockSettings sharedClockSettings;
 /*----------------------------------------------------------------------------*/
 static void enablePeriphClock(const void *clock)
 {

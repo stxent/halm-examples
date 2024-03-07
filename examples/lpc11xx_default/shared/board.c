@@ -18,10 +18,8 @@
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupAdcTimer(void)
-    __attribute__((alias("boardSetupTimer32B0")));
-struct Timer *boardSetupTimer(void)
-    __attribute__((alias("boardSetupTimer32B1")));
+[[gnu::alias("boardSetupTimer32B0")]] struct Timer *boardSetupAdcTimer(void);
+[[gnu::alias("boardSetupTimer32B1")]] struct Timer *boardSetupTimer(void);
 /*----------------------------------------------------------------------------*/
 static const PinNumber adcPinArray[] = {
     PIN(1, 10),
@@ -229,7 +227,7 @@ struct Timer *boardSetupTimer32B1(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Watchdog *boardSetupWdt(bool disarmed __attribute__((unused)))
+struct Watchdog *boardSetupWdt([[maybe_unused]] bool disarmed)
 {
   /* Clocks */
   static const struct WdtOscConfig wdtOscConfig = {

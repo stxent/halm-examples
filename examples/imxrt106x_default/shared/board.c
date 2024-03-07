@@ -9,7 +9,7 @@
 #include <halm/platform/imxrt/serial.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-void boardSetupClockPll(void) __attribute__((alias("boardSetupClockPll3")));
+[[gnu::alias("boardSetupClockPll3")]] void boardSetupClockPll(void);
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {

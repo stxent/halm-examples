@@ -9,11 +9,11 @@
 #include <halm/timer.h>
 #include <xcore/memory.h>
 /*----------------------------------------------------------------------------*/
-struct DeviceInfo
+struct [[gnu::packed]] DeviceInfo
 {
   uint8_t manufacturer;
   uint8_t device;
-} __attribute__((packed));
+};
 
 #define MANUFACTURER_WINBOND        0xEF
 

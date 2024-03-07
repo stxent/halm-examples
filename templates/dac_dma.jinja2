@@ -39,7 +39,7 @@ static void fillBuffers(uint16_t *buffer)
 }
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument, struct StreamRequest *request,
-    enum StreamRequestStatus status __attribute__((unused)))
+    [[maybe_unused]] enum StreamRequestStatus status)
 {
   struct EventTuple * const context = argument;
 

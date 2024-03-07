@@ -46,17 +46,17 @@ static const struct EmcSramConfig emcSramConfig = {
     .partitioned = false
 };
 /*----------------------------------------------------------------------------*/
-static EmcWord patternOnes(size_t position __attribute__((unused)))
+static EmcWord patternOnes([[maybe_unused]] size_t position)
 {
   return (EmcWord)0xFFFFFFFFUL;
 }
 /*----------------------------------------------------------------------------*/
-static EmcWord patternOnesEven(size_t position __attribute__((unused)))
+static EmcWord patternOnesEven([[maybe_unused]] size_t position)
 {
   return (EmcWord)0x55555555UL;
 }
 /*----------------------------------------------------------------------------*/
-static EmcWord patternOnesOdd(size_t position __attribute__((unused)))
+static EmcWord patternOnesOdd([[maybe_unused]] size_t position)
 {
   return (EmcWord)0xAAAAAAAAUL;
 }
@@ -66,7 +66,7 @@ static EmcWord patternSequential(size_t position)
   return (EmcWord)position;
 }
 /*----------------------------------------------------------------------------*/
-static EmcWord patternZeros(size_t position __attribute__((unused)))
+static EmcWord patternZeros([[maybe_unused]] size_t position)
 {
   return (EmcWord)0x00000000UL;
 }

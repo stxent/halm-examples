@@ -22,8 +22,7 @@
 #include <halm/platform/numicro/wdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwm(bool)
-    __attribute__((alias("boardSetupPwmBPWM")));
+[[gnu::alias("boardSetupPwmBPWM")]] struct PwmPackage boardSetupPwm(bool);
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
     PIN(PORT_B, 0),
@@ -64,8 +63,8 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer,
-    size_t count __attribute__((unused)), uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, [[maybe_unused]] size_t count,
+    uint32_t rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / rate);
 }
