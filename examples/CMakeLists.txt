@@ -23,10 +23,6 @@ set(FLAGS_PROJECT "-fdata-sections -ffunction-sections -pedantic -Wall -Wextra -
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_EXTENSIONS OFF)
 
-if(TARGET_NOR OR TARGET_SDRAM)
-    set(FLAGS_PROJECT "${FLAGS_PROJECT} -mslow-flash-data")
-endif()
-
 if(USE_LTO)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -36,6 +32,10 @@ endif()
 
 # Include platform-specific configuration
 include("${PROJECT_SOURCE_DIR}/${BUNDLE}/Config.cmake" OPTIONAL)
+
+if(DISABLE_LITERAL_POOL)
+    set(FLAGS_PROJECT "${FLAGS_PROJECT} -mslow-flash-data")
+endif()
 
 # Generate linker script
 if(EXISTS "${PROJECT_SOURCE_DIR}/${BUNDLE}/memory.ld")
@@ -58,6 +58,14 @@ add_custom_target(size)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
     set(CMAKE_EXECUTABLE_SUFFIX ".elf")
+endif()
+
+# Gather helper objects
+if(EXISTS "${PROJECT_SOURCE_DIR}/helpers")
+    file(GLOB_RECURSE SHARED_SOURCES "helpers/*.c")
+    add_library(helpers OBJECT ${SHARED_SOURCES})
+    target_include_directories(helpers PUBLIC "helpers")
+    target_link_libraries(helpers PRIVATE halm)
 endif()
 
 # Gather shared objects
@@ -114,7 +122,7 @@ foreach(TEMPLATE_NAME ${TEMPLATES_LIST})
 
     add_executable("${_template_alias}" ${TEMPLATE_SOURCE})
     target_link_options("${_template_alias}" PRIVATE SHELL:${FLAGS_CPU} SHELL:${FLAGS_LINKER})
-    target_link_libraries("${_template_alias}" PRIVATE halm shared)
+    target_link_libraries("${_template_alias}" PRIVATE halm helpers shared)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
         if(USE_BIN)
@@ -145,7 +153,7 @@ foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
     file(GLOB_RECURSE EXAMPLE_SOURCES "${BUNDLE}/${EXAMPLE_NAME}/*.c")
     add_executable("${EXAMPLE_NAME}" ${EXAMPLE_SOURCES})
     target_link_options("${EXAMPLE_NAME}" PRIVATE SHELL:${FLAGS_CPU} SHELL:${FLAGS_LINKER})
-    target_link_libraries("${EXAMPLE_NAME}" PRIVATE halm)
+    target_link_libraries("${EXAMPLE_NAME}" PRIVATE halm helpers)
 
     if(TARGET shared)
         target_link_libraries("${EXAMPLE_NAME}" PRIVATE shared)

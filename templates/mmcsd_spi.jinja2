@@ -124,7 +124,8 @@ int main(void)
   pinOutput(txLed, BOARD_LED_INV);
 
   /* Helper timer for SDIO status polling */
-  struct Timer * const busyTimer = USE_BUSY_TIMER ? boardSetupAdcTimer() : NULL;
+  struct Timer * const busyTimer = USE_BUSY_TIMER ?
+      boardSetupAdcTimer() : NULL;
 
   if (busyTimer != NULL)
   {

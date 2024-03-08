@@ -146,7 +146,8 @@ int main(void)
   pinOutput(cdLed, !BOARD_LED_INV);
 
   /* Configure the timer for timeout calculations */
-  struct Timer * const busyTimer = USE_BUSY_TIMER ? boardSetupAdcTimer() : NULL;
+  struct Timer * const busyTimer = USE_BUSY_TIMER ?
+      boardSetupAdcTimer() : NULL;
 
   /* Initialize SDMMC layer */
   struct Interface * const sdio = boardSetupSdio(USE_WIDE_BUS, busyTimer);

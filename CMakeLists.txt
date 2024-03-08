@@ -25,6 +25,10 @@ add_custom_target(size)
 
 list_directories(BUNDLE_LIST "${PROJECT_SOURCE_DIR}/examples")
 foreach(BUNDLE_NAME ${BUNDLE_LIST})
+    if(${BUNDLE_NAME} STREQUAL "helpers")
+        continue()
+    endif()
+
     if(TARGET_NOR OR TARGET_SDRAM OR TARGET_SRAM)
         set(BUNDLE_TARGET_FILE ${PROJECT_SOURCE_DIR}/examples/${BUNDLE_NAME}/targets)
         if(EXISTS ${BUNDLE_TARGET_FILE})
