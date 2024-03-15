@@ -10,7 +10,7 @@ Examples require:
 Quickstart
 ----------
 
-Clone git repository:
+Clone Git repository:
 
 ```sh
 git clone https://github.com/stxent/halm-examples.git
@@ -25,6 +25,14 @@ mkdir build
 cd build
 cmake ..
 make
+```
+
+Build in a Docker container:
+
+```sh
+cd docker
+docker build -t halm-examples:test .
+docker run -it halm-examples:test
 ```
 
 Useful settings
