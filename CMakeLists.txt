@@ -15,6 +15,7 @@ option(TARGET_NOR "Use external NOR Flash for an artifact if available." OFF)
 option(TARGET_SDRAM "Use external SDRAM for an artifact if available." OFF)
 option(TARGET_SRAM "Use embedded SRAM for an artifact if available." OFF)
 
+set(KCONFIG_DEFCONFIG "defconfig" CACHE STRING "Command that will be used as the Kconfig file generator.")
 set(PATH_XCORE "${PROJECT_SOURCE_DIR}/xcore")
 set(PATH_HALM "${PROJECT_SOURCE_DIR}/halm")
 
@@ -76,7 +77,7 @@ foreach(BUNDLE_NAME ${BUNDLE_LIST})
 
     set(BUNDLE_HALM_DEFCONFIG ${PROJECT_SOURCE_DIR}/examples/${BUNDLE_NAME}/halm.config)
     execute_process(
-            COMMAND kconfig-conf --defconfig=${BUNDLE_HALM_DEFCONFIG} ${PATH_HALM}/Kconfig
+            COMMAND ${KCONFIG_DEFCONFIG} --kconfig ${PATH_HALM}/Kconfig ${BUNDLE_HALM_DEFCONFIG}
             WORKING_DIRECTORY ${PATH_HALM}
             OUTPUT_QUIET
     )

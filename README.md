@@ -1,7 +1,11 @@
 Installation
 ------------
 
-Examples require GNU toolchain for ARM Cortex-M processors and CMake version 3.21 or newer.
+Examples require:
+
+* Arm GNU toolchain for bare-metal targets version 11 or newer.
+* CMake version 3.21 or newer.
+* Python 3 packages Jinja2 and Kconfiglib.
 
 Quickstart
 ----------
