@@ -70,8 +70,8 @@ static void enablePeriphClock(const void *);
 const PinNumber adcPinArray[] = {
     PIN(PORT_ADC, 1),
     PIN(PORT_ADC, 2),
-    PIN(PORT_ADC, 3),
-    PIN(PORT_ADC, 5),
+    PIN(PORT_ADC, 6),
+    PIN(PORT_ADC, 7),
     0
 };
 

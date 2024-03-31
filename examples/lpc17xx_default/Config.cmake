@@ -31,6 +31,7 @@ set(TEMPLATES_LIST
         counter
         dac
         dac_dma
+        dma_memcopy
         flash
         i2c
         i2c_slave

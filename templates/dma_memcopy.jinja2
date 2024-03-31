@@ -1,0 +1,107 @@
+/*
+ * {{group.name}}/dma_memcopy/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/dma_memcopy.h>
+#include <halm/timer.h>
+#include <xcore/memory.h>
+#include <assert.h>
+#include <string.h>
+/*----------------------------------------------------------------------------*/
+typedef uint32_t BufferEntry;
+
+#define BUFFER_LENGTH 1024
+#define BUFFER_LEVEL  (BUFFER_LENGTH - 32)
+/*----------------------------------------------------------------------------*/
+static BufferEntry dstBuffer[BUFFER_LENGTH];
+static BufferEntry srcBuffer[BUFFER_LENGTH];
+/*----------------------------------------------------------------------------*/
+static void fill(BufferEntry *buffer, size_t length)
+{
+  for (size_t i = 0; i < length; ++i)
+    buffer[i] = (BufferEntry)i;
+}
+/*----------------------------------------------------------------------------*/
+static bool verify(const BufferEntry *buffer, size_t length, size_t total)
+{
+  for (size_t i = 0; i < length; ++i)
+  {
+    if (buffer[i] != (BufferEntry)i)
+      return false;
+  }
+  for (size_t i = length; i < total; ++i)
+  {
+    if (buffer[i] != 0)
+      return false;
+  }
+
+  return true;
+}
+/*----------------------------------------------------------------------------*/
+static void onMemoryCopied(void *argument, enum Result status)
+{
+  if (status == E_OK)
+    *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  size_t length = BUFFER_LEVEL;
+  bool dmaEvent = false;
+  bool timEvent = false;
+
+  boardSetupClockExt();
+
+  struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+  struct DmaMemCopyHandler handler;
+  enum Result res;
+
+  res = dmaMemCopyInit(&handler, BOARD_MEMCOPY_CH);
+  assert(res == E_OK);
+  fill(srcBuffer, ARRAY_SIZE(srcBuffer));
+
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer));
+  timerSetCallback(timer, onTimerOverflow, &timEvent);
+  timerEnable(timer);
+
+  /* Suppress warning */
+  (void)res;
+
+  while (1)
+  {
+    while (!timEvent)
+      barrier();
+    timEvent = false;
+
+    pinWrite(led, !BOARD_LED_INV);
+    memset(dstBuffer, 0, BUFFER_LENGTH * sizeof(BufferEntry));
+    dmaMemCopyStart(&handler, dstBuffer, srcBuffer,
+        length * sizeof(BufferEntry), onMemoryCopied, &dmaEvent);
+
+    while (!dmaEvent && !timEvent)
+      barrier();
+
+    if (dmaEvent)
+    {
+      dmaEvent = false;
+
+      if (verify(dstBuffer, length, BUFFER_LENGTH))
+        pinWrite(led, BOARD_LED_INV);
+    }
+
+    if (++length == BUFFER_LENGTH)
+      length = BUFFER_LEVEL;
+  }
+
+  return 0;
+}

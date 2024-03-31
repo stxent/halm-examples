@@ -42,6 +42,7 @@ set(TEMPLATES_LIST
         adc
         adc_dma
         can
+        dma_memcopy
         flash
         i2c
         mmcsd

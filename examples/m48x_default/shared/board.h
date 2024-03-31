@@ -8,6 +8,7 @@
 #define M48X_DEFAULT_SHARED_BOARD_H_
 /*----------------------------------------------------------------------------*/
 #include <halm/pin.h>
+#include <halm/platform/numicro/pdma_base.h>
 #include <stddef.h>
 /*----------------------------------------------------------------------------*/
 #define BOARD_BPWM_0      PIN(PORT_A, 3)
@@ -33,6 +34,8 @@
 #define BOARD_USB_CDC_TX  0x82
 #define BOARD_USB_MSC_RX  0x01
 #define BOARD_USB_MSC_TX  0x81
+
+#define BOARD_MEMCOPY_CH  DMA0_CHANNEL15
 /*----------------------------------------------------------------------------*/
 struct Entity;
 struct Interface;

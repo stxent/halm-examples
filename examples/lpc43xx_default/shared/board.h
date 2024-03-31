@@ -44,6 +44,8 @@
 #define BOARD_USB_CDC_TX  0x83
 #define BOARD_USB_MSC_RX  0x01
 #define BOARD_USB_MSC_TX  0x81
+
+#define BOARD_MEMCOPY_CH  7
 /*----------------------------------------------------------------------------*/
 struct Capture;
 struct ClockClass;

@@ -38,6 +38,8 @@
 #define BOARD_USB_MSC_RX  0x02
 #define BOARD_USB_MSC_TX  0x82
 
+#define BOARD_MEMCOPY_CH  7
+
 DEFINE_WQ_IRQ(WQ_LP)
 /*----------------------------------------------------------------------------*/
 struct Capture;

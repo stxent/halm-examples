@@ -7,6 +7,7 @@
 #ifndef STM32F1XX_DEFAULT_SHARED_BOARD_H_
 #define STM32F1XX_DEFAULT_SHARED_BOARD_H_
 /*----------------------------------------------------------------------------*/
+#include <halm/platform/stm32/bdma_base.h>
 #include <halm/generic/work_queue_irq.h>
 #include <halm/pin.h>
 /*----------------------------------------------------------------------------*/
@@ -26,6 +27,8 @@
 #define BOARD_USB_CDC_TX  0x83
 #define BOARD_USB_IND0    BOARD_LED_1
 #define BOARD_USB_IND1    BOARD_LED_2
+
+#define BOARD_MEMCOPY_CH  DMA1_STREAM1
 
 DEFINE_WQ_IRQ(WQ_LP)
 /*----------------------------------------------------------------------------*/

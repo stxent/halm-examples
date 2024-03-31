@@ -41,6 +41,9 @@ endif()
 
 # Define template list
 set(TEMPLATES_LIST
+        dma_memcopy
         serial
+        serial_dma
         systick
+        timer_pit=timer:TIMER_SUFFIX=PIT
 )

@@ -54,6 +54,7 @@ set(TEMPLATES_LIST
         counter
         dac
         dac_dma
+        dma_memcopy
         eeprom
         flash
         i2c

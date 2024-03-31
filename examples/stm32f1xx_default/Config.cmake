@@ -11,6 +11,7 @@ set(TEMPLATES_LIST
         adc
         adc_dma
         can
+        dma_memcopy
         i2c
         mmcsd_spi
         pin_int
