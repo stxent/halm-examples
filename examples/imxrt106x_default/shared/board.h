@@ -29,6 +29,7 @@ struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);
 struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimerPIT(void);
+struct Timer *boardSetupTimerPIT0(void);
 struct Timer *boardSetupTimerPIT2(void);
 struct Timer *boardSetupTimerPIT3(void);
 /*----------------------------------------------------------------------------*/

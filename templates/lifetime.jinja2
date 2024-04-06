@@ -1,0 +1,41 @@
+/*
+ * {{group.name}}/lifetime/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/lifetime_timer_64.h>
+#include <halm/timer.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  uint64_t next = 0;
+
+  boardSetupClockExt();
+
+  /* Initialize peripherals */
+  struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+  struct Timer * const timer = boardSetupTimer();
+  const uint32_t period = timerGetFrequency(timer);
+
+  struct Timer64 * const chrono = init(LifetimeTimer64,
+      &(struct LifetimeTimer64Config){timer});
+  assert(chrono != NULL);
+  timerEnable(chrono);
+
+  while (1)
+  {
+    const uint64_t current = timerGetValue64(chrono);
+
+    if (current >= next)
+    {
+      pinToggle(led);
+      next += period;
+    }
+  }
+
+  return 0;
+}

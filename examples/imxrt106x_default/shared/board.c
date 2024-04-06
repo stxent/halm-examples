@@ -14,7 +14,7 @@
 [[gnu::alias("boardSetupClockPll3")]] void boardSetupClockPll(void);
 
 [[gnu::alias("boardSetupTimerPIT3")]] struct Timer *boardSetupTimer(void);
-[[gnu::alias("boardSetupTimerPIT2")]] struct Timer *boardSetupTimerPIT(void);
+[[gnu::alias("boardSetupTimerPIT0")]] struct Timer *boardSetupTimerPIT(void);
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
@@ -22,12 +22,19 @@ void boardSetupClockExt(void)
       .divisor = 1,
       .source = CLOCK_OSC
   };
+  static const struct ExtendedClockConfig timerClockConfig = {
+      .divisor = 1,
+      .source = CLOCK_IPG
+  };
 
   clockEnable(PeriphClock, &periphClockConfig);
   while (!clockReady(PeriphClock));
 
   clockEnable(IpgClock, &(struct GenericClockConfig){1});
   while (!clockReady(IpgClock));
+
+  clockEnable(TimerClock, &timerClockConfig);
+  while (!clockReady(TimerClock));
 
   clockEnable(ExternalOsc, NULL);
   while (!clockReady(ExternalOsc));
@@ -43,12 +50,19 @@ void boardSetupClockInt(void)
       .divisor = 1,
       .source = CLOCK_OSC
   };
+  static const struct ExtendedClockConfig timerClockConfig = {
+      .divisor = 1,
+      .source = CLOCK_IPG
+  };
 
   clockEnable(PeriphClock, &periphClockConfig);
   while (!clockReady(PeriphClock));
 
   clockEnable(IpgClock, &(struct GenericClockConfig){1});
   while (!clockReady(IpgClock));
+
+  clockEnable(TimerClock, &timerClockConfig);
+  while (!clockReady(TimerClock));
 
   clockEnable(InternalOsc, NULL);
   while (!clockReady(InternalOsc));
@@ -64,6 +78,10 @@ void boardSetupClockPll1(void)
       .divisor = 2,
       .source = CLOCK_ARM_PLL
   };
+  static const struct ExtendedClockConfig timerClockConfig = {
+      .divisor = 2,
+      .source = CLOCK_IPG
+  };
 
   boardSetupClockExt();
 
@@ -76,6 +94,9 @@ void boardSetupClockPll1(void)
   clockEnable(IpgClock, &(struct GenericClockConfig){4});
   while (!clockReady(IpgClock));
 
+  clockEnable(TimerClock, &timerClockConfig);
+  while (!clockReady(TimerClock));
+
   /* Make 600 MHz clock for core */
   clockEnable(MainClock, &(struct GenericClockConfig){1});
   while (!clockReady(MainClock));
@@ -86,6 +107,10 @@ void boardSetupClockPll2Pfd0(void)
   static const struct ExtendedClockConfig periphClockConfig = {
       .divisor = 1,
       .source = CLOCK_SYSTEM_PLL_PFD0
+  };
+  static const struct ExtendedClockConfig timerClockConfig = {
+      .divisor = 2,
+      .source = CLOCK_IPG
   };
 
   boardSetupClockExt();
@@ -100,6 +125,9 @@ void boardSetupClockPll2Pfd0(void)
 
   clockEnable(IpgClock, &(struct GenericClockConfig){3});
   while (!clockReady(IpgClock));
+
+  clockEnable(TimerClock, &timerClockConfig);
+  while (!clockReady(TimerClock));
 
   /* Make 396 MHz clock for core */
   clockEnable(MainClock, &(struct GenericClockConfig){1});
@@ -116,12 +144,18 @@ void boardSetupClockPll3(void)
       .divisor = 1,
       .source = CLOCK_USB1_PLL
   };
+  static const struct ExtendedClockConfig timerClockConfig = {
+      .divisor = 2,
+      .source = CLOCK_IPG
+  };
 
   boardSetupClockExt();
 
   /* Prepare other system clocks */
   clockEnable(IpgClock, &(struct GenericClockConfig){4});
   while (!clockReady(IpgClock));
+  clockEnable(TimerClock, &timerClockConfig);
+  while (!clockReady(TimerClock));
 
   /* Make 396 MHz clock for FlexSPI1 */
   clockEnable(SystemPll, &(struct PllConfig){22});
@@ -189,18 +223,24 @@ struct Interface *boardSetupSerialDma(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerPIT0(void)
+{
+  static const struct PitConfig pitConfig = {
+      .frequency = 1000000,
+      .channel = 0,
+      .chain = true
+  };
+
+  struct Timer * const timer = init(Pit, &pitConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
 struct Timer *boardSetupTimerPIT2(void)
 {
   static const struct PitConfig pitConfig = {
       .channel = 2
   };
-  static const struct ExtendedClockConfig timerClockConfig = {
-      .divisor = 2,
-      .source = CLOCK_IPG
-  };
-
-  clockEnable(TimerClock, &timerClockConfig);
-  while (!clockReady(TimerClock));
 
   struct Timer * const timer = init(Pit, &pitConfig);
   assert(timer != NULL);
@@ -212,13 +252,6 @@ struct Timer *boardSetupTimerPIT3(void)
   static const struct PitConfig pitConfig = {
       .channel = 3
   };
-  static const struct ExtendedClockConfig timerClockConfig = {
-      .divisor = 2,
-      .source = CLOCK_IPG
-  };
-
-  clockEnable(TimerClock, &timerClockConfig);
-  while (!clockReady(TimerClock));
 
   struct Timer * const timer = init(Pit, &pitConfig);
   assert(timer != NULL);

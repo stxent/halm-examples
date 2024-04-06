@@ -36,6 +36,7 @@ set(TEMPLATES_LIST
         i2c
         i2c_slave
         i2s
+        lifetime
         mmcsd
         mmcsd_spi
         pin_int
@@ -50,10 +51,11 @@ set(TEMPLATES_LIST
         spi_dma
         systick
         timer
-        timer_factory
         timer_rit=timer:TIMER_SUFFIX=RIT
+        timer_factory
         usb_cdc
         usb_msc
         wdt
         work_queue
+        work_queue_unique
 )

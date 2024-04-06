@@ -60,6 +60,7 @@ set(TEMPLATES_LIST
         i2c
         i2c_slave
         i2s
+        lifetime
         mmcsd
         pin_int
         pm_shutdown
@@ -76,6 +77,7 @@ set(TEMPLATES_LIST
         timer_alarm=timer:TIMER_SUFFIX=Alarm
         timer_rit=timer:TIMER_SUFFIX=RIT
         timer_sct=timer:TIMER_SUFFIX=SCT
+        timer_factory
         usb_cdc
         usb_msc
         wdt

@@ -42,6 +42,7 @@ endif()
 # Define template list
 set(TEMPLATES_LIST
         dma_memcopy
+        lifetime
         serial
         serial_dma
         systick
