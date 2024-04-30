@@ -47,4 +47,5 @@ set(TEMPLATES_LIST
         serial_dma
         systick
         timer_pit=timer:TIMER_SUFFIX=PIT
+        usb_cdc
 )

@@ -980,7 +980,7 @@ struct Entity *boardSetupUsb0(void)
       .source = CLOCK_EXTERNAL
   };
 
-  /* Objetcs */
+  /* Objects */
   static const struct UsbDeviceConfig usb0Config = {
       .dm = PIN(PORT_USB, PIN_USB0_DM),
       .dp = PIN(PORT_USB, PIN_USB0_DP),

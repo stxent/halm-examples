@@ -9,12 +9,15 @@
 #include <halm/platform/imxrt/pit.h>
 #include <halm/platform/imxrt/serial.h>
 #include <halm/platform/imxrt/serial_dma.h>
+#include <halm/platform/imxrt/usb_device.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 [[gnu::alias("boardSetupClockPll3")]] void boardSetupClockPll(void);
 
 [[gnu::alias("boardSetupTimerPIT3")]] struct Timer *boardSetupTimer(void);
 [[gnu::alias("boardSetupTimerPIT0")]] struct Timer *boardSetupTimerPIT(void);
+
+[[gnu::alias("boardSetupUsb1")]] struct Entity *boardSetupUsb(void);
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
@@ -256,4 +259,45 @@ struct Timer *boardSetupTimerPIT3(void)
   struct Timer * const timer = init(Pit, &pitConfig);
   assert(timer != NULL);
   return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Entity *boardSetupUsb1(void)
+{
+  /* Objects */
+  static const struct UsbDeviceConfig usb1Config = {
+      .dm = PIN(PORT_USB, PIN_USB_OTG1_DN),
+      .dp = PIN(PORT_USB, PIN_USB_OTG1_DP),
+      .vbus = PIN(PORT_USB, PIN_USB_OTG1_VBUS),
+      .vid = 0x15A2,
+      .pid = 0x0044,
+      .channel = USB_OTG1
+  };
+
+  assert(clockReady(Usb1Pll));
+
+  struct Entity * const usb = init(UsbDevice, &usb1Config);
+  assert(usb != NULL);
+  return usb;
+}
+
+/*----------------------------------------------------------------------------*/
+struct Entity *boardSetupUsb2(void)
+{
+  /* Objects */
+  static const struct UsbDeviceConfig usb2Config = {
+      .dm = PIN(PORT_USB, PIN_USB_OTG2_DN),
+      .dp = PIN(PORT_USB, PIN_USB_OTG2_DP),
+      .vbus = PIN(PORT_USB, PIN_USB_OTG2_VBUS),
+      .vid = 0x15A2,
+      .pid = 0x0044,
+      .channel = USB_OTG2
+  };
+
+  /* Make 480 MHz clock for USB OTG2 */
+  clockEnable(Usb2Pll, &(struct PllConfig){20});
+  while (!clockReady(Usb2Pll));
+
+  struct Entity * const usb = init(UsbDevice, &usb2Config);
+  assert(usb != NULL);
+  return usb;
 }
