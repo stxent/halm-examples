@@ -5,6 +5,7 @@
  */
 
 #include "board.h"
+#include <halm/delay.h>
 #include <halm/platform/lpc/adc.h>
 #include <halm/platform/lpc/adc_dma.h>
 #include <halm/platform/lpc/adc_dma_stream.h>
@@ -169,6 +170,10 @@ const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
 {
+  static const struct GenericDividerConfig divConfig = {
+      .divisor = 2,
+      .source = CLOCK_PLL
+  };
   static const struct PllConfig systemPllConfig = {
       .divisor = 1,
       .multiplier = 17,
@@ -185,7 +190,16 @@ void boardSetupClockPll(void)
     clockEnable(SystemPll, &systemPllConfig);
     while (!clockReady(SystemPll));
 
+    /* Make a PLL clock divided by 2 for base clock ramp up */
+    clockEnable(DividerA, &divConfig);
+    while (!clockReady(DividerA));
+
+    clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_IDIVA});
+    udelay(50);
     clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
+
+    /* Base clock is ready, temporary clock divider is not needed anymore */
+    clockDisable(DividerA);
   }
 
   memset(&sharedClockSettings, 0, sizeof(sharedClockSettings));
@@ -313,8 +327,8 @@ struct Interface *boardSetupCan(struct Timer *timer)
   }
 
   /* Make 40 MHz clock for CAN, clock should be less than 50 MHz */
-  clockEnable(DividerB, &divConfig);
-  while (!clockReady(DividerB));
+  clockEnable(DividerA, &divConfig);
+  while (!clockReady(DividerA));
 
   /* Override default config */
   struct CanConfig config = canConfig;
@@ -323,13 +337,13 @@ struct Interface *boardSetupCan(struct Timer *timer)
   if (config.channel == 0)
   {
     /* CAN0 is connected to the APB3 bus */
-    clockEnable(Apb3Clock, &(struct GenericClockConfig){CLOCK_IDIVB});
+    clockEnable(Apb3Clock, &(struct GenericClockConfig){CLOCK_IDIVA});
     while (!clockReady(Apb3Clock));
   }
   else
   {
     /* CAN1 is connected to the APB1 bus */
-    clockEnable(Apb1Clock, &(struct GenericClockConfig){CLOCK_IDIVB});
+    clockEnable(Apb1Clock, &(struct GenericClockConfig){CLOCK_IDIVA});
     while (!clockReady(Apb1Clock));
   }
 

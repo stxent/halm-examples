@@ -44,7 +44,7 @@ def parse_config(text):
 
     return options
 
-def make_example(platform, family, bundle, config, name):
+def make_example(platform, family, group, config, name):
     path = os.path.dirname(os.path.abspath(__file__))
     path_templates = os.path.abspath(f'{path}/../templates')
     options = parse_config(config)
@@ -54,7 +54,7 @@ def make_example(platform, family, bundle, config, name):
         'group': {
             'platform': platform,
             'family': family,
-            'name': bundle
+            'name': group
         }
     }
 
@@ -65,21 +65,31 @@ def make_example(platform, family, bundle, config, name):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--alias', dest='alias', help='output example name', default='')
-    parser.add_argument('--bundle', dest='bundle', help='bundle name', default='')
-    parser.add_argument('--config', dest='config', help='code configuration options', default='')
-    parser.add_argument('--family', dest='family', help='processor family name', default='')
-    parser.add_argument('--output', dest='output', help='output directory', default='')
-    parser.add_argument('--platform', dest='platform', help='platform name', default='')
+    parser.add_argument('--alias', dest='alias', help='rename an output directory for an example',
+                        default='')
+    parser.add_argument('--config', dest='config', help='code configuration options',
+                        default='')
+    parser.add_argument('--family', dest='family', help='processor family name',
+                        default='')
+    parser.add_argument('--group', dest='group', help='name for a group of generated examples',
+                        default='')
+    parser.add_argument('--output', dest='output', help='place generated examples in a directory',
+                        default='')
+    parser.add_argument('--platform', dest='platform', help='platform name',
+                        default='')
     parser.add_argument(dest='templates', nargs='*')
     options = parser.parse_args()
 
+    if options.alias and len(options.templates) > 1:
+        # Only one template is allowed when the renaming of an output directory is used
+        raise ValueError()
+
     for name in options.templates:
-        text = make_example(options.platform, options.family, options.bundle, options.config, name)
+        text = make_example(options.platform, options.family, options.group, options.config, name)
 
         if options.output:
-            output_name = options.alias if options.alias else name
-            example_path = os.path.abspath(f'{options.output}/{output_name}')
+            example_name = options.alias if options.alias else name
+            example_path = os.path.abspath(f'{options.output}/{example_name}')
             os.makedirs(example_path, exist_ok=True)
 
             with open(f'{example_path}/main.c', 'wb') as stream:

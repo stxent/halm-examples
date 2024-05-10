@@ -111,9 +111,9 @@ foreach(TEMPLATE_NAME ${TEMPLATES_LIST})
             OUTPUT ${TEMPLATE_SOURCE}
             COMMAND "${PROJECT_SOURCE_DIR}/../tools/make_example.py"
                     --alias=${_template_alias}
-                    --bundle=${BUNDLE}
                     --config="${_template_config}"
                     --family=${_family_name}
+                    --group=${BUNDLE}
                     --output=${PROJECT_BINARY_DIR}
                     --platform=${_platform_name}
                     ${_template_name}

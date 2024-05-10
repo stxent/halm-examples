@@ -31,8 +31,15 @@ Build in a Docker container:
 
 ```sh
 cd docker
-docker build -t halm-examples:test .
-docker run -it halm-examples:test
+docker build -t halm-examples:latest .
+docker run -it halm-examples
+```
+
+Build a debug version and copy artifacts from the container:
+
+```sh
+docker run --name halm-examples_debug -it halm-examples -DCMAKE_BUILD_TYPE=Debug
+docker cp halm-examples_debug:/build/halm-examples/deploy/ .
 ```
 
 Useful settings

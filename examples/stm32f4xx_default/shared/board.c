@@ -216,7 +216,10 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
       .clk = PIN(PORT_C, 12),
       .cmd = PIN(PORT_D, 2),
       .dat0 = PIN(PORT_C, 8),
-      .dma = DMA2_STREAM3
+      .dma = {
+          .priority = DMA_PRIORITY_LOW,
+          .stream = DMA2_STREAM3
+      }
   };
   const struct SdioConfig sdioConfig4Bit = {
       .timer = timer,
@@ -227,7 +230,10 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
       .dat1 = PIN(PORT_C, 9),
       .dat2 = PIN(PORT_C, 10),
       .dat3 = PIN(PORT_C, 11),
-      .dma = DMA2_STREAM3
+      .dma = {
+          .priority = DMA_PRIORITY_HIGH,
+          .stream = DMA2_STREAM3
+      }
   };
 
   struct Interface * const interface = init(Sdio,
