@@ -109,7 +109,7 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const bool USE_ZEROCOPY = true;
+  static const bool testZerocopyMode = true;
 
   uint8_t buffer[16];
   uint8_t iteration = 0;
@@ -137,14 +137,14 @@ int main(void)
 
     /* Write memory page */
     fillBuffer(buffer, sizeof(buffer), iteration);
-    deviceWrite(i2c, 0, buffer, sizeof(buffer), USE_ZEROCOPY);
+    deviceWrite(i2c, 0, buffer, sizeof(buffer), testZerocopyMode);
 
     /* Wait for page program operation */
     mdelay(10);
 
     /* Read and verify memory page */
     memset(buffer, 0, sizeof(buffer));
-    deviceRead(i2c, 0, buffer, sizeof(buffer), USE_ZEROCOPY);
+    deviceRead(i2c, 0, buffer, sizeof(buffer), testZerocopyMode);
 
     if (checkBuffer(buffer, sizeof(buffer), iteration))
       pinWrite(led, BOARD_LED_INV);

@@ -104,11 +104,11 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t length,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t SPI_SDIO_RATE = 12000000;
-  static const uint8_t SPI_SDIO_MODE = 3;
-  static const bool USE_BUSY_TIMER = true;
-  static const bool USE_CRC_CHECK = true;
-  static const bool USE_WRITE = false;
+  static const uint32_t testSpiRate = 12000000;
+  static const uint8_t testSpiMode = 3;
+  static const bool testBusyTimer = true;
+  static const bool testChecksum = true;
+  static const bool testWriteMode = false;
 
   enum Result res;
   bool event = true;
@@ -124,7 +124,7 @@ int main(void)
   pinOutput(txLed, BOARD_LED_INV);
 
   /* Helper timer for SDIO status polling */
-  struct Timer * const busyTimer = USE_BUSY_TIMER ?
+  struct Timer * const busyTimer = testBusyTimer ?
       boardSetupAdcTimer() : NULL;
 
   if (busyTimer != NULL)
@@ -136,17 +136,17 @@ int main(void)
 
   /* Initialize SPI layer */
   struct Interface * const spi = boardSetupSpiSdio();
-  res = ifSetParam(spi, IF_RATE, &SPI_SDIO_RATE);
+  res = ifSetParam(spi, IF_RATE, &testSpiRate);
   assert(res == E_OK);
-  res = ifSetParam(spi, IF_SPI_MODE, &SPI_SDIO_MODE);
+  res = ifSetParam(spi, IF_SPI_MODE, &testSpiMode);
   assert(res == E_OK);
 
   /* Initialize SDIO layer */
   const struct SdioSpiConfig sdioConfig = {
       .interface = spi,
       .timer = busyTimer,
-      .wq = USE_CRC_CHECK ? WQ_LP : NULL,
-      .blocks = USE_CRC_CHECK ? ARENA_SIZE / BLOCK_SIZE : 0,
+      .wq = testChecksum ? WQ_LP : NULL,
+      .blocks = testChecksum ? ARENA_SIZE / BLOCK_SIZE : 0,
       .cs = BOARD_SDIO_CS
   };
   struct Interface * const sdio = init(SdioSpi, &sdioConfig);
@@ -181,7 +181,7 @@ int main(void)
       /* Initialize SD Card layer */
       const struct MMCSDConfig cardConfig = {
           .interface = sdio,
-          .crc = USE_CRC_CHECK
+          .crc = testChecksum
       };
 
       pinWrite(cdLed, BOARD_LED_INV);
@@ -213,7 +213,7 @@ int main(void)
     }
 
     /* Write test */
-    if (USE_WRITE && card != NULL)
+    if (testWriteMode && card != NULL)
     {
       bool ok = true;
 

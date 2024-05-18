@@ -135,7 +135,9 @@ void boardResetClock(void)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
+#ifndef CONFIG_RESET_CLOCKS
   if (!loadClockSettings(&sharedClockSettings))
+#endif
   {
     clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
 
@@ -180,7 +182,9 @@ void boardSetupClockPll(void)
       .source = CLOCK_EXTERNAL
   };
 
+#ifndef CONFIG_RESET_CLOCKS
   if (!loadClockSettings(&sharedClockSettings))
+#endif
   {
     clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
 
@@ -311,7 +315,7 @@ struct Interface *boardSetupCan(struct Timer *timer)
   /* Objects */
   const struct CanConfig canConfig = {
       .timer = timer,
-      .rate = 1000000,
+      .rate = 100000,
       .rxBuffers = 4,
       .txBuffers = 4,
       .rx = PIN(PORT_3, 1),

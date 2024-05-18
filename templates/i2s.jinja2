@@ -73,7 +73,7 @@ static void fillBuffers(void)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t I2S_TEST_RATE = 44100;
+  static const uint32_t testI2SRate = 44100;
 
   boardSetupClockPll();
   fillBuffers();
@@ -86,7 +86,7 @@ int main(void)
   struct StreamPackage audio = boardSetupI2S();
   enum Result res;
 
-  res = ifSetParam(audio.interface, IF_RATE, &I2S_TEST_RATE);
+  res = ifSetParam(audio.interface, IF_RATE, &testI2SRate);
   assert(res == E_OK);
 
   struct EventTuple rxContext = {

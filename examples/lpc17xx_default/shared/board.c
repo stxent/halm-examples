@@ -218,7 +218,7 @@ struct Interface *boardSetupCan(struct Timer *timer)
 {
   const struct CanConfig canConfig = {
       .timer = timer,
-      .rate = 1000000,
+      .rate = 100000,
       .rxBuffers = 4,
       .txBuffers = 4,
       .rx = PIN(0, 0),

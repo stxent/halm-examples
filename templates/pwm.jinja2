@@ -9,20 +9,20 @@
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
-  static const uint32_t PWM_LEVELS[] = {0, 2, 4, 6, 8, 10, 12, 14, 16};
+  static const uint32_t pwmLevelMap[] = {0, 2, 4, 6, 8, 10, 12, 14, 16};
   static uint32_t iteration = 0;
 
   struct PwmPackage * const pwm = argument;
   const uint32_t resolution = timerGetOverflow(pwm->timer);
   const uint32_t duration =
-      (iteration / ARRAY_SIZE(PWM_LEVELS)) % ARRAY_SIZE(PWM_LEVELS);
-  uint32_t leading = iteration % ARRAY_SIZE(PWM_LEVELS);
+      (iteration / ARRAY_SIZE(pwmLevelMap)) % ARRAY_SIZE(pwmLevelMap);
+  uint32_t leading = iteration % ARRAY_SIZE(pwmLevelMap);
   uint32_t trailing = leading + duration;
 
-  if (trailing >= ARRAY_SIZE(PWM_LEVELS))
-    trailing -= ARRAY_SIZE(PWM_LEVELS);
-  leading = PWM_LEVELS[leading] * resolution / 16;
-  trailing = PWM_LEVELS[trailing] * resolution / 16;
+  if (trailing >= ARRAY_SIZE(pwmLevelMap))
+    trailing -= ARRAY_SIZE(pwmLevelMap);
+  leading = pwmLevelMap[leading] * resolution / 16;
+  trailing = pwmLevelMap[trailing] * resolution / 16;
 
   if (pwm->outputs[1] != NULL)
     pwmSetEdges(pwm->outputs[1], 0, leading);
@@ -40,7 +40,7 @@ static void onUnitOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const bool PWM_CENTERED = false;
+  static const bool testPwmCentered = false;
 
   boardSetupClockExt();
 
@@ -49,10 +49,10 @@ int main(void)
 
 {%- if config.PWM_SUFFIX is defined %}
 
-  struct PwmPackage pwm = boardSetupPwm{{config.PWM_SUFFIX}}(PWM_CENTERED);
+  struct PwmPackage pwm = boardSetupPwm{{config.PWM_SUFFIX}}(testPwmCentered);
 {%- else %}
 
-  struct PwmPackage pwm = boardSetupPwm(PWM_CENTERED);
+  struct PwmPackage pwm = boardSetupPwm(testPwmCentered);
 {%- endif %}
   timerSetCallback(pwm.timer, onUnitOverflow, &led);
   timerSetFrequency(pwm.timer, 100000);

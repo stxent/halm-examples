@@ -62,8 +62,8 @@ static bool verify(struct Interface *interface, uint32_t address,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const size_t BUFFER_LENGTH = 320;
-  static const uint32_t EEPROM_ADDRESS = 64;
+  static const size_t testBufferLength = 320;
+  static const uint32_t testMemoryAddress = 64;
 
   boardSetupClockExt();
 
@@ -74,18 +74,18 @@ int main(void)
 
   /* Fill memory with pseudorandom pattern */
 
-  if (!program(eeprom, EEPROM_ADDRESS, BUFFER_LENGTH, false))
+  if (!program(eeprom, testMemoryAddress, testBufferLength, false))
     pinWrite(led, !BOARD_LED_INV);
 
-  if (!verify(eeprom, EEPROM_ADDRESS, BUFFER_LENGTH, false))
+  if (!verify(eeprom, testMemoryAddress, testBufferLength, false))
     pinWrite(led, !BOARD_LED_INV);
 
   /* Reset memory to the default state */
 
-  if (!program(eeprom, EEPROM_ADDRESS, BUFFER_LENGTH, true))
+  if (!program(eeprom, testMemoryAddress, testBufferLength, true))
     pinWrite(led, !BOARD_LED_INV);
 
-  if (!verify(eeprom, EEPROM_ADDRESS, BUFFER_LENGTH, true))
+  if (!verify(eeprom, testMemoryAddress, testBufferLength, true))
     pinWrite(led, !BOARD_LED_INV);
 
   while (1);

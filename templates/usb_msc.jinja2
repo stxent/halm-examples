@@ -132,9 +132,9 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t SDMMC_RATE = 6000000;
-  static const bool USE_BUSY_TIMER = true;
-  static const bool USE_WIDE_BUS = true;
+  static const uint32_t testSdioRate = 6000000;
+  static const bool testBusyTimer = true;
+  static const bool testWideBus = true;
 
   struct Interface *card = NULL;
   enum Result res;
@@ -146,12 +146,12 @@ int main(void)
   pinOutput(cdLed, !BOARD_LED_INV);
 
   /* Configure the timer for timeout calculations */
-  struct Timer * const busyTimer = USE_BUSY_TIMER ?
+  struct Timer * const busyTimer = testBusyTimer ?
       boardSetupAdcTimer() : NULL;
 
   /* Initialize SDMMC layer */
-  struct Interface * const sdio = boardSetupSdio(USE_WIDE_BUS, busyTimer);
-  res = ifSetParam(sdio, IF_RATE, &SDMMC_RATE);
+  struct Interface * const sdio = boardSetupSdio(testWideBus, busyTimer);
+  res = ifSetParam(sdio, IF_RATE, &testSdioRate);
   assert(res == E_OK);
   (void)res; /* Suppress warning */
 

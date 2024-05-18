@@ -7,6 +7,7 @@
 #include <halm/generic/can.h>
 #include <halm/timer.h>
 #include <xcore/memory.h>
+#include <assert.h>
 /*----------------------------------------------------------------------------*/
 /* Period between message groups in seconds */
 #define GROUP_RATE  10
@@ -57,8 +58,11 @@ static void runTransmissionTest(struct Interface *interface,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const uint32_t testCanRate = 1000000;
+
   bool canEvent = false;
   bool timerEvent = false;
+  enum Result res;
 
   boardSetupClockPll();
 
@@ -75,7 +79,13 @@ int main(void)
 
   struct Interface * const can = boardSetupCan(chronoTimer);
   ifSetCallback(can, onEvent, &canEvent);
-  ifSetParam(can, IF_CAN_ACTIVE, NULL);
+  res = ifSetParam(can, IF_RATE, &testCanRate);
+  assert(res == E_OK);
+  res = ifSetParam(can, IF_CAN_ACTIVE, NULL);
+  assert(res == E_OK);
+
+  /* Suppress warning */
+  (void)res;
 
   while (1)
   {

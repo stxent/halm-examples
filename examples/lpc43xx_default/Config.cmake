@@ -6,11 +6,18 @@ set(FAMILY "LPC")
 # Set platform type
 set(PLATFORM "LPC43XX")
 
-# Available memory regions
-math(EXPR ADDRESS_FLASH "0x1A000000")
-math(EXPR ADDRESS_SDRAM "0x28000000")
-math(EXPR ADDRESS_SPIFI "0x14000000")
-math(EXPR ADDRESS_SRAM0 "0x10000000")
+# Memory regions for all parts
+math(EXPR MEMORY_ADDRESS_SDRAM "0x28000000")
+math(EXPR MEMORY_ADDRESS_SPIFI "0x14000000")
+math(EXPR MEMORY_ADDRESS_SRAM0 "0x10000000")
+math(EXPR MEMORY_SIZE_SDRAM "4 * 1024 * 1024")
+math(EXPR MEMORY_SIZE_SPIFI "4 * 1024 * 1024")
+# Flash-based parts
+math(EXPR MEMORY_ADDRESS_FLASH "0x1A000000")
+math(EXPR MEMORY_SIZE_FLASH "256 * 1024")
+math(EXPR MEMORY_SIZE_SRAM0 "32 * 1024")
+# Flash-less parts
+math(EXPR MEMORY_SIZE_SRAM0_FLASHLESS "96 * 1024")
 
 # Linker script settings
 if(TARGET_NOR)
@@ -20,16 +27,27 @@ if(TARGET_NOR)
         set(DFU_LENGTH 0)
     endif()
 
-    math(EXPR ROM_LENGTH "4 * 1024 * 1024 - ${DFU_LENGTH}")
-    math(EXPR ROM_ORIGIN "${ADDRESS_SPIFI} + ${DFU_LENGTH}")
+    math(EXPR ROM_LENGTH "${MEMORY_SIZE_SPIFI} - ${DFU_LENGTH}")
+    math(EXPR ROM_ORIGIN "${MEMORY_ADDRESS_SPIFI} + ${DFU_LENGTH}")
     set(DISABLE_LITERAL_POOL ON)
 elseif(TARGET_SDRAM)
-    math(EXPR ROM_LENGTH "4 * 1024 * 1024")
-    math(EXPR ROM_ORIGIN "${ADDRESS_SDRAM}")
+    math(EXPR ROM_LENGTH "${MEMORY_SIZE_SDRAM}")
+    math(EXPR ROM_ORIGIN "${MEMORY_ADDRESS_SDRAM}")
     set(DISABLE_LITERAL_POOL ON)
+
+    # Do not use clock settings from the bootloader
+    set(BUNDLE_DEFS "-DCONFIG_RESET_CLOCKS")
 elseif(TARGET_SRAM)
-    math(EXPR ROM_LENGTH "96 * 1024")
-    math(EXPR ROM_ORIGIN "${ADDRESS_SRAM0}")
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
+        # Use debug builds on flash-less parts only
+        math(EXPR ROM_LENGTH "${MEMORY_SIZE_SRAM0_FLASHLESS}")
+    else()
+        math(EXPR ROM_LENGTH "${MEMORY_SIZE_SRAM0}")
+    endif()
+    math(EXPR ROM_ORIGIN "${MEMORY_ADDRESS_SRAM0}")
+
+    # Do not use clock settings from the bootloader
+    set(BUNDLE_DEFS "-DCONFIG_RESET_CLOCKS")
 else()
     if(USE_DFU)
         set(DFU_LENGTH 32768)
@@ -37,8 +55,8 @@ else()
         set(DFU_LENGTH 0)
     endif()
 
-    math(EXPR ROM_LENGTH "256 * 1024 - ${DFU_LENGTH}")
-    math(EXPR ROM_ORIGIN "${ADDRESS_FLASH} + ${DFU_LENGTH}")
+    math(EXPR ROM_LENGTH "${MEMORY_SIZE_FLASH} - ${DFU_LENGTH}")
+    math(EXPR ROM_ORIGIN "${MEMORY_ADDRESS_FLASH} + ${DFU_LENGTH}")
 endif()
 
 # Define template list

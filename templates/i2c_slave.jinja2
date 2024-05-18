@@ -15,8 +15,8 @@ static void onDeviceMemoryChanged(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t DEFAULT_OFFSET = 0;
-  static const uint32_t DEVICE_ADDRESS = 0x60;
+  static const uint32_t testDefaultAddress = 0x60;
+  static const uint32_t testDefaultOffset = 0;
 
   bool event = false;
   enum Result res;
@@ -29,7 +29,7 @@ int main(void)
   struct Interface * const i2c = boardSetupI2CSlave();
   ifSetCallback(i2c, onDeviceMemoryChanged, &event);
 
-  res = ifSetParam(i2c, IF_ADDRESS, &DEVICE_ADDRESS);
+  res = ifSetParam(i2c, IF_ADDRESS, &testDefaultAddress);
   assert(res == E_OK);
   (void)res; /* Suppress warning */
 
@@ -41,7 +41,7 @@ int main(void)
 
     uint8_t state;
 
-    ifSetParam(i2c, IF_POSITION, &DEFAULT_OFFSET);
+    ifSetParam(i2c, IF_POSITION, &testDefaultOffset);
     ifRead(i2c, &state, sizeof(state));
     pinWrite(led, (state & 1) ? !BOARD_LED_INV : BOARD_LED_INV);
   }

@@ -207,7 +207,7 @@ static bool memoryTestSequence(struct Interface *interface)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t SPIM_TEST_RATE = 4000000;
+  static const uint32_t testSpimRate = 4000000;
 
   bool event = false;
   enum Result res;
@@ -225,7 +225,7 @@ int main(void)
   struct Timer * const pollTimer = NULL;
 {%- endif %}
   struct Interface * const spim = boardSetupSpim(pollTimer);
-  res = ifSetParam(spim, IF_RATE, &SPIM_TEST_RATE);
+  res = ifSetParam(spim, IF_RATE, &testSpimRate);
   assert(res == E_OK || res == E_INVALID);
 
   struct Timer * const eventTimer = boardSetupTimer();

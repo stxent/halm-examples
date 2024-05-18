@@ -21,9 +21,9 @@ static void onTransferCompleted(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t SPI_TEST_RATE = 400000;
-  static const uint8_t SPI_TEST_MODE = 3;
-  static const bool USE_ZEROCOPY = true;
+  static const uint32_t testSpiRate = 400000;
+  static const uint8_t testSpiMode = 3;
+  static const bool testZerocopyMode = true;
 
   unsigned int value = 0;
   bool event = false;
@@ -37,12 +37,12 @@ int main(void)
   pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const spi = boardSetupSpi();
-  res = ifSetParam(spi, IF_RATE, &SPI_TEST_RATE);
+  res = ifSetParam(spi, IF_RATE, &testSpiRate);
   assert(res == E_OK);
-  res = ifSetParam(spi, IF_SPI_MODE, &SPI_TEST_MODE);
+  res = ifSetParam(spi, IF_SPI_MODE, &testSpiMode);
   assert(res == E_OK);
 
-  if (USE_ZEROCOPY)
+  if (testZerocopyMode)
   {
     ifSetParam(spi, IF_ZEROCOPY, NULL);
     ifSetCallback(spi, onTransferCompleted, &value);
@@ -70,7 +70,7 @@ int main(void)
     pinSet(cs);
     pinToggle(led);
 
-    if (!USE_ZEROCOPY)
+    if (!testZerocopyMode)
       ++value;
   }
 

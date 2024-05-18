@@ -34,8 +34,8 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t UART_TEST_RATE = 19200;
-  static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
+  static const uint32_t testUartRate = 19200;
+  static const uint8_t testUartParity = SERIAL_PARITY_NONE;
 
   bool event = false;
   enum Result res;
@@ -47,9 +47,9 @@ int main(void)
 
   struct Interface * const serial = boardSetupSerial();
   ifSetCallback(serial, onSerialEvent, &event);
-  res = ifSetParam(serial, IF_RATE, &UART_TEST_RATE);
+  res = ifSetParam(serial, IF_RATE, &testUartRate);
   assert(res == E_OK);
-  res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
+  res = ifSetParam(serial, IF_SERIAL_PARITY, &testUartParity);
   assert(res == E_OK);
 
   /* Suppress warning */

@@ -102,10 +102,10 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t length,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const uint32_t SDMMC_RATE = 6000000;
-  static const bool USE_BUSY_TIMER = true;
-  static const bool USE_WIDE_BUS = true;
-  static const bool USE_WRITE = false;
+  static const uint32_t testSdioRate = 6000000;
+  static const bool testBusyTimer = true;
+  static const bool testWideBus = true;
+  static const bool testWriteMode = false;
 
   enum Result res;
   bool event = true;
@@ -120,12 +120,12 @@ int main(void)
   pinOutput(txLed, BOARD_LED_INV);
 
   /* Configure the timer for timeout calculations */
-  struct Timer * const busyTimer = USE_BUSY_TIMER ?
+  struct Timer * const busyTimer = testBusyTimer ?
       boardSetupAdcTimer() : NULL;
 
   /* Initialize SDMMC layer */
-  struct Interface * const sdio = boardSetupSdio(USE_WIDE_BUS, busyTimer);
-  res = ifSetParam(sdio, IF_RATE, &SDMMC_RATE);
+  struct Interface * const sdio = boardSetupSdio(testWideBus, busyTimer);
+  res = ifSetParam(sdio, IF_RATE, &testSdioRate);
   assert(res == E_OK);
 
   /* Configure the timer for read/write events */
@@ -186,7 +186,7 @@ int main(void)
     }
 
     /* Write test */
-    if (USE_WRITE && card != NULL)
+    if (testWriteMode && card != NULL)
     {
       bool ok = true;
 
