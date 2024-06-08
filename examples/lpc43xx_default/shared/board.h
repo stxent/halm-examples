@@ -16,6 +16,7 @@
 #define BOARD_CAP_1       PIN(2, 13)
 #define BOARD_CAP_TIMER   PIN(PORT_6, 2)
 #define BOARD_CAPTURE     BOARD_CAP_0
+#define BOARD_ETH_BUFFER  1056
 #define BOARD_PHY_RESET   PIN(PORT_5, 2)
 #define BOARD_LED_0       PIN(PORT_5, 7)
 #define BOARD_LED_1       PIN(PORT_5, 5)
@@ -64,6 +65,13 @@ struct CapturePackage
   struct Capture *input;
 };
 
+struct EthernetPackage
+{
+  struct Interface *mac;
+  struct Interface *mdio;
+  struct Interface *proxy;
+};
+
 struct PwmPackage
 {
   struct Timer *timer;
@@ -96,6 +104,7 @@ struct CapturePackage boardSetupCapture(void);
 struct Interface *boardSetupDac(void);
 struct StreamPackage boardSetupDacDma(void);
 struct Interface *boardSetupEeprom(void);
+struct EthernetPackage boardSetupEthernet(uint64_t, size_t, size_t);
 struct Interface *boardSetupFlash(void);
 struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupI2C0(void);

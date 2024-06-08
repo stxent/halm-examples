@@ -6,10 +6,10 @@
 
 #include "board.h"
 #include <halm/delay.h>
-#include <halm/generic/buffering_proxy.h>
-#include <halm/platform/lpc/clocking.h>
-#include <halm/platform/lpc/lpc43xx/ethernet.h>
+#include <xcore/interface.h>
 #include <xcore/memory.h>
+#include <assert.h>
+#include <string.h>
 /*----------------------------------------------------------------------------*/
 #define PHY_REG_BMCR                0x00
 #define PHY_REG_BMSR                0x01
@@ -28,8 +28,10 @@
 
 #define ARENA_SIZE  16384
 #define CHUNK_SIZE  1024
-#define BUFFER_SIZE 1056
 
+/* 1e:30:6c:a2:45:5e */
+#define MAC_ADDRESS 0x5E45A26C301EUL
+/*----------------------------------------------------------------------------*/
 struct [[gnu::packed]] EthHeader
 {
   /* Ethernet address of destination */
@@ -61,78 +63,9 @@ static void sendMemChunk(struct Interface *, const uint8_t *, size_t, size_t);
 /*----------------------------------------------------------------------------*/
 static uint8_t arena[ARENA_SIZE];
 /*----------------------------------------------------------------------------*/
-static const struct EthernetConfig ethConfig = {
-    /* 1e:30:6c:a2:45:5e */
-    .address = 0x5E45A26C301EUL,
-
-    .rate = 100000000,
-    .rxSize = 4,
-    .txSize = 4,
-    .halfduplex = false,
-    .txclk = PIN(PORT_1, 19),
-    .rxd = {
-        PIN(PORT_1, 15),
-        PIN(PORT_0, 0),
-        0,
-        0
-    },
-    .rxdv = PIN(PORT_1, 16),
-    .txd = {
-        PIN(PORT_1, 18),
-        PIN(PORT_1, 20),
-        0,
-        0
-    },
-    .txen = PIN(PORT_0, 1),
-    .mdc = PIN(PORT_2, 0),
-    .mdio = PIN(PORT_1, 17)
-};
-
-static const struct GenericClockConfig initialClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_PLL
-};
-
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000,
-    .bypass = false
-};
-
-static const struct GenericClockConfig ethClockConfig = {
-    .source = CLOCK_ENET_TX
-};
-
-static const struct PllConfig sysPllConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 1,
-    .multiplier = 17
-};
-/*----------------------------------------------------------------------------*/
 static void onFrameReady(void *argument)
 {
   *(bool *)argument = true;
-}
-/*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &initialClockConfig);
-
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(SystemPll, &sysPllConfig);
-  while (!clockReady(SystemPll));
-
-  clockEnable(MainClock, &mainClockConfig);
-
-  clockEnable(PhyRxClock, &ethClockConfig);
-  while (!clockReady(PhyRxClock));
-
-  clockEnable(PhyTxClock, &ethClockConfig);
-  while (!clockReady(PhyTxClock));
 }
 /*----------------------------------------------------------------------------*/
 static void handleEthFrame(struct Interface *eth, const uint8_t *frame,
@@ -263,16 +196,18 @@ static void phyWriteReg(struct Interface *mdio, uint32_t address,
 static void sendMemChunk(struct Interface *eth, const uint8_t *mac,
     size_t offset, size_t length)
 {
-  uint8_t frame[BUFFER_SIZE];
-
+  uint64_t address;
+  uint8_t frame[BOARD_ETH_BUFFER];
   struct TestPacket * const packet = (struct TestPacket *)frame;
 
-  packet->header.src[0] = ethConfig.address >> 0;
-  packet->header.src[1] = ethConfig.address >> 8;
-  packet->header.src[2] = ethConfig.address >> 16;
-  packet->header.src[3] = ethConfig.address >> 24;
-  packet->header.src[4] = ethConfig.address >> 32;
-  packet->header.src[5] = ethConfig.address >> 40;
+  ifGetParam(eth, IF_ADDRESS_64, &address);
+  packet->header.src[0] = address >> 0;
+  packet->header.src[1] = address >> 8;
+  packet->header.src[2] = address >> 16;
+  packet->header.src[3] = address >> 24;
+  packet->header.src[4] = address >> 32;
+  packet->header.src[5] = address >> 40;
+
   memcpy(packet->header.dst, mac, sizeof(packet->header.dst));
   packet->header.type = TO_BIG_ENDIAN_16(ETHER_TYPE);
 
@@ -286,41 +221,22 @@ static void sendMemChunk(struct Interface *eth, const uint8_t *mac,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockPll();
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
+
   const struct Pin rst = pinInit(BOARD_PHY_RESET);
   pinOutput(rst, true);
 
-  void * const eth = init(Ethernet, &ethConfig);
-  assert(eth != NULL);
+  struct EthernetPackage eth = boardSetupEthernet(MAC_ADDRESS, 4, 4);
 
-  const struct BufferingProxyConfig proxyConfig = {
-      .pipe = eth,
-      .rx = {
-          .stream = ethGetInput(eth),
-          .count = 4,
-          .size = BUFFER_SIZE
-      },
-      .tx = {
-          .stream = ethGetOutput(eth),
-          .count = 4,
-          .size = BUFFER_SIZE
-      }
-  };
-  void * const proxy = init(BufferingProxy, &proxyConfig);
-  assert(proxy != NULL);
-
-  void * const mdio = ethMakeMDIO(eth);
-  assert(mdio != NULL);
-
-  const bool phyReady = phyInit(mdio);
+  const bool phyReady = phyInit(eth.mdio);
   (void)phyReady;
   assert(phyReady);
 
   bool event = false;
-  ifSetCallback(proxy, onFrameReady, &event);
+  ifSetCallback(eth.proxy, onFrameReady, &event);
 
   while (1)
   {
@@ -328,12 +244,12 @@ int main(void)
       barrier();
     event = false;
 
-    uint8_t buffer[BUFFER_SIZE];
+    uint8_t buffer[BOARD_ETH_BUFFER];
     size_t count;
 
     pinToggle(led);
-    while ((count = ifRead(proxy, buffer, sizeof(buffer))) > 0)
-      handleEthFrame(proxy, buffer, count);
+    while ((count = ifRead(eth.proxy, buffer, sizeof(buffer))) > 0)
+      handleEthFrame(eth.proxy, buffer, count);
     pinToggle(led);
   }
 

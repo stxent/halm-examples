@@ -6,6 +6,7 @@
 
 #include "board.h"
 #include <halm/delay.h>
+#include <halm/generic/buffering_proxy.h>
 #include <halm/platform/lpc/adc.h>
 #include <halm/platform/lpc/adc_dma.h>
 #include <halm/platform/lpc/adc_dma_stream.h>
@@ -24,6 +25,7 @@
 #include <halm/platform/lpc/i2c_slave.h>
 #include <halm/platform/lpc/i2s_dma.h>
 #include <halm/platform/lpc/lpc43xx/atimer.h>
+#include <halm/platform/lpc/lpc43xx/ethernet.h>
 #include <halm/platform/lpc/pin_int.h>
 #include <halm/platform/lpc/rit.h>
 #include <halm/platform/lpc/rtc.h>
@@ -135,19 +137,44 @@ void boardResetClock(void)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
-#ifndef CONFIG_RESET_CLOCKS
-  if (!loadClockSettings(&sharedClockSettings))
-#endif
+  bool clockSettingsLoaded = loadClockSettings(&sharedClockSettings);
+  const bool spifiClockEnabled = clockReady(SpifiClock);
+
+  if (clockSettingsLoaded)
+  {
+    /* Check clock sources */
+    if (!clockReady(ExternalOsc) || !clockReady(SystemPll))
+    {
+      memset(&sharedClockSettings, 0, sizeof(sharedClockSettings));
+      clockSettingsLoaded = false;
+    }
+  }
+
+  if (!clockSettingsLoaded)
   {
     clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+
+    if (spifiClockEnabled)
+    {
+      /* Running from NOR Flash, switch SPIFI clock to IRC without disabling */
+      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+    }
 
     clockEnable(ExternalOsc, &extOscConfig);
     while (!clockReady(ExternalOsc));
 
     clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
-  }
 
-  memset(&sharedClockSettings, 0, sizeof(sharedClockSettings));
+    if (spifiClockEnabled)
+    {
+      /* Switch SPIFI clock to external crystal */
+      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
+    }
+
+    /* Disable unused System PLL */
+    if (clockReady(SystemPll))
+      clockDisable(SystemPll);
+  }
 }
 /*----------------------------------------------------------------------------*/
 const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
@@ -172,41 +199,89 @@ const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
 {
-  static const struct GenericDividerConfig divConfig = {
+  static const struct GenericDividerConfig sysDivConfig = {
       .divisor = 2,
       .source = CLOCK_PLL
   };
-  static const struct PllConfig systemPllConfig = {
+  static const struct PllConfig sysPllConfig = {
       .divisor = 1,
       .multiplier = 17,
       .source = CLOCK_EXTERNAL
   };
 
-#ifndef CONFIG_RESET_CLOCKS
-  if (!loadClockSettings(&sharedClockSettings))
-#endif
+  bool clockSettingsLoaded = loadClockSettings(&sharedClockSettings);
+  const bool spifiClockEnabled = clockReady(SpifiClock);
+
+  if (clockSettingsLoaded)
+  {
+    /* Check clock sources */
+    if (!clockReady(ExternalOsc) || !clockReady(SystemPll))
+    {
+      memset(&sharedClockSettings, 0, sizeof(sharedClockSettings));
+      clockSettingsLoaded = false;
+    }
+  }
+
+  if (!clockSettingsLoaded)
   {
     clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+
+    if (spifiClockEnabled)
+    {
+      /* Running from NOR Flash, switch SPIFI clock to IRC without disabling */
+      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+    }
 
     clockEnable(ExternalOsc, &extOscConfig);
     while (!clockReady(ExternalOsc));
 
-    clockEnable(SystemPll, &systemPllConfig);
+    clockEnable(SystemPll, &sysPllConfig);
     while (!clockReady(SystemPll));
 
-    /* Make a PLL clock divided by 2 for base clock ramp up */
-    clockEnable(DividerA, &divConfig);
-    while (!clockReady(DividerA));
+    if (sysPllConfig.divisor == 1)
+    {
+      /* High frequency, make a PLL clock divided by 2 for base clock ramp up */
+      clockEnable(DividerA, &sysDivConfig);
+      while (!clockReady(DividerA));
 
-    clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_IDIVA});
-    udelay(50);
-    clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
+      clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_IDIVA});
+      udelay(50);
+      clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
 
-    /* Base clock is ready, temporary clock divider is not needed anymore */
-    clockDisable(DividerA);
+      /* Base clock is ready, temporary clock divider is not needed anymore */
+      clockDisable(DividerA);
+    }
+    else
+    {
+      /* Low CPU frequency */
+      clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
+    }
   }
 
-  memset(&sharedClockSettings, 0, sizeof(sharedClockSettings));
+  /* SPIFI */
+  if (!clockSettingsLoaded && spifiClockEnabled)
+  {
+    static const uint32_t spifiMaxFrequency = 30000000;
+    const uint32_t frequency = clockFrequency(SystemPll);
+
+    /* Running from NOR Flash, update SPIFI clock without disabling */
+    if (frequency > spifiMaxFrequency)
+    {
+      const struct GenericDividerConfig spifiDivConfig = {
+          .divisor = (frequency + spifiMaxFrequency - 1) / spifiMaxFrequency,
+          .source = CLOCK_PLL
+      };
+
+      clockEnable(DividerD, &spifiDivConfig);
+      while (!clockReady(DividerD));
+
+      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_IDIVD});
+    }
+    else
+    {
+      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_PLL});
+    }
+  }
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupAdc(void)
@@ -457,6 +532,70 @@ struct Interface *boardSetupEeprom(void)
   struct Interface * const interface = init(Eeprom, NULL);
   assert(interface != NULL);
   return interface;
+}
+
+/*----------------------------------------------------------------------------*/
+struct EthernetPackage boardSetupEthernet(uint64_t address, size_t rxSize,
+    size_t txSize)
+{
+  const struct EthernetConfig ethernetConfig = {
+      .address = address,
+
+      .rate = 100000000,
+      .rxSize = rxSize,
+      .txSize = txSize,
+      .halfduplex = false,
+      .txclk = PIN(PORT_1, 19),
+      .rxd = {
+          PIN(PORT_1, 15),
+          PIN(PORT_0, 0),
+          0,
+          0
+      },
+      .rxdv = PIN(PORT_1, 16),
+      .txd = {
+          PIN(PORT_1, 18),
+          PIN(PORT_1, 20),
+          0,
+          0
+      },
+      .txen = PIN(PORT_0, 1),
+      .mdc = PIN(PORT_2, 0),
+      .mdio = PIN(PORT_1, 17)
+  };
+
+  clockEnable(PhyRxClock, &(struct GenericClockConfig){CLOCK_ENET_TX});
+  while (!clockReady(PhyRxClock));
+  clockEnable(PhyTxClock, &(struct GenericClockConfig){CLOCK_ENET_TX});
+  while (!clockReady(PhyTxClock));
+
+  struct Ethernet * const eth = init(Ethernet, &ethernetConfig);
+  assert(eth != NULL);
+
+  struct Interface * const mdio = ethMakeMDIO(eth);
+  assert(mdio != NULL);
+
+  const struct BufferingProxyConfig proxyConfig = {
+      .pipe = eth,
+      .rx = {
+          .stream = ethGetInput(eth),
+          .count = 4,
+          .size = BOARD_ETH_BUFFER
+      },
+      .tx = {
+          .stream = ethGetOutput(eth),
+          .count = 4,
+          .size = BOARD_ETH_BUFFER
+      }
+  };
+  struct Interface * const proxy = init(BufferingProxy, &proxyConfig);
+  assert(proxy != NULL);
+
+  return (struct EthernetPackage){
+      (struct Interface *)eth,
+      mdio,
+      proxy
+  };
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupFlash(void)

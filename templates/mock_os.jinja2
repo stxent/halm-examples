@@ -1,0 +1,50 @@
+/*
+ * {{group.name}}/mock_os/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/timer.h>
+#include <xcore/os/semaphore.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  struct Semaphore * const sem = argument;
+  semPost(sem);
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  struct Semaphore sem;
+  enum Result res;
+
+  boardSetupClockExt();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+  res = semInit(&sem, 1);
+  assert(res == E_OK);
+
+  if (semTryWait(&sem, 0))
+    pinToggle(led);
+  if (semTryWait(&sem, 0))
+    pinToggle(led);
+
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer));
+  timerSetCallback(timer, onTimerOverflow, &sem);
+  timerEnable(timer);
+
+  /* Suppress warning */
+  (void)res;
+
+  while (1)
+  {
+    semWait(&sem);
+    pinToggle(led);
+  }
+
+  return 0;
+}

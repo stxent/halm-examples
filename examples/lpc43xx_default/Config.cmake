@@ -34,9 +34,6 @@ elseif(TARGET_SDRAM)
     math(EXPR ROM_LENGTH "${MEMORY_SIZE_SDRAM}")
     math(EXPR ROM_ORIGIN "${MEMORY_ADDRESS_SDRAM}")
     set(DISABLE_LITERAL_POOL ON)
-
-    # Do not use clock settings from the bootloader
-    set(BUNDLE_DEFS "-DCONFIG_RESET_CLOCKS")
 elseif(TARGET_SRAM)
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
         # Use debug builds on flash-less parts only
@@ -45,9 +42,6 @@ elseif(TARGET_SRAM)
         math(EXPR ROM_LENGTH "${MEMORY_SIZE_SRAM0}")
     endif()
     math(EXPR ROM_ORIGIN "${MEMORY_ADDRESS_SRAM0}")
-
-    # Do not use clock settings from the bootloader
-    set(BUNDLE_DEFS "-DCONFIG_RESET_CLOCKS")
 else()
     if(USE_DFU)
         set(DFU_LENGTH 32768)
@@ -80,6 +74,7 @@ set(TEMPLATES_LIST
         i2s
         lifetime
         mmcsd
+        mock_os
         pin_int
         pm_shutdown
         pm_suspend
