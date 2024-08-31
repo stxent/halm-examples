@@ -29,8 +29,13 @@ int main(void)
 
   const struct Pin ledCapture = pinInit(BOARD_LED_0);
   pinOutput(ledCapture, BOARD_LED_INV);
+
+#ifdef BOARD_LED_1
   const struct Pin ledOverflow = pinInit(BOARD_LED_1);
   pinOutput(ledOverflow, BOARD_LED_INV);
+#else
+  const struct Pin ledOverflow = pinStub();
+#endif
 
 {%- if config.CAPTURE_SUFFIX is defined %}
 
@@ -83,7 +88,9 @@ int main(void)
     if (overflowEvent)
     {
       overflowEvent = false;
-      pinToggle(ledOverflow);
+
+      if (pinValid(ledOverflow))
+        pinToggle(ledOverflow);
     }
   }
 

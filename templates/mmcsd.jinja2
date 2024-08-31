@@ -11,6 +11,10 @@
 #include <stdalign.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
+#ifndef BOARD_LED_1
+#  define BOARD_LED_1 BOARD_LED_0
+#endif
+
 #define BLOCK_SIZE  512
 #define ARENA_SIZE  (BLOCK_SIZE * 4)
 
@@ -112,8 +116,13 @@ int main(void)
 
   boardSetupClockPll();
 
+#ifdef BOARD_LED_2
   const struct Pin cdLed = pinInit(BOARD_LED_2);
   pinOutput(cdLed, !BOARD_LED_INV);
+#else
+  const struct Pin cdLed = pinStub();
+#endif
+
   const struct Pin rxLed = pinInit(BOARD_LED_1);
   pinOutput(rxLed, BOARD_LED_INV);
   const struct Pin txLed = pinInit(BOARD_LED_0);
@@ -157,7 +166,8 @@ int main(void)
           .crc = true
       };
 
-      pinWrite(cdLed, BOARD_LED_INV);
+      if (pinValid(cdLed))
+        pinWrite(cdLed, BOARD_LED_INV);
       pinWrite(rxLed, BOARD_LED_INV);
       pinWrite(txLed, BOARD_LED_INV);
       card = init(MMCSD, &cardConfig);
@@ -181,7 +191,7 @@ int main(void)
         }
       }
 
-      if (card == NULL)
+      if (pinValid(cdLed) && card == NULL)
         pinWrite(cdLed, !BOARD_LED_INV);
     }
 

@@ -777,16 +777,18 @@ struct PwmPackage boardSetupPwmSCTUnified(bool centered)
 /*----------------------------------------------------------------------------*/
 struct RtClock *boardSetupRtc(bool restart)
 {
+  if (!clockReady(RtcOsc))
+  {
+    restart = false;
+
+    clockEnable(RtcOsc, NULL);
+    while (!clockReady(RtcOsc));
+  }
+
   const struct RtcConfig rtcConfig = {
       /* January 1, 2017, 00:00:00 */
       .timestamp = restart ? 0 : 1483228800
   };
-
-  if (!clockReady(RtcOsc))
-  {
-    clockEnable(RtcOsc, NULL);
-    while (!clockReady(RtcOsc));
-  }
 
   /* Non-blocking initialization */
   struct RtClock * const timer = init(Rtc, &rtcConfig);
@@ -1043,26 +1045,39 @@ struct Interface *boardSetupSpim(struct Timer *)
       .dma = 0
   };
 
-  /* Maximum possible frequency for SPIFI is 104 MHz */
-  struct GenericDividerConfig divConfig;
-
   if (clockReady(SystemPll))
   {
-    /* Make 102 MHz for SPIFI */
-    divConfig.divisor = 2;
-    divConfig.source = CLOCK_PLL;
+    /* Use safe settings, maximum possible frequency for SPIFI is 104 MHz */
+    static const uint32_t spifiMaxFrequency = 30000000;
+    const uint32_t frequency = clockFrequency(SystemPll);
+
+    if (frequency > spifiMaxFrequency)
+    {
+      const struct GenericDividerConfig spifiDivConfig = {
+          .divisor = (frequency + spifiMaxFrequency - 1) / spifiMaxFrequency,
+          .source = CLOCK_PLL
+      };
+
+      clockEnable(DividerD, &spifiDivConfig);
+      while (!clockReady(DividerD));
+
+      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_IDIVD});
+    }
+    else
+    {
+      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_PLL});
+    }
+  }
+  else if (clockReady(ExternalOsc))
+  {
+    clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
+    while (!clockReady(SpifiClock));
   }
   else
   {
-    divConfig.divisor = 1;
-    divConfig.source = clockReady(ExternalOsc) ?
-        CLOCK_EXTERNAL : CLOCK_INTERNAL;
+    clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
+    while (!clockReady(SpifiClock));
   }
-
-  clockEnable(DividerD, &divConfig);
-  while (!clockReady(DividerD));
-  clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_IDIVD});
-  while (!clockReady(SpifiClock));
 
   struct Interface * const interface = init(Spifi, &spifiConfig);
   assert(interface != NULL);

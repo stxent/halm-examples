@@ -7,6 +7,9 @@
 #include <halm/pm.h>
 #include <halm/timer.h>
 /*----------------------------------------------------------------------------*/
+/* Period between wake-ups in seconds */
+#define WAKEUP_PERIOD 5
+/*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *)
 {
 }
@@ -19,7 +22,7 @@ int main(void)
   pinOutput(led, BOARD_LED_INV);
 
   struct Timer * const timer = boardSetupTimer();
-  timerSetOverflow(timer, timerGetFrequency(timer) * 5);
+  timerSetOverflow(timer, timerGetFrequency(timer) * WAKEUP_PERIOD);
   timerSetCallback(timer, onTimerOverflow, NULL);
   timerEnable(timer);
 

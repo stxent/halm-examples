@@ -9,45 +9,44 @@
 #include <halm/pm.h>
 #include <xcore/realtime.h>
 /*----------------------------------------------------------------------------*/
-/* Period between wake-ups in seconds */
-#define RTC_ALARM_PERIOD  10
+#define MAGIC_WORD    0x3A84508FUL
 
-#define MAGIC_WORD        0x3A84508FUL
+/* Period between wake-ups in seconds */
+#define WAKEUP_PERIOD 10
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
   boardSetupClockExt();
 
-  const struct Pin leds[] = {
-      pinInit(BOARD_LED_0),
-      pinInit(BOARD_LED_1)
-  };
-  pinOutput(leds[0], BOARD_LED_INV);
-  pinOutput(leds[1], BOARD_LED_INV);
+  const struct Pin led = pinInit(BOARD_LED);
 
   uint32_t * const backup = backupDomainAddress();
   const bool restartFlag = backup[0] == MAGIC_WORD;
   const uint32_t state = restartFlag ? backup[1] : 0;
-  const unsigned int phase = (state % 3) + 1;
 
   struct RtClock * const rtc = boardSetupRtc(restartFlag);
-  rtSetAlarm(rtc, rtTime(rtc) + RTC_ALARM_PERIOD);
+  rtSetAlarm(rtc, rtTime(rtc) + WAKEUP_PERIOD);
 
-  for (unsigned int i = 0; i < 5; ++i)
+  if (state > 0)
   {
-    if (phase & 0x01)
-      pinToggle(leds[0]);
-    if (phase & 0x02)
-      pinToggle(leds[1]);
-
-    mdelay(500);
+    if (state % 2)
+    {
+      pinInput(led);
+      pinSetPull(led, BOARD_LED_INV ? PIN_PULLDOWN : PIN_PULLUP);
+    }
+    else
+      pinOutput(led, !BOARD_LED_INV);
   }
+  else
+    pinOutput(led, BOARD_LED_INV);
+
+  mdelay(WAKEUP_PERIOD * (1000 / 2));
 
   /* Save current state */
   backup[0] = MAGIC_WORD;
   backup[1] = state + 1;
 
-  /* Enter deep power-down mode */
+  /* Enter deep power-down mode, LED will be disabled in this mode */
   pmChangeState(PM_SHUTDOWN);
 
   /* Execution never reaches this point */

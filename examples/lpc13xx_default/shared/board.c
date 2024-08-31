@@ -205,9 +205,9 @@ struct PwmPackage boardSetupPwm(bool)
   struct GpTimerPwmUnit * const timer = init(GpTimerPwmUnit, &pwmTimerConfig);
   assert(timer != NULL);
 
-  struct Pwm * const pwm0 = gpTimerPwmCreate(timer, BOARD_PWM_0);
+  struct Pwm * const pwm0 = gpTimerPwmCreate(timer, BOARD_PWM_0, false);
   assert(pwm0 != NULL);
-  struct Pwm * const pwm1 = gpTimerPwmCreate(timer, BOARD_PWM_1);
+  struct Pwm * const pwm1 = gpTimerPwmCreate(timer, BOARD_PWM_1, false);
   assert(pwm1 != NULL);
 
   return (struct PwmPackage){

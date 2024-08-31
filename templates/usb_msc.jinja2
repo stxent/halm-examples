@@ -10,6 +10,10 @@
 #include <xcore/memory.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+#ifndef BOARD_LED_1
+#  define BOARD_LED_1 BOARD_LED_0
+#endif
+
 static uint8_t arena[16384];
 /*----------------------------------------------------------------------------*/
 struct InterfaceWrapperConfig
@@ -142,8 +146,12 @@ int main(void)
 
   boardSetupClockPll();
 
+#ifdef BOARD_LED_2
   const struct Pin cdLed = pinInit(BOARD_LED_2);
   pinOutput(cdLed, !BOARD_LED_INV);
+#else
+  const struct Pin cdLed = pinStub();
+#endif
 
   /* Configure the timer for timeout calculations */
   struct Timer * const busyTimer = testBusyTimer ?
@@ -205,7 +213,8 @@ int main(void)
           .crc = true
       };
 
-      pinWrite(cdLed, BOARD_LED_INV);
+      if (pinValid(cdLed))
+        pinWrite(cdLed, BOARD_LED_INV);
       card = init(MMCSD, &cardConfig);
 
       if (card != NULL)
@@ -217,7 +226,7 @@ int main(void)
         mscAttachUnit(msc, 0, card);
       }
 
-      if (card == NULL)
+      if (pinValid(cdLed) && card == NULL)
         pinWrite(cdLed, !BOARD_LED_INV);
     }
     else
@@ -229,7 +238,8 @@ int main(void)
         deinit(card);
         card = NULL;
 
-        pinWrite(cdLed, !BOARD_LED_INV);
+        if (pinValid(cdLed))
+          pinWrite(cdLed, !BOARD_LED_INV);
       }
     }
   }
