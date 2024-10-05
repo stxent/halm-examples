@@ -5,10 +5,12 @@
  */
 
 #include "board.h"
+#include "sct_adc.h"
 #include <halm/delay.h>
 #include <halm/timer.h>
 #include <xcore/interface.h>
 #include <xcore/stream.h>
+#include <assert.h>
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
 #define ADC_RATE 10
@@ -61,9 +63,20 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  struct Timer * const adcTimer = boardSetupAdcTimer();
-  struct Timer * const memTimer = boardSetupTimer();
   struct Interface * const serial = boardSetupSerial();
+
+  /* ADC conversion takes 2.75 us at 4 MHz */
+  const struct SctAdcConfig sctAdcConfig = {
+      .cycle = 1000000 / count,
+      .delay = 3,
+      .frequency = 1000000,
+      .adc = SCTADC_ADC_OUTPUT_15,
+      .dma = SCTADC_DMA_0,
+      .part = SCT_LOW,
+      .channel = 0
+  };
+  struct Timer * const timer = init(SctAdc, &sctAdcConfig);
+  assert(timer != NULL);
 
   struct StreamPackage adc = boardSetupAdcStream();
   struct EventTuple context = {
@@ -90,17 +103,8 @@ int main(void)
   streamEnqueue(adc.rx, &requests[0]);
   streamEnqueue(adc.rx, &requests[1]);
 
-  /*
-   * The overflow frequency of the timer should be two times higher
-   * than that of the hardware events for ADC.
-   */
-  timerSetOverflow(adcTimer, timerGetFrequency(adcTimer) / count / 2);
-  timerSetOverflow(memTimer, timerGetFrequency(memTimer) / count);
-
-  /* ADC conversion takes 2.75 us at 4 MHz */
-  timerEnable(memTimer);
-  udelay(3);
-  timerEnable(adcTimer);
+  /* Start ADC and DMA event generation */
+  timerEnable(timer);
 
   while (1);
   return 0;

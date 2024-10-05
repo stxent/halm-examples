@@ -338,7 +338,7 @@ struct StreamPackage boardSetupAdcStream(void)
       .pins = adcPinArray,
       .size = 2,
       .converter = {ADC_CTOUT_15, 0},
-      .memory = {GPDMA_MAT0_0, 1},
+      .memory = {GPDMA_SCT_REQ0, 1},
       .channel = 0
   };
 
