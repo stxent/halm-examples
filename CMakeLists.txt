@@ -15,7 +15,7 @@ option(TARGET_NOR "Use external NOR Flash for an artifact if available." OFF)
 option(TARGET_SDRAM "Use external SDRAM for an artifact if available." OFF)
 option(TARGET_SRAM "Use embedded SRAM for an artifact if available." OFF)
 
-set(KCONFIG_DEFCONFIG "defconfig" CACHE STRING "Command that will be used as the Kconfig file generator.")
+set(KCONFIG_DEFCONFIG "defconfig" CACHE STRING "Command that will be used as a Kconfig file generator.")
 set(PATH_XCORE "${PROJECT_SOURCE_DIR}/xcore")
 set(PATH_HALM "${PROJECT_SOURCE_DIR}/halm")
 
