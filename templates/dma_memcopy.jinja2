@@ -63,7 +63,7 @@ int main(void)
   pinOutput(led, BOARD_LED_INV);
 
   struct DmaMemCopyHandler handler;
-  enum Result res;
+  [[maybe_unused]] enum Result res;
 
   res = dmaMemCopyInit(&handler, BOARD_MEMCOPY_CH);
   assert(res == E_OK);
@@ -73,9 +73,6 @@ int main(void)
   timerSetOverflow(timer, timerGetFrequency(timer));
   timerSetCallback(timer, onTimerOverflow, &timEvent);
   timerEnable(timer);
-
-  /* Suppress warning */
-  (void)res;
 
   while (1)
   {

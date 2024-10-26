@@ -14,7 +14,7 @@ int main(void)
   static const uint8_t UART_TEST_PARITY = SERIAL_PARITY_NONE;
 
   char buffer[BOARD_UART_BUFFER];
-  enum Result res;
+  [[maybe_unused]] enum Result res;
 
   boardSetupClockPll();
 
@@ -26,9 +26,6 @@ int main(void)
   assert(res == E_OK);
   res = ifSetParam(serial, IF_SERIAL_PARITY, &UART_TEST_PARITY);
   assert(res == E_OK);
-
-  /* Suppress warning */
-  (void)res;
 
   while (1)
   {

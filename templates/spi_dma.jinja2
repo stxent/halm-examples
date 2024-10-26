@@ -25,9 +25,9 @@ int main(void)
   static const uint8_t testSpiMode = 3;
   static const bool testZerocopyMode = true;
 
+  [[maybe_unused]] enum Result res;
   unsigned int value = 0;
   bool event = false;
-  enum Result res;
 
   boardSetupClockPll();
 
@@ -52,9 +52,6 @@ int main(void)
   timerSetOverflow(timer, timerGetFrequency(timer) / 4);
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
-
-  /* Suppress warning */
-  (void)res;
 
   while (1)
   {

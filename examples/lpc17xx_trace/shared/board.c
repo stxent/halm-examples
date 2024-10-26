@@ -82,7 +82,7 @@ struct Interface *boardSetupSdio(bool, struct Timer *timer)
 
   struct Interface *sdio;
   struct Interface *spi;
-  enum Result res;
+  [[maybe_unused]] enum Result res;
 
   /* Initialize and start a Work Queue for CRC computation */
   boardSetupLowPriorityWQ();
@@ -93,7 +93,6 @@ struct Interface *boardSetupSdio(bool, struct Timer *timer)
   assert(spi != NULL);
   res = ifSetParam(spi, IF_SPI_MODE, &SPI_SDIO_MODE);
   assert(res == E_OK);
-  (void)res;
 
   /* Initialize SDIO layer */
   const struct SdioSpiConfig sdioSpiConfig = {

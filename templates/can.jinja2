@@ -62,7 +62,7 @@ int main(void)
 
   bool canEvent = false;
   bool timerEvent = false;
-  enum Result res;
+  [[maybe_unused]] enum Result res;
 
   boardSetupClockPll();
 
@@ -83,9 +83,6 @@ int main(void)
   assert(res == E_OK);
   res = ifSetParam(can, IF_CAN_ACTIVE, NULL);
   assert(res == E_OK);
-
-  /* Suppress warning */
-  (void)res;
 
   while (1)
   {

@@ -111,7 +111,7 @@ int main(void)
   static const bool testWideBus = true;
   static const bool testWriteMode = false;
 
-  enum Result res;
+  [[maybe_unused]] enum Result res;
   bool event = true;
 
   boardSetupClockPll();
@@ -146,9 +146,6 @@ int main(void)
   struct Interface *card = NULL;
   uint64_t capacity = 0;
   uint64_t position = 0;
-
-  /* Suppress warning */
-  (void)res;
 
   while (1)
   {

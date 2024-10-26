@@ -45,8 +45,8 @@ int main(void)
   static const uint32_t testUartRate = 19200;
   static const uint8_t testUartParity = SERIAL_PARITY_NONE;
 
+  [[maybe_unused]] enum Result res;
   bool event = false;
-  enum Result res;
 
   boardSetupClockPll();
 
@@ -73,9 +73,6 @@ int main(void)
   timerSetCallback(timer, onTimerOverflow, &event);
   timerEnable(timer);
 {%- endif %}
-
-  /* Suppress warning */
-  (void)res;
 
   while (1)
   {

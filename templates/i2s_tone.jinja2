@@ -1,5 +1,5 @@
 /*
- * {{group.name}}/i2s/main.c
+ * {{group.name}}/i2s_tone/main.c
  * Automatically generated file
  */
 
@@ -84,7 +84,7 @@ int main(void)
   pinOutput(txLed, BOARD_LED_INV);
 
   struct StreamPackage audio = boardSetupI2S();
-  enum Result res;
+  [[maybe_unused]] enum Result res;
 
   res = ifSetParam(audio.interface, IF_RATE, &testI2SRate);
   assert(res == E_OK);
@@ -139,9 +139,6 @@ int main(void)
   streamEnqueue(audio.rx, &rxRequests[1]);
   txRequests[1].length = txRequests[1].capacity;
   streamEnqueue(audio.tx, &txRequests[1]);
-
-  /* Suppress warning */
-  (void)res;
 
   while (1);
   return 0;

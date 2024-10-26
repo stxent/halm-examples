@@ -71,7 +71,8 @@ set(TEMPLATES_LIST
         flash
         i2c
         i2c_slave
-        i2s
+        i2s_echo
+        i2s_tone
         lifetime
         mmcsd
         mock_os

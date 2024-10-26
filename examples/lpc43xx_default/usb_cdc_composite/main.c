@@ -104,12 +104,11 @@ static void transferData(struct Interface *interface, struct Pin led)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  static const bool USE_HS_USB = true;
   struct StreamDescriptor streams[STREAM_COUNT];
 
   boardSetupClockPll();
 
-  struct Entity * const usb = USE_HS_USB ? boardSetupUsb0() : boardSetupUsb1();
+  struct Entity * const usb = boardSetupUsb0();
 
   const struct CompositeDeviceConfig compositeConfig = {
       .device = usb

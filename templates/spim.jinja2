@@ -209,8 +209,8 @@ int main(void)
 {
   static const uint32_t testSpimRate = 4000000;
 
+  [[maybe_unused]] enum Result res;
   bool event = false;
-  enum Result res;
 
   boardSetupClockExt();
 
@@ -232,9 +232,6 @@ int main(void)
   timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
   timerSetCallback(eventTimer, onTimerOverflow, &event);
   timerEnable(eventTimer);
-
-  /* Suppress warning */
-  (void)res;
 
   while (1)
   {

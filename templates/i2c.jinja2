@@ -35,7 +35,7 @@ static void fillBuffer(uint8_t *buffer, size_t length, uint8_t iteration)
 /*----------------------------------------------------------------------------*/
 static void deviceConfigIO(struct Interface *interface, bool zerocopy)
 {
-  enum Result res;
+  [[maybe_unused]] enum Result res;
 
   res = ifSetParam(interface, IF_ADDRESS, &(uint32_t){DEVICE_ADDRESS});
   assert(res == E_OK);
@@ -43,8 +43,6 @@ static void deviceConfigIO(struct Interface *interface, bool zerocopy)
   assert(res == E_OK);
   res = ifSetParam(interface, zerocopy ? IF_ZEROCOPY : IF_BLOCKING, NULL);
   assert(res == E_OK);
-
-  (void)res; /* Suppress warning */
 }
 /*----------------------------------------------------------------------------*/
 static void deviceRead(struct Interface *interface, uint32_t position,

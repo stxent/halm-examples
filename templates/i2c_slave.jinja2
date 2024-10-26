@@ -19,7 +19,7 @@ int main(void)
   static const uint32_t testDefaultOffset = 0;
 
   bool event = false;
-  enum Result res;
+  [[maybe_unused]] enum Result res;
 
   boardSetupClockPll();
 
@@ -31,7 +31,6 @@ int main(void)
 
   res = ifSetParam(i2c, IF_ADDRESS, &testDefaultAddress);
   assert(res == E_OK);
-  (void)res; /* Suppress warning */
 
   while (1)
   {

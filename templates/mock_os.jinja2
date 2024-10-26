@@ -17,7 +17,7 @@ static void onTimerOverflow(void *argument)
 int main(void)
 {
   struct Semaphore sem;
-  enum Result res;
+  [[maybe_unused]] enum Result res;
 
   boardSetupClockExt();
 
@@ -36,9 +36,6 @@ int main(void)
   timerSetOverflow(timer, timerGetFrequency(timer));
   timerSetCallback(timer, onTimerOverflow, &sem);
   timerEnable(timer);
-
-  /* Suppress warning */
-  (void)res;
 
   while (1)
   {

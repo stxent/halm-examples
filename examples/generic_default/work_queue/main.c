@@ -25,10 +25,9 @@ static void onSignalReceived(void *argument)
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *)
 {
-  const enum Result res = wqAdd(WQ_DEFAULT, periodicTask, NULL);
-
+  [[maybe_unused]] const enum Result res =
+      wqAdd(WQ_DEFAULT, periodicTask, NULL);
   assert(res == E_OK);
-  (void)res;
 }
 /*----------------------------------------------------------------------------*/
 static void onUvWalk(uv_handle_t *handle, void *)

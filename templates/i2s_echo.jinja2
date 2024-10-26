@@ -1,0 +1,146 @@
+/*
+ * {{group.name}}/i2s_echo/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/pointer_queue.h>
+#include <halm/irq.h>
+#include <xcore/interface.h>
+#include <xcore/stream.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+struct Context
+{
+  struct Stream *rx;
+  struct Stream *tx;
+  struct Pin led;
+
+  PointerQueue queue;
+  bool event;
+  bool first;
+};
+/*----------------------------------------------------------------------------*/
+static void onDataReceived(void *, struct StreamRequest *,
+    enum StreamRequestStatus);
+static void onDataSent(void *, struct StreamRequest *,
+    enum StreamRequestStatus);
+/*----------------------------------------------------------------------------*/
+#define BUFFER_COUNT  5
+#define CHANNEL_COUNT 2
+#define BUFFER_LENGTH 512
+
+static int16_t arena[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
+static struct StreamRequest requests[BUFFER_COUNT];
+/*----------------------------------------------------------------------------*/
+static void onDataReceived(void *argument, struct StreamRequest *request,
+    enum StreamRequestStatus status)
+{
+  struct Context * const context = argument;
+
+  switch (status)
+  {
+    case STREAM_REQUEST_COMPLETED:
+    {
+      request->callback = onDataSent;
+
+      const IrqState state = irqSave();
+      pointerQueuePushBack(&context->queue, request);
+      irqRestore(state);
+
+      context->event = true;
+      break;
+    }
+
+    case STREAM_REQUEST_FAILED:
+    {
+      request->length = 0;
+      request->callback = onDataReceived;
+
+      streamEnqueue(context->rx, request);
+      break;
+    }
+
+    default:
+      assert(0);
+      break;
+  }
+}
+/*----------------------------------------------------------------------------*/
+static void onDataSent(void *argument, struct StreamRequest *request,
+    enum StreamRequestStatus)
+{
+  struct Context * const context = argument;
+
+  request->length = 0;
+  request->callback = onDataReceived;
+
+  streamEnqueue(context->rx, request);
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  static const uint32_t testI2SRate = 44100;
+
+  boardSetupClockPll();
+
+  struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+  struct StreamPackage audio = boardSetupI2S();
+  [[maybe_unused]] enum Result res;
+
+  res = ifSetParam(audio.interface, IF_RATE, &testI2SRate);
+  assert(res == E_OK);
+
+  struct Context context = {
+      .rx = audio.rx,
+      .tx = audio.tx,
+      .led = led,
+      .event = false,
+      .first = true
+  };
+
+  if (!pointerQueueInit(&context.queue, BUFFER_COUNT))
+    assert(0);
+
+  /* Initialize and enqueue buffers */
+  for (size_t i = 0; i < BUFFER_COUNT; ++i)
+  {
+    requests[i].capacity = BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t);
+    requests[i].length = 0;
+    requests[i].callback = onDataReceived;
+    requests[i].argument = &context;
+    requests[i].buffer = &arena[i];
+
+    res = streamEnqueue(audio.rx, &requests[i]);
+    assert(res == E_OK);
+  }
+
+  while (1)
+  {
+    while (!context.event)
+      barrier();
+    context.event = false;
+
+    if (context.first)
+    {
+      if (pointerQueueSize(&context.queue) < 2)
+        continue;
+      context.first = false;
+    }
+
+    while (!pointerQueueEmpty(&context.queue))
+    {
+      const IrqState state = irqSave();
+      struct StreamRequest * const request = pointerQueueFront(&context.queue);
+      pointerQueuePopFront(&context.queue);
+      irqRestore(state);
+
+      streamEnqueue(context.tx, request);
+      pinToggle(context.led);
+    }
+  }
+
+  return 0;
+}

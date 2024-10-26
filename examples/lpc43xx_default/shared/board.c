@@ -680,7 +680,7 @@ struct Interface *boardSetupI2CSlave1(void)
 struct StreamPackage boardSetupI2S(void)
 {
   static const struct I2SDmaConfig i2sConfig = {
-      .size = 2,
+      .size = 8,
       .rate = 96000,
       .width = I2S_WIDTH_16,
       .tx = {

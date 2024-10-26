@@ -141,7 +141,7 @@ int main(void)
   static const bool testWideBus = true;
 
   struct Interface *card = NULL;
-  enum Result res;
+  [[maybe_unused]] enum Result res;
   bool event = true;
 
   boardSetupClockPll();
@@ -161,7 +161,6 @@ int main(void)
   struct Interface * const sdio = boardSetupSdio(testWideBus, busyTimer);
   res = ifSetParam(sdio, IF_RATE, &testSdioRate);
   assert(res == E_OK);
-  (void)res; /* Suppress warning */
 
   /* Wrapper for indication of SDIO read/write operations */
   const struct InterfaceWrapperConfig wrapperConfig = {
@@ -221,7 +220,6 @@ int main(void)
       {
         res = ifSetParam(card, IF_ZEROCOPY, NULL);
         assert(res == E_OK);
-        (void)res; /* Suppress warning */
 
         mscAttachUnit(msc, 0, card);
       }
