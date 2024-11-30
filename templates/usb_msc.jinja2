@@ -178,7 +178,7 @@ int main(void)
   timerEnable(eventTimer);
 
   /* Initialize USB peripheral */
-  struct Entity * const usb = boardSetupUsb();
+  struct Usb * const usb = boardSetupUsb();
 
   /* Initialize Mass Storage Device */
   const struct MscConfig config = {

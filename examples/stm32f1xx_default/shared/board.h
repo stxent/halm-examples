@@ -36,6 +36,7 @@ struct Entity;
 struct Interface;
 struct Interrupt;
 struct Timer;
+struct Usb;
 struct Watchdog;
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
@@ -53,10 +54,10 @@ struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);
 struct Interface *boardSetupSpi(void);
 struct Interface *boardSetupSpiSdio(void);
-struct Watchdog *boardSetupWdt(bool);
 struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimer2(void);
 struct Timer *boardSetupTimer3(void);
-struct Entity *boardSetupUsb(void);
+struct Usb *boardSetupUsb(void);
+struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* STM32F1XX_DEFAULT_SHARED_BOARD_H_ */

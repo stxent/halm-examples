@@ -42,6 +42,7 @@ struct Interface;
 struct Interrupt;
 struct Pwm;
 struct Timer;
+struct Usb;
 struct Watchdog;
 
 struct PwmPackage
@@ -72,9 +73,9 @@ struct Interface *boardSetupSpi(void);
 struct Interface *boardSetupSpiDma(void);
 struct Interface *boardSetupSpim(struct Timer *);
 struct Timer *boardSetupTimer(void);
-struct Entity *boardSetupUsb(void);
-struct Entity *boardSetupUsbFs(void);
-struct Entity *boardSetupUsbHs(void);
+struct Usb *boardSetupUsb(void);
+struct Usb *boardSetupUsbFs(void);
+struct Usb *boardSetupUsbHs(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* M48X_DEFAULT_SHARED_BOARD_H_ */

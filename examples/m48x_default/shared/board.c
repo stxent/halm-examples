@@ -28,7 +28,7 @@
 /*----------------------------------------------------------------------------*/
 [[gnu::alias("boardSetupPwmBPWM")]] struct PwmPackage boardSetupPwm(bool);
 
-[[gnu::alias("boardSetupUsbHs")]] struct Entity *boardSetupUsb(void);
+[[gnu::alias("boardSetupUsbHs")]] struct Usb *boardSetupUsb(void);
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
     PIN(PORT_B, 0),
@@ -401,7 +401,7 @@ struct Timer *boardSetupTimer(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupUsbFs(void)
+struct Usb *boardSetupUsbFs(void)
 {
   /* Clocks */
   static const struct ExtendedClockConfig usbClockConfig = {
@@ -422,12 +422,12 @@ struct Entity *boardSetupUsbFs(void)
   assert(clockReady(SystemPll));
   clockEnable(UsbClock, &usbClockConfig);
 
-  struct Entity * const usb = init(UsbDevice, &usbConfig);
+  struct Usb * const usb = init(UsbDevice, &usbConfig);
   assert(usb != NULL);
   return usb;
 }
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupUsbHs(void)
+struct Usb *boardSetupUsbHs(void)
 {
   static const struct UsbDeviceConfig hsUsbConfig = {
       .dm = PIN(PORT_HSUSB, PIN_HSUSB_DM),
@@ -440,7 +440,7 @@ struct Entity *boardSetupUsbHs(void)
 
   assert(clockReady(ExternalOsc));
 
-  struct Entity * const usb = init(HsUsbDevice, &hsUsbConfig);
+  struct Usb * const usb = init(HsUsbDevice, &hsUsbConfig);
   assert(usb != NULL);
   return usb;
 }

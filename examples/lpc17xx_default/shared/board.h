@@ -37,6 +37,9 @@
 #define BOARD_USB_CDC_TX  0x82
 #define BOARD_USB_MSC_RX  0x02
 #define BOARD_USB_MSC_TX  0x82
+#define BOARD_USB_UAC_FB  0x06
+#define BOARD_USB_UAC_RX  0x03
+#define BOARD_USB_UAC_TX  0x83
 
 #define BOARD_MEMCOPY_CH  7
 
@@ -51,6 +54,7 @@ struct Pwm;
 struct RtClock;
 struct Stream;
 struct Timer;
+struct Usb;
 struct Watchdog;
 
 struct CapturePackage
@@ -112,7 +116,7 @@ struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimer0(void);
 struct Timer *boardSetupTimer1(void);
 struct Timer *boardSetupTimerRIT(void);
-struct Entity *boardSetupUsb(void);
+struct Usb *boardSetupUsb(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC17XX_DEFAULT_SHARED_BOARD_H_ */

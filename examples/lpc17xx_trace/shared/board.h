@@ -35,6 +35,7 @@ DEFINE_WQ_IRQ(WQ_LP)
 struct Entity;
 struct Interface;
 struct Timer;
+struct Usb;
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
@@ -50,6 +51,6 @@ struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimer0(void);
 struct Timer *boardSetupTimer1(void);
 struct Timer *boardSetupTimer2(void);
-struct Entity *boardSetupUsb(void);
+struct Usb *boardSetupUsb(void);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC17XX_TRACE_SHARED_BOARD_H_ */

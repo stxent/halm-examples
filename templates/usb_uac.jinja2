@@ -1,0 +1,355 @@
+/*
+ * {{group.name}}/usb_uac/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/generic/pointer_queue.h>
+#include <halm/irq.h>
+#include <halm/usb/uac.h>
+#include <halm/usb/usb.h>
+#include <halm/usb/usb_langid.h>
+#include <xcore/memory.h>
+#include <xcore/stream.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+struct Context
+{
+  struct StreamPackage audio;
+  struct Uac *uac;
+  struct Usb *usb;
+  struct Pin rxLed;
+  struct Pin txLed;
+
+  PointerQueue micQueue;
+  PointerQueue spkQueue;
+
+  size_t chunk;
+  uint16_t frame;
+
+  struct
+  {
+    bool dataReceived;
+    bool rateChanged;
+    bool startOfFrame;
+  } event;
+
+  struct
+  {
+    bool playing;
+    bool suspended;
+    bool updated;
+  } state;
+};
+/*----------------------------------------------------------------------------*/
+#define BUFFER_COUNT  5
+#define CHANNEL_COUNT 2
+#define BUFFER_LENGTH 48
+
+static int16_t micArena[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
+static int16_t spkArena[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
+static struct StreamRequest micRequests[BUFFER_COUNT];
+static struct StreamRequest spkRequests[BUFFER_COUNT];
+
+static const char productStringEn[] = "TestBoard";
+/*----------------------------------------------------------------------------*/
+static void customStringHeader(const void *, enum UsbLangId,
+    struct UsbDescriptor *header, void *payload)
+{
+  usbStringHeader(header, payload, LANGID_ENGLISH_US);
+}
+/*----------------------------------------------------------------------------*/
+static void customStringWrapper(const void *argument, enum UsbLangId,
+    struct UsbDescriptor *header, void *payload)
+{
+  usbStringWrap(header, payload, argument);
+}
+/*----------------------------------------------------------------------------*/
+static void onDataReceived(void *argument, struct StreamRequest *request,
+    enum StreamRequestStatus status)
+{
+  struct Context * const context = argument;
+
+  if (status != STREAM_REQUEST_CANCELLED)
+  {
+    const IrqState state = irqSave();
+
+    while (pointerQueueSize(&context->micQueue) > BUFFER_COUNT / 2)
+    {
+      struct StreamRequest * const outdated =
+          pointerQueueFront(&context->micQueue);
+      pointerQueuePopFront(&context->micQueue);
+
+      outdated->length = 0;
+      streamEnqueue(context->audio.rx, outdated);
+    }
+    pointerQueuePushBack(&context->micQueue, request);
+
+    irqRestore(state);
+  }
+}
+/*----------------------------------------------------------------------------*/
+static void onDataSent(void *argument, struct StreamRequest *request,
+    enum StreamRequestStatus)
+{
+  struct Context * const context = argument;
+  [[maybe_unused]] enum Result res;
+
+  size_t pending;
+  res = ifGetParam(context->audio.interface, IF_TX_PENDING, &pending);
+  assert(res == E_OK);
+
+  const IrqState state = irqSave();
+  pointerQueuePushBack(&context->spkQueue, request);
+  irqRestore(state);
+
+  if (!pending)
+  {
+    /* Queue drained, stop the playback */
+    context->state.playing = false;
+    pinWrite(context->txLed, BOARD_LED_INV);
+  }
+}
+/*----------------------------------------------------------------------------*/
+static void onUacEvent(void *argument)
+{
+  struct Context * const context = argument;
+  [[maybe_unused]] enum Result res;
+
+  uint8_t status;
+  res = ifGetParam(context->uac, IF_UAC_STATUS, &status);
+  assert(res == E_OK);
+
+  size_t available;
+  res = ifGetParam(context->uac, IF_RX_AVAILABLE, &available);
+  assert(res == E_OK);
+
+  if (!context->state.playing)
+  {
+    if (available > context->chunk * (BUFFER_COUNT / 2))
+    {
+      context->event.dataReceived = true;
+      context->state.updated = true;
+    }
+  }
+  else if (available > 0)
+  {
+    context->event.dataReceived = true;
+    context->state.updated = true;
+  }
+
+  if (status & UAC_SOF)
+  {
+    bool event = false;
+
+    if (++context->frame == 8000)
+      context->frame = 0;
+
+    if (usbDevGetSpeed(context->usb) == USB_HS)
+      event = (context->frame % 8) == 0;
+    else
+      event = true;
+
+    if (event)
+    {
+      context->event.startOfFrame = true;
+      context->state.updated = true;
+    }
+  }
+
+  if (status & UAC_RATE)
+  {
+    context->event.rateChanged = true;
+    context->state.updated = true;
+  }
+
+  const bool suspended = (status & UAC_SUSPENDED) != 0;
+
+  if (suspended != context->state.suspended)
+  {
+    context->state.suspended = suspended;
+    context->state.updated = true;
+  }
+}
+/*----------------------------------------------------------------------------*/
+static void changeRate(struct Context *context, uint32_t rate)
+{
+  context->chunk = ((rate + 999) / 1000) * CHANNEL_COUNT * sizeof(int16_t);
+  [[maybe_unused]] enum Result res;
+
+  streamClear(context->audio.rx);
+  streamClear(context->audio.tx);
+  pointerQueueClear(&context->micQueue);
+  pointerQueueClear(&context->spkQueue);
+
+  /* Initialize and enqueue buffers */
+  for (size_t i = 0; i < BUFFER_COUNT; ++i)
+  {
+    spkRequests[i].capacity = context->chunk;
+    spkRequests[i].length = 0;
+    spkRequests[i].callback = onDataSent;
+    spkRequests[i].argument = context;
+    spkRequests[i].buffer = &spkArena[i];
+
+    pointerQueuePushBack(&context->spkQueue, &spkRequests[i]);
+
+    micRequests[i].capacity = context->chunk;
+    micRequests[i].length = 0;
+    micRequests[i].callback = onDataReceived;
+    micRequests[i].argument = context;
+    micRequests[i].buffer = &micArena[i];
+
+    res = streamEnqueue(context->audio.rx, &micRequests[i]);
+    assert(res == E_OK);
+  }
+
+  ifSetParam(context->audio.interface, IF_RATE, &rate);
+  assert(res == E_OK);
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  static const bool testUacFeedback = true;
+  static const bool testUacPlayback = true;
+  static const bool testUacRecord = true;
+
+  boardSetupClockPll();
+
+  const struct Pin linkLed = pinInit(BOARD_USB_IND0);
+  pinOutput(linkLed, BOARD_LED_INV);
+  const struct Pin rateLed = pinInit(BOARD_USB_IND1);
+  pinOutput(rateLed, BOARD_LED_INV);
+  const struct Pin rxLed = pinInit(BOARD_LED_1);
+  pinOutput(rxLed, BOARD_LED_INV);
+  const struct Pin txLed = pinInit(BOARD_LED_0);
+  pinOutput(txLed, BOARD_LED_INV);
+
+  struct StreamPackage audio = boardSetupI2S();
+  [[maybe_unused]] enum Result res;
+
+  struct Usb * const usb = boardSetupUsb();
+
+  const struct UacConfig uacConfig = {
+      .device = usb,
+      .arena = NULL,
+      .rxBuffers = BUFFER_COUNT,
+      .txBuffers = BUFFER_COUNT,
+      .endpoints = {
+          .fb = testUacFeedback ? BOARD_USB_UAC_FB : 0,
+          .rx = testUacPlayback ? BOARD_USB_UAC_RX : 0,
+          .tx = testUacRecord ? BOARD_USB_UAC_TX : 0
+      },
+      .rates = (const uint32_t []){44100, 48000, 0}
+  };
+  struct Uac * const uac = init(Uac, &uacConfig);
+  assert(uac != NULL);
+
+  struct Context context = {
+      .audio = audio,
+      .uac = uac,
+      .usb = usb,
+      .rxLed = rxLed,
+      .txLed = txLed,
+      .chunk = 0,
+      .frame = 0,
+      .event = {false, false, false},
+      .state = {false, true, false}
+  };
+
+  if (!pointerQueueInit(&context.micQueue, BUFFER_COUNT))
+    assert(0);
+  if (!pointerQueueInit(&context.spkQueue, BUFFER_COUNT))
+    assert(0);
+
+  /* Initialize and enqueue buffers */
+  changeRate(&context, uacConfig.rates[0]);
+
+  usbDevStringAppend(usb, usbStringBuild(customStringHeader, 0,
+      USB_STRING_HEADER, 0));
+  usbDevStringAppend(usb, usbStringBuild(customStringWrapper,
+      productStringEn, USB_STRING_PRODUCT, 0));
+
+  ifSetCallback(uac, onUacEvent, &context);
+  usbDevSetConnected(usb, true);
+
+  while (1)
+  {
+    while (!context.state.updated)
+      barrier();
+    context.state.updated = false;
+
+    if (context.event.rateChanged)
+    {
+      uint32_t rate;
+
+      context.event.rateChanged = false;
+
+      res = ifGetParam(uac, IF_RATE, &rate);
+      assert(res == E_OK);
+      changeRate(&context, rate);
+    }
+
+    if (context.event.startOfFrame)
+    {
+      context.event.startOfFrame = false;
+
+      if (!pointerQueueEmpty(&context.micQueue))
+      {
+        const IrqState state = irqSave();
+        struct StreamRequest * const request =
+            pointerQueueFront(&context.micQueue);
+        pointerQueuePopFront(&context.micQueue);
+        irqRestore(state);
+
+        if (ifWrite(uac, request->buffer, request->length) == request->length)
+          pinToggle(context.rxLed);
+        else
+          pinWrite(context.rxLed, BOARD_LED_INV);
+
+        request->length = 0;
+        streamEnqueue(context.audio.rx, request);
+      }
+    }
+
+    if (context.event.dataReceived)
+    {
+      context.event.dataReceived = false;
+      context.state.playing = true;
+
+      while (!pointerQueueEmpty(&context.spkQueue))
+      {
+        struct StreamRequest * const request =
+            pointerQueueFront(&context.spkQueue);
+
+        request->length = ifRead(context.uac, request->buffer,
+            request->capacity);
+
+        if (request->length > 0)
+        {
+          const IrqState state = irqSave();
+          pointerQueuePopFront(&context.spkQueue);
+          irqRestore(state);
+
+          streamEnqueue(context.audio.tx, request);
+          pinToggle(context.txLed);
+        }
+        else
+          break;
+      }
+    }
+
+    if (context.state.suspended)
+    {
+      pinWrite(linkLed, BOARD_LED_INV);
+      pinWrite(rateLed, BOARD_LED_INV);
+    }
+    else
+    {
+      pinWrite(linkLed, !BOARD_LED_INV);
+      pinWrite(rateLed, usbDevGetSpeed(usb) == USB_HS ?
+          !BOARD_LED_INV : BOARD_LED_INV);
+    }
+  }
+
+  return 0;
+}

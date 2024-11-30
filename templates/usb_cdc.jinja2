@@ -46,7 +46,7 @@ int main(void)
   const struct Pin rateLed = pinInit(BOARD_USB_IND1);
   pinOutput(rateLed, BOARD_LED_INV);
 
-  struct Entity * const usb = boardSetupUsb();
+  struct Usb * const usb = boardSetupUsb();
 
   const struct CdcAcmConfig config = {
       .device = usb,

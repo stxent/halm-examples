@@ -108,7 +108,7 @@ int main(void)
 
   boardSetupClockPll();
 
-  struct Entity * const usb = boardSetupUsb0();
+  struct Usb * const usb = boardSetupUsb0();
 
   const struct CompositeDeviceConfig compositeConfig = {
       .device = usb

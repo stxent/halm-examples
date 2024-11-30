@@ -315,7 +315,7 @@ struct Timer *boardSetupTimer32B1(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupUsb(void)
+struct Usb *boardSetupUsb(void)
 {
   /* Clocks */
   static const struct GenericClockConfig usbClockConfig = {
@@ -349,7 +349,7 @@ struct Entity *boardSetupUsb(void)
   clockEnable(UsbClock, &usbClockConfig);
   while (!clockReady(UsbClock));
 
-  struct Entity * const usb = init(UsbDevice, &usbConfig);
+  struct Usb * const usb = init(UsbDevice, &usbConfig);
   assert(usb != NULL);
   return usb;
 }

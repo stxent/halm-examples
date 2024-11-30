@@ -339,7 +339,7 @@ struct Timer *boardSetupTimer5(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupUsb(void)
+struct Usb *boardSetupUsb(void)
 {
   static const struct UsbDeviceConfig usbConfig = {
       .dm = PIN(PORT_A, 11),
@@ -349,7 +349,7 @@ struct Entity *boardSetupUsb(void)
       .channel = 0
   };
 
-  struct Entity * const usb = init(UsbDevice, &usbConfig);
+  struct Usb * const usb = init(UsbDevice, &usbConfig);
   assert(usb != NULL);
   return usb;
 }

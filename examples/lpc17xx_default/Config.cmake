@@ -56,6 +56,7 @@ set(TEMPLATES_LIST
         timer_factory
         usb_cdc
         usb_msc
+        usb_uac
         wdt
         work_queue
         work_queue_unique

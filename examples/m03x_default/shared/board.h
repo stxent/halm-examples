@@ -34,6 +34,7 @@ struct Interface;
 struct Interrupt;
 struct Pwm;
 struct Timer;
+struct Usb;
 struct Watchdog;
 
 struct PwmPackage
@@ -62,7 +63,7 @@ struct Interface *boardSetupSerialDmaTOC(void);
 struct Interface *boardSetupSpi(void);
 struct Interface *boardSetupSpiDma(void);
 struct Timer *boardSetupTimer(void);
-struct Entity *boardSetupUsb(void);
+struct Usb *boardSetupUsb(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* M03X_DEFAULT_SHARED_BOARD_H_ */

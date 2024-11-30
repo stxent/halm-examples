@@ -197,7 +197,7 @@ struct Timer *boardSetupTimer2(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupUsb(void)
+struct Usb *boardSetupUsb(void)
 {
   /* Clocks */
   static const struct GenericClockConfig usbClockConfig = {
@@ -231,7 +231,7 @@ struct Entity *boardSetupUsb(void)
 
   usbTraceInit(traceSerial, traceChrono);
 
-  struct Entity * const usb = init(UsbDevice, &usbConfig);
+  struct Usb * const usb = init(UsbDevice, &usbConfig);
   assert(usb != NULL);
   return usb;
 }

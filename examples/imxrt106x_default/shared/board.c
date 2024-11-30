@@ -17,7 +17,7 @@
 [[gnu::alias("boardSetupTimerPIT3")]] struct Timer *boardSetupTimer(void);
 [[gnu::alias("boardSetupTimerPIT0")]] struct Timer *boardSetupTimerPIT(void);
 
-[[gnu::alias("boardSetupUsb1")]] struct Entity *boardSetupUsb(void);
+[[gnu::alias("boardSetupUsb1")]] struct Usb *boardSetupUsb(void);
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
@@ -261,7 +261,7 @@ struct Timer *boardSetupTimerPIT3(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupUsb1(void)
+struct Usb *boardSetupUsb1(void)
 {
   /* Objects */
   static const struct UsbDeviceConfig usb1Config = {
@@ -275,13 +275,12 @@ struct Entity *boardSetupUsb1(void)
 
   assert(clockReady(Usb1Pll));
 
-  struct Entity * const usb = init(UsbDevice, &usb1Config);
+  struct Usb * const usb = init(UsbDevice, &usb1Config);
   assert(usb != NULL);
   return usb;
 }
-
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupUsb2(void)
+struct Usb *boardSetupUsb2(void)
 {
   /* Objects */
   static const struct UsbDeviceConfig usb2Config = {
@@ -297,7 +296,7 @@ struct Entity *boardSetupUsb2(void)
   clockEnable(Usb2Pll, &(struct PllConfig){20});
   while (!clockReady(Usb2Pll));
 
-  struct Entity * const usb = init(UsbDevice, &usb2Config);
+  struct Usb * const usb = init(UsbDevice, &usb2Config);
   assert(usb != NULL);
   return usb;
 }

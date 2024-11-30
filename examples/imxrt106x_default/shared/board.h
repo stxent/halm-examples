@@ -29,6 +29,7 @@
 struct Entity;
 struct Interface;
 struct Timer;
+struct Usb;
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void);
 void boardSetupClockInt(void);
@@ -43,8 +44,8 @@ struct Timer *boardSetupTimerPIT(void);
 struct Timer *boardSetupTimerPIT0(void);
 struct Timer *boardSetupTimerPIT2(void);
 struct Timer *boardSetupTimerPIT3(void);
-struct Entity *boardSetupUsb(void);
-struct Entity *boardSetupUsb1(void);
-struct Entity *boardSetupUsb2(void);
+struct Usb *boardSetupUsb(void);
+struct Usb *boardSetupUsb1(void);
+struct Usb *boardSetupUsb2(void);
 /*----------------------------------------------------------------------------*/
 #endif /* IMXRT106X_DEFAULT_SHARED_BOARD_H_ */

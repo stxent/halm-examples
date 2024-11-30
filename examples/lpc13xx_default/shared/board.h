@@ -37,6 +37,7 @@ struct Interface;
 struct Interrupt;
 struct Pwm;
 struct Timer;
+struct Usb;
 struct Watchdog;
 
 struct CapturePackage
@@ -75,7 +76,7 @@ struct Timer *boardSetupTimer16B0(void);
 struct Timer *boardSetupTimer16B1(void);
 struct Timer *boardSetupTimer32B0(void);
 struct Timer *boardSetupTimer32B1(void);
-struct Entity *boardSetupUsb(void);
+struct Usb *boardSetupUsb(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC13XX_DEFAULT_SHARED_BOARD_H_ */

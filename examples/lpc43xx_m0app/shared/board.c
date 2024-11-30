@@ -76,7 +76,7 @@ struct Timer *boardSetupTimer(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Entity *boardSetupUsb(void)
+struct Usb *boardSetupUsb(void)
 {
   /* Clocks */
   static const struct PllConfig audioPllConfig = {
@@ -106,7 +106,7 @@ struct Entity *boardSetupUsb(void)
   clockEnable(Usb1Clock, &(struct GenericClockConfig){CLOCK_AUDIO_PLL});
   while (!clockReady(Usb1Clock));
 
-  struct Entity * const usb = init(UsbDevice, &usb1Config);
+  struct Usb * const usb = init(UsbDevice, &usb1Config);
   assert(usb != NULL);
   return usb;
 }

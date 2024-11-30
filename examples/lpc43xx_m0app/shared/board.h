@@ -25,12 +25,13 @@
 struct Entity;
 struct Interface;
 struct Timer;
+struct Usb;
 /*----------------------------------------------------------------------------*/
 void boardSetupClock(void);
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 struct Interface *boardSetupSerial(void);
 struct Timer *boardSetupTimer(void);
-struct Entity *boardSetupUsb(void);
+struct Usb *boardSetupUsb(void);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC43XX_M0APP_SHARED_BOARD_H_ */

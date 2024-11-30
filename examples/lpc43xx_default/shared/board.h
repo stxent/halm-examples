@@ -45,6 +45,9 @@
 #define BOARD_USB_CDC_TX  0x81
 #define BOARD_USB_MSC_RX  0x01
 #define BOARD_USB_MSC_TX  0x81
+#define BOARD_USB_UAC_FB  0x02
+#define BOARD_USB_UAC_RX  0x01
+#define BOARD_USB_UAC_TX  0x81
 
 #define BOARD_MEMCOPY_CH  7
 /*----------------------------------------------------------------------------*/
@@ -57,6 +60,7 @@ struct Pwm;
 struct RtClock;
 struct Stream;
 struct Timer;
+struct Usb;
 struct Watchdog;
 
 struct CapturePackage
@@ -136,9 +140,9 @@ struct Timer *boardSetupTimer3(void);
 struct Timer *boardSetupTimerAlarm(void);
 struct Timer *boardSetupTimerRIT(void);
 struct Timer *boardSetupTimerSCT(void);
-struct Entity *boardSetupUsb(void);
-struct Entity *boardSetupUsb0(void);
-struct Entity *boardSetupUsb1(void);
+struct Usb *boardSetupUsb(void);
+struct Usb *boardSetupUsb0(void);
+struct Usb *boardSetupUsb1(void);
 struct Watchdog *boardSetupWdt(bool);
 struct Watchdog *boardSetupWwdt(void);
 

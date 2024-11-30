@@ -94,6 +94,7 @@ set(TEMPLATES_LIST
         timer_factory
         usb_cdc
         usb_msc
+        usb_uac
         wdt
         wdt_timer
         work_queue

@@ -15,24 +15,40 @@ struct EventTuple
   struct Pin led;
 };
 /*----------------------------------------------------------------------------*/
-static const int16_t pattern[] = {
-         0,   4663,   9231,  13611,
-     17715,  21457,  24763,  27565,
-     29805,  31439,  32433,  32767,
-     32433,  31439,  29805,  27565,
-     24763,  21457,  17715,  13611,
-      9231,   4663,
-         0,  -4663,  -9231, -13611,
-    -17715, -21457, -24763, -27565,
-    -29805, -31439, -32433, -32767,
-    -32433, -31439, -29805, -27565,
-    -24763, -21457, -17715, -13611,
-     -9231,  -4663
+static const int16_t patternL[] = {
+         0,   2337,   4663,   6965,
+      9231,  11450,  13611,  15703,
+     17715,  19636,  21457,  23169,
+     24763,  26231,  27565,  28758,
+     29805,  30701,  31439,  32018,
+     32433,  32683,  32767,  32683,
+     32433,  32018,  31439,  30701,
+     29805,  28758,  27565,  26231,
+     24763,  23169,  21457,  19636,
+     17715,  15703,  13611,  11450,
+      9231,   6965,   4663,   2337,
+         0,  -2337,  -4663,  -6965,
+     -9231, -11450, -13611, -15703,
+    -17715, -19636, -21457, -23169,
+    -24763, -26231, -27565, -28758,
+    -29805, -30701, -31439, -32018,
+    -32433, -32683, -32767, -32683,
+    -32433, -32018, -31439, -30701,
+    -29805, -28758, -27565, -26231,
+    -24763, -23169, -21457, -19636,
+    -17715, -15703, -13611, -11450,
+     -9231,  -6965,  -4663,  -2337
+};
+
+static const int16_t patternR[] = {
+         0,  17715,  29805,  32433,
+     24763,   9231,  -9231, -24763,
+    -32433, -29805, -17715
 };
 
 #define BUFFER_COUNT  2
 #define CHANNEL_COUNT 2
-#define BUFFER_LENGTH (ARRAY_SIZE(pattern) * 8)
+#define BUFFER_LENGTH (ARRAY_SIZE(patternL) * 4)
 
 static int16_t rxBuffers[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
 static int16_t txBuffers[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
@@ -59,12 +75,17 @@ static void onDataSent(void *argument, struct StreamRequest *request,
 /*----------------------------------------------------------------------------*/
 static void fillBuffers(void)
 {
+  static_assert(ARRAY_SIZE(patternL) >= ARRAY_SIZE(patternR),
+      "Incorrect pattern size");
+  static_assert(!(ARRAY_SIZE(patternL) % ARRAY_SIZE(patternR)),
+      "Incorrect pattern size");
+
   for (size_t buffer = 0; buffer < BUFFER_COUNT; ++buffer)
   {
     for (size_t index = 0; index < BUFFER_LENGTH; ++index)
     {
-      txBuffers[buffer][index * 2 + 0] = +pattern[index % ARRAY_SIZE(pattern)];
-      txBuffers[buffer][index * 2 + 1] = -pattern[index % ARRAY_SIZE(pattern)];
+      txBuffers[buffer][index * 2 + 0] = patternL[index % ARRAY_SIZE(patternL)];
+      txBuffers[buffer][index * 2 + 1] = patternR[index % ARRAY_SIZE(patternR)];
     }
   }
 
