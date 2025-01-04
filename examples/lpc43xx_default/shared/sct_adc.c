@@ -66,8 +66,8 @@ static enum Result tmrInit(void *object, const void *configBase)
     return E_BUSY;
   if (!sctAllocateEvent(&timer->base, &timer->reset))
     return E_BUSY;
-
-  timer->base.mask = (1 << timer->conversion) | (1 << timer->memory)
+  timer->base.mask = (1 << timer->conversion)
+      | (1 << timer->memory)
       | (1 << timer->reset);
 
   /* Disable the timer before any configuration is done */
@@ -80,16 +80,15 @@ static enum Result tmrInit(void *object, const void *configBase)
   /* Disable match value reload and set current match register value */
   reg->CONFIG |= CONFIG_NORELOAD(part);
 
-  const uint32_t isHighPartControl = timer->base.part == SCT_HIGH ?
-      EVCTRL_HEVENT : 0;
-
   /* Configure conversion event */
   reg->MATCH_PART[timer->conversion][part] = 1;
-  reg->EV[timer->conversion].CTRL = isHighPartControl
+  reg->EV[timer->conversion].CTRL =
+      (timer->base.part == SCT_HIGH ? EVCTRL_HEVENT : 0)
       | EVCTRL_MATCHSEL(timer->conversion)
       | EVCTRL_COMBMODE(COMBMODE_MATCH)
       | EVCTRL_DIRECTION(DIRECTION_INDEPENDENT);
   reg->EV[timer->conversion].STATE = 0x00000001;
+  reg->REGMODE_PART[part] &= ~(1 << timer->conversion);
 
   timer->adc = config->adc;
   switch (timer->adc)
@@ -113,11 +112,13 @@ static enum Result tmrInit(void *object, const void *configBase)
 
   /* Configure memory transfer event */
   reg->MATCH_PART[timer->memory][part] = 1 + config->delay;
-  reg->EV[timer->memory].CTRL = isHighPartControl
+  reg->EV[timer->memory].CTRL =
+      (timer->base.part == SCT_HIGH ? EVCTRL_HEVENT : 0)
       | EVCTRL_MATCHSEL(timer->memory)
       | EVCTRL_COMBMODE(COMBMODE_MATCH)
       | EVCTRL_DIRECTION(DIRECTION_INDEPENDENT);
   reg->EV[timer->memory].STATE = 0x00000001;
+  reg->REGMODE_PART[part] &= ~(1 << timer->memory);
 
   timer->dma = config->dma;
   switch (timer->dma)
@@ -149,11 +150,13 @@ static enum Result tmrInit(void *object, const void *configBase)
 
   /* Configure reset event */
   reg->MATCH_PART[timer->reset][part] = config->cycle;
-  reg->EV[timer->reset].CTRL = isHighPartControl
+  reg->EV[timer->reset].CTRL =
+      (timer->base.part == SCT_HIGH ? EVCTRL_HEVENT : 0)
       | EVCTRL_MATCHSEL(timer->reset)
       | EVCTRL_COMBMODE(COMBMODE_MATCH)
       | EVCTRL_DIRECTION(DIRECTION_INDEPENDENT);
   reg->EV[timer->reset].STATE = 0x00000001;
+  reg->REGMODE_PART[part] &= ~(1 << timer->reset);
 
   /* Reset current state */
   reg->STATE_PART[part] = 0;

@@ -31,6 +31,7 @@ struct Context
   {
     bool dataReceived;
     bool rateChanged;
+    bool rateFeedback;
     bool startOfFrame;
   } event;
 
@@ -146,9 +147,19 @@ static void onUacEvent(void *argument)
       context->frame = 0;
 
     if (usbDevGetSpeed(context->usb) == USB_HS)
+    {
       event = (context->frame % 8) == 0;
+
+      if ((context->frame % 800) == 0)
+        context->event.rateFeedback = true;
+    }
     else
+    {
       event = true;
+
+      if ((context->frame % 100) == 0)
+        context->event.rateFeedback = true;
+    }
 
     if (event)
     {
@@ -209,7 +220,11 @@ static void changeRate(struct Context *context, uint32_t rate)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+{%- if config.UAC_FEEDBACK is defined and config.UAC_FEEDBACK %}
   static const bool testUacFeedback = true;
+{% else %}
+  static const bool testUacFeedback = false;
+{%- endif %}
   static const bool testUacPlayback = true;
   static const bool testUacRecord = true;
 
@@ -243,6 +258,12 @@ int main(void)
   };
   struct Uac * const uac = init(Uac, &uacConfig);
   assert(uac != NULL);
+{%- if config.UAC_FEEDBACK is defined and config.UAC_FEEDBACK %}
+
+  /* Initialize rate feedback calculator */
+  struct UacFeedbackPackage feedback = boardSetupUacFeedback();
+  feedback.setSampleRate(feedback.timer, uacConfig.rates[0]);
+{%- endif %}
 
   struct Context context = {
       .audio = audio,
@@ -252,7 +273,7 @@ int main(void)
       .txLed = txLed,
       .chunk = 0,
       .frame = 0,
-      .event = {false, false, false},
+      .event = {false, false, false, false},
       .state = {false, true, false}
   };
 
@@ -282,17 +303,33 @@ int main(void)
     {
       uint32_t rate;
 
-      context.event.rateChanged = false;
-
       res = ifGetParam(uac, IF_RATE, &rate);
       assert(res == E_OK);
+
       changeRate(&context, rate);
+{%- if config.UAC_FEEDBACK is defined and config.UAC_FEEDBACK %}
+      feedback.setSampleRate(feedback.timer, rate);
+{%- endif %}
+
+      context.event.rateChanged = false;
     }
 
     if (context.event.startOfFrame)
     {
-      context.event.startOfFrame = false;
+{%- if config.UAC_FEEDBACK is defined and config.UAC_FEEDBACK %}
+      if (context.event.rateFeedback)
+      {
+        const uint32_t ratio = feedback.getFeedbackRatio(feedback.timer);
 
+        if (ratio != 0)
+        {
+          res = ifSetParam(context.uac, IF_UAC_FEEDBACK, &ratio);
+          assert(res == E_OK);
+        }
+
+        context.event.rateFeedback = false;
+      }
+{%- endif %}
       if (!pointerQueueEmpty(&context.micQueue))
       {
         const IrqState state = irqSave();
@@ -309,13 +346,12 @@ int main(void)
         request->length = 0;
         streamEnqueue(context.audio.rx, request);
       }
+
+      context.event.startOfFrame = false;
     }
 
     if (context.event.dataReceived)
     {
-      context.event.dataReceived = false;
-      context.state.playing = true;
-
       while (!pointerQueueEmpty(&context.spkQueue))
       {
         struct StreamRequest * const request =
@@ -336,6 +372,9 @@ int main(void)
         else
           break;
       }
+
+      context.state.playing = true;
+      context.event.dataReceived = false;
     }
 
     if (context.state.suspended)

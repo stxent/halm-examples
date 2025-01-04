@@ -5,6 +5,7 @@
  */
 
 #include "board.h"
+#include "sct_sof.h"
 #include <halm/delay.h>
 #include <halm/generic/buffering_proxy.h>
 #include <halm/platform/lpc/adc.h>
@@ -69,6 +70,8 @@
 [[gnu::alias("boardSetupUsb0")]] struct Usb *boardSetupUsb(void);
 
 static void enablePeriphClock(const void *);
+static uint32_t uacWrapperGetFeedbackRatio(const void *);
+static void uacWrapperSetSampleRate(void *, uint32_t);
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
     PIN(PORT_ADC, 1),
@@ -103,6 +106,16 @@ static void enablePeriphClock(const void *clock)
     clockEnable(clock, &(struct GenericClockConfig){CLOCK_INTERNAL});
 
   while (!clockReady(clock));
+}
+/*----------------------------------------------------------------------------*/
+static uint32_t uacWrapperGetFeedbackRatio(const void *object)
+{
+  return sctSofGetRatio(object);
+}
+/*----------------------------------------------------------------------------*/
+static void uacWrapperSetSampleRate(void *object, uint32_t rate)
+{
+  sctSofSetSampleRate(object, rate);
 }
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void)
@@ -1141,6 +1154,30 @@ struct Timer *boardSetupTimerSCT(void)
   struct Timer * const timer = init(SctUnifiedTimer, &timerConfig);
   assert(timer != NULL);
   return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct UacFeedbackPackage boardSetupUacFeedback(void)
+{
+  static const struct SctSofConfig sctSofConfig = {
+      .frequency = 12000000,
+      .i2s = SCTSOF_I2S0_TX_MWS_6,
+      .usb = SCTSOF_USB0_SOF_7,
+      .part = SCT_LOW,
+      .priority = 1,
+      .channel = 0
+  };
+
+  struct UacFeedbackPackage package;
+
+  struct Timer * const timer = init(SctSof, &sctSofConfig);
+  assert(timer != NULL);
+  timerEnable(timer);
+
+  package.getFeedbackRatio = uacWrapperGetFeedbackRatio;
+  package.setSampleRate = uacWrapperSetSampleRate;
+  package.timer = timer;
+
+  return package;
 }
 /*----------------------------------------------------------------------------*/
 struct Usb *boardSetupUsb0(void)

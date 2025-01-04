@@ -94,7 +94,7 @@ set(TEMPLATES_LIST
         timer_factory
         usb_cdc
         usb_msc
-        usb_uac
+        usb_uac:UAC_FEEDBACK=true
         wdt
         wdt_timer
         work_queue

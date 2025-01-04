@@ -89,6 +89,13 @@ struct StreamPackage
   struct Stream *rx;
   struct Stream *tx;
 };
+
+struct UacFeedbackPackage
+{
+  void *timer;
+  uint32_t (*getFeedbackRatio)(const void *);
+  void (*setSampleRate)(void *, uint32_t);
+};
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
 void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
@@ -140,6 +147,7 @@ struct Timer *boardSetupTimer3(void);
 struct Timer *boardSetupTimerAlarm(void);
 struct Timer *boardSetupTimerRIT(void);
 struct Timer *boardSetupTimerSCT(void);
+struct UacFeedbackPackage boardSetupUacFeedback(void);
 struct Usb *boardSetupUsb(void);
 struct Usb *boardSetupUsb0(void);
 struct Usb *boardSetupUsb1(void);

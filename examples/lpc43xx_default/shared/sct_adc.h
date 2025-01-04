@@ -69,7 +69,7 @@ struct SctAdc
 
   /* Match channel used for ADC conversion event */
   uint8_t conversion;
-    /* Match channel used for DMA event */
+  /* Match channel used for DMA event */
   uint8_t memory;
   /* Match channel used for counter reset */
   uint8_t reset;
