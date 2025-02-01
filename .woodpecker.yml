@@ -12,6 +12,10 @@ clone:
       - git submodule update --init --recursive
       - export REPO_REVISION=`git rev-list HEAD --count`
       - echo "ARTIFACT_PREFIX=${CI_REPO_NAME}_r$${REPO_REVISION}-${CI_COMMIT_SHA:0:8}_b${CI_PIPELINE_NUMBER}" >> envvars
+      - echo "CMAKE_ARGS=\"\"" >> envvars
+      - echo "CMAKE_ARGS_nor=\"-DTARGET_NOR=ON -DUSE_DFU=ON\"" >> envvars
+      - echo "CMAKE_ARGS_sram=\"-DTARGET_SRAM=ON\"" >> envvars
+      - echo "SED_PATTERN=\"s/[[:space:]]\{1,\}/ /g;s/^[[:space:]]*//;s/[[:space:]]*$//;s/\.\\///;s/\([[:digit:]]*\) \([[:digit:]]*\) \([[:digit:]]*\) \([[:digit:]]*\) \([[:alnum:]]*\) \([[:graph:]]*\).*$/\6;\1;\2;\3;\4/\"" >> envvars
 
 steps:
   build_deb:
@@ -19,24 +23,40 @@ steps:
     pull: true
     commands:
       - cd project
-      - cmake . -B build-deb -DCMAKE_BUILD_TYPE=Debug
-      - make -C build-deb -j `nproc`
-      - cmake . -B build-deb_nor -DTARGET_NOR=ON -DUSE_DFU=ON -DCMAKE_BUILD_TYPE=Debug
-      - make -C build-deb_nor -j `nproc`
-      - cmake . -B build-deb_sram -DTARGET_SRAM=ON -DCMAKE_BUILD_TYPE=Debug
-      - make -C build-deb_sram -j `nproc`
+      - source ./envvars
+      - |
+        for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
+          export BUILD_DIR="build-deb$${BUILD_DIR_SUFFIX}"
+          eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
+          cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Debug -DPLATFORM_X86=OFF $${BUILD_DIR_ARGS}
+          make -C $${BUILD_DIR} -j `nproc`
+        done
 
   build_rel:
     image: ${DOCKER_PREFIX}/gcc-arm-embedded
     pull: true
     commands:
       - cd project
-      - cmake . -B build-rel -DCMAKE_BUILD_TYPE=Release
-      - make -C build-rel -j `nproc`
-      - cmake . -B build-rel_nor -DTARGET_NOR=ON -DUSE_DFU=ON -DCMAKE_BUILD_TYPE=Release
-      - make -C build-rel_nor -j `nproc`
-      - cmake . -B build-rel_sram -DTARGET_SRAM=ON -DCMAKE_BUILD_TYPE=Release
-      - make -C build-rel_sram -j `nproc`
+      - source ./envvars
+      - mkdir -p deploy
+      - |
+        for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
+          export BUILD_DIR="build-rel$${BUILD_DIR_SUFFIX}"
+          eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
+          cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Release -DPLATFORM_X86=OFF $${BUILD_DIR_ARGS}
+          make -C $${BUILD_DIR} -j `nproc`
+          cd $${BUILD_DIR} && find . -name "*.elf" -exec arm-none-eabi-size {} \; | grep \.elf | sort -k6 | sed "$${SED_PATTERN}" > ../deploy/$${ARTIFACT_PREFIX}$${BUILD_DIR_SUFFIX}.csv && cd -
+        done
+
+  build_x86:
+    image: ${DOCKER_PREFIX}/gcc-desktop
+    pull: true
+    commands:
+      - cd project
+      - cmake . -B build-x86-deb -DCMAKE_BUILD_TYPE=Debug -DPLATFORM_ARM=OFF
+      - make -C build-x86-deb -j `nproc`
+      - cmake . -B build-x86-rel -DCMAKE_BUILD_TYPE=Release -DPLATFORM_ARM=OFF
+      - make -C build-x86-rel -j `nproc`
 
   deploy_rel:
     image: ${DOCKER_PREFIX}/network-utils
@@ -44,10 +64,10 @@ steps:
     commands:
       - cd project
       - source ./envvars
-      - mkdir deploy
+      - mkdir -p deploy
       - |
-        for BUILD_DIR in "" "_nor" "_sram" ; do
-          cd "build-rel$${BUILD_DIR}" && find . ! -path "*CMakeFiles*" -name "*.bin" | xargs tar -cvJ -f ../deploy/$${ARTIFACT_PREFIX}$${BUILD_DIR}.tar.xz && cd -
+        for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
+          cd "build-rel$${BUILD_DIR_SUFFIX}" && find . ! -path "*CMakeFiles*" -name "*.bin" | xargs tar -cvJ -f ../deploy/$${ARTIFACT_PREFIX}$${BUILD_DIR_SUFFIX}.tar.xz && cd -
         done
       - cd deploy
       - smbclient "//$${DEPLOY_SERVER_ENV}" -U "$${DEPLOY_USER_NAME_ENV}%$${DEPLOY_USER_PASSWORD_ENV}" -c "mkdir ${CI_REPO_NAME}" || true

@@ -11,6 +11,9 @@ option(USE_HEX "Convert executables to Intel HEX format." OFF)
 option(USE_DFU "Enable memory layout compatible with a bootloader." OFF)
 option(USE_LTO "Enable Link Time Optimization." OFF)
 
+option(PLATFORM_ARM "Build examples for ARM platforms." ON)
+option(PLATFORM_X86 "Build examples for x86 platform." ON)
+
 option(TARGET_NOR "Use external NOR Flash for an artifact if available." OFF)
 option(TARGET_SDRAM "Use external SDRAM for an artifact if available." OFF)
 option(TARGET_SRAM "Use embedded SRAM for an artifact if available." OFF)
@@ -48,9 +51,26 @@ foreach(BUNDLE_NAME ${BUNDLE_LIST})
         endif()
     endif()
 
+    set(BUNDLE_TOOLCHAIN_FILE ${PROJECT_SOURCE_DIR}/examples/${BUNDLE_NAME}/toolchain)
     set(FLAGS_BUNDLE "")
-    list(APPEND FLAGS_BUNDLE -DBUNDLE=${BUNDLE_NAME})
+
+    if(EXISTS ${BUNDLE_TOOLCHAIN_FILE})
+        file(STRINGS ${BUNDLE_TOOLCHAIN_FILE} CONFIG_TOOLCHAIN)
+        list(GET CONFIG_TOOLCHAIN 0 CORE_TYPE)
+
+        if(${CORE_TYPE} MATCHES "^cortex-m" AND NOT PLATFORM_ARM)
+            continue()
+        endif()
+
+        list(APPEND FLAGS_BUNDLE "-DCMAKE_TOOLCHAIN_FILE=${PATH_XCORE}/toolchains/${CORE_TYPE}.cmake")
+    else()
+        if(NOT PLATFORM_X86)
+            continue()
+        endif()
+    endif()
+
     list(APPEND FLAGS_BUNDLE -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+    list(APPEND FLAGS_BUNDLE -DBUNDLE=${BUNDLE_NAME})
     list(APPEND FLAGS_BUNDLE -DUSE_BIN=${USE_BIN})
     list(APPEND FLAGS_BUNDLE -DUSE_HEX=${USE_HEX})
     list(APPEND FLAGS_BUNDLE -DUSE_DFU=${USE_DFU})
@@ -58,13 +78,6 @@ foreach(BUNDLE_NAME ${BUNDLE_LIST})
     list(APPEND FLAGS_BUNDLE -DTARGET_NOR=${TARGET_NOR})
     list(APPEND FLAGS_BUNDLE -DTARGET_SDRAM=${TARGET_SDRAM})
     list(APPEND FLAGS_BUNDLE -DTARGET_SRAM=${TARGET_SRAM})
-
-    set(BUNDLE_TOOLCHAIN_FILE ${PROJECT_SOURCE_DIR}/examples/${BUNDLE_NAME}/toolchain)
-    if(EXISTS ${BUNDLE_TOOLCHAIN_FILE})
-        file(STRINGS ${BUNDLE_TOOLCHAIN_FILE} CONFIG_TOOLCHAIN)
-        list(GET CONFIG_TOOLCHAIN 0 CORE_TYPE)
-        list(APPEND FLAGS_BUNDLE "-DCMAKE_TOOLCHAIN_FILE=${PATH_XCORE}/toolchains/${CORE_TYPE}.cmake")
-    endif()
 
     ExternalProject_Add(${BUNDLE_NAME}
             SOURCE_DIR ${PROJECT_SOURCE_DIR}/examples

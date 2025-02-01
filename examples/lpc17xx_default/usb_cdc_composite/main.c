@@ -125,9 +125,9 @@ int main(void)
 
     do
     {
+      barrier();
       for (size_t i = 0; i < STREAM_COUNT; ++i)
         event = event || streams[i].event;
-      barrier();
     }
     while (!event);
 
