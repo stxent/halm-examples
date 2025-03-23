@@ -3,6 +3,7 @@
 
 cmake_minimum_required(VERSION 3.21)
 project(halm-examples NONE)
+include(CheckLanguage)
 include(ExternalProject)
 
 # Build options
@@ -10,9 +11,6 @@ option(USE_BIN "Convert executables to Binary format." ON)
 option(USE_HEX "Convert executables to Intel HEX format." OFF)
 option(USE_DFU "Enable memory layout compatible with a bootloader." OFF)
 option(USE_LTO "Enable Link Time Optimization." OFF)
-
-option(PLATFORM_ARM "Build examples for ARM platforms." ON)
-option(PLATFORM_X86 "Build examples for x86 platform." ON)
 
 option(TARGET_NOR "Use external NOR Flash for an artifact if available." OFF)
 option(TARGET_SDRAM "Use external SDRAM for an artifact if available." OFF)
@@ -58,13 +56,27 @@ foreach(BUNDLE_NAME ${BUNDLE_LIST})
         file(STRINGS ${BUNDLE_TOOLCHAIN_FILE} CONFIG_TOOLCHAIN)
         list(GET CONFIG_TOOLCHAIN 0 CORE_TYPE)
 
-        if(${CORE_TYPE} MATCHES "^cortex-m" AND NOT PLATFORM_ARM)
+        set(TOOLCHAIN_FILE_PATH "${PATH_XCORE}/toolchains/${CORE_TYPE}.cmake")
+        file(STRINGS ${TOOLCHAIN_FILE_PATH} TOOLCHAIN_FILE_DATA)
+
+        string(REGEX MATCH
+                "CMAKE_C_COMPILER[\t ]+\"([a-zA-Z0-9_\-]+)\""
+                TOOLCHAIN_COMPILER_UNUSED
+                "${TOOLCHAIN_FILE_DATA}"
+        )
+
+        unset(TOOLCHAIN_EXISTS)
+        find_program(TOOLCHAIN_EXISTS "${CMAKE_MATCH_1}" NO_CACHE)
+        if("${TOOLCHAIN_EXISTS}" STREQUAL "TOOLCHAIN_EXISTS-NOTFOUND")
+            message(STATUS "Toolchain ${CMAKE_MATCH_1} not found")
             continue()
         endif()
 
-        list(APPEND FLAGS_BUNDLE "-DCMAKE_TOOLCHAIN_FILE=${PATH_XCORE}/toolchains/${CORE_TYPE}.cmake")
+        list(APPEND FLAGS_BUNDLE "-DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE_PATH}")
     else()
-        if(NOT PLATFORM_X86)
+        check_language(C)
+        if("${CMAKE_C_COMPILER}" STREQUAL "NOTFOUND")
+            message(STATUS "Default toolchain not found")
             continue()
         endif()
     endif()

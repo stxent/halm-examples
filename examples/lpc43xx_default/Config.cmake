@@ -73,7 +73,7 @@ set(TEMPLATES_LIST
         i2c_slave
         i2s_echo
         i2s_tone
-        lifetime
+        lifetime:EMULATE=true
         mmcsd
         mock_os
         pin_int

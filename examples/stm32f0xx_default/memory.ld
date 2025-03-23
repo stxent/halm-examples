@@ -4,7 +4,7 @@
  */
 
 ENTRY(RESET_ISR)
-EXTERN(vectorTable)
+EXTERN(vector_table)
 
 MEMORY
 {
@@ -56,7 +56,7 @@ SECTIONS
     _ebss = .;
 
     . = ALIGN(4);
-    heapStart = .;
+    heap_start = .;
   } >RAM
 
   .apb :
@@ -91,6 +91,6 @@ SECTIONS
     *(.gnu.linkonce.armextab.*)
   }
 
-  PROVIDE(end = heapStart);
+  PROVIDE(end = heap_start);
   PROVIDE(_stack = ORIGIN(RAM) + LENGTH(RAM));
 }

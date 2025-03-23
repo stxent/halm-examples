@@ -4,7 +4,9 @@
  */
 
 #include "board.h"
+{%- if config.EMULATE is defined and config.EMULATE %}
 #include <halm/generic/lifetime_timer_64.h>
+{%- endif %}
 #include <halm/timer.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
@@ -17,12 +19,15 @@ int main(void)
   /* Initialize peripherals */
   struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
+{%- if config.EMULATE is defined and config.EMULATE %}
 
   struct Timer * const timer = boardSetupTimer();
-  const uint32_t period = timerGetFrequency(timer);
-
   struct Timer64 * const chrono = init(LifetimeTimer64,
       &(struct LifetimeTimer64Config){timer});
+{%- else %}
+
+  struct Timer64 * const chrono = boardSetupTimer64();
+{%- endif %}
   assert(chrono != NULL);
   timerEnable(chrono);
 
@@ -33,7 +38,7 @@ int main(void)
     if (current >= next)
     {
       pinToggle(led);
-      next += period;
+      next += timerGetFrequency(chrono);
     }
   }
 

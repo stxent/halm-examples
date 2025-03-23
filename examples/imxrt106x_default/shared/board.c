@@ -199,7 +199,6 @@ struct Interface *boardSetupSerial(void)
   assert(interface != NULL);
   return interface;
 }
-
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerialDma(void)
 {
@@ -257,6 +256,13 @@ struct Timer *boardSetupTimerPIT3(void)
   };
 
   struct Timer * const timer = init(Pit, &pitConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer64 *boardSetupTimer64(void)
+{
+  struct Timer64 * const timer = init(Pit64, NULL);
   assert(timer != NULL);
   return timer;
 }

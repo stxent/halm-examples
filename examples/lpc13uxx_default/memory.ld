@@ -4,7 +4,7 @@
  */
 
 ENTRY(RESET_ISR)
-EXTERN(vectorTable)
+EXTERN(vector_table)
 
 MEMORY
 {
@@ -58,7 +58,7 @@ SECTIONS
     _ebss = .;
 
     . = ALIGN(4);
-    heapStart = .;
+    heap_start = .;
   } >SRAM0
 
   .sram1 : ALIGN(4)
@@ -104,7 +104,7 @@ SECTIONS
     *(.gnu.linkonce.armextab.*)
   }
 
-  PROVIDE(end = heapStart);
+  PROVIDE(end = heap_start);
   PROVIDE(_stack = ORIGIN(SRAM0) + LENGTH(SRAM0));
 
   PROVIDE(_ssram1 = ORIGIN(SRAM1));

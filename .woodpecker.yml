@@ -18,7 +18,17 @@ clone:
       - echo "SED_PATTERN=\"s/[[:space:]]\{1,\}/ /g;s/^[[:space:]]*//;s/[[:space:]]*$//;s/\.\\///;s/\([[:digit:]]*\) \([[:digit:]]*\) \([[:digit:]]*\) \([[:digit:]]*\) \([[:alnum:]]*\) \([[:graph:]]*\).*$/\6;\1;\2;\3;\4/\"" >> envvars
 
 steps:
-  build_deb:
+  build_x86:
+    image: ${DOCKER_PREFIX}/gcc-desktop
+    pull: true
+    commands:
+      - cd project
+      - cmake . -B build-x86-deb -DCMAKE_BUILD_TYPE=Debug
+      - make -C build-x86-deb -j `nproc`
+      - cmake . -B build-x86-rel -DCMAKE_BUILD_TYPE=Release
+      - make -C build-x86-rel -j `nproc`
+
+  build_arm_deb:
     image: ${DOCKER_PREFIX}/gcc-arm-embedded
     pull: true
     commands:
@@ -28,11 +38,11 @@ steps:
         for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
           export BUILD_DIR="build-deb$${BUILD_DIR_SUFFIX}"
           eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
-          cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Debug -DPLATFORM_X86=OFF $${BUILD_DIR_ARGS}
+          cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Debug $${BUILD_DIR_ARGS}
           make -C $${BUILD_DIR} -j `nproc`
         done
 
-  build_rel:
+  build_arm_rel:
     image: ${DOCKER_PREFIX}/gcc-arm-embedded
     pull: true
     commands:
@@ -43,20 +53,10 @@ steps:
         for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
           export BUILD_DIR="build-rel$${BUILD_DIR_SUFFIX}"
           eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
-          cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Release -DPLATFORM_X86=OFF $${BUILD_DIR_ARGS}
+          cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Release $${BUILD_DIR_ARGS}
           make -C $${BUILD_DIR} -j `nproc`
           cd $${BUILD_DIR} && find . -name "*.elf" -exec arm-none-eabi-size {} \; | grep \.elf | sort -k6 | sed "$${SED_PATTERN}" > ../deploy/$${ARTIFACT_PREFIX}$${BUILD_DIR_SUFFIX}.csv && cd -
         done
-
-  build_x86:
-    image: ${DOCKER_PREFIX}/gcc-desktop
-    pull: true
-    commands:
-      - cd project
-      - cmake . -B build-x86-deb -DCMAKE_BUILD_TYPE=Debug -DPLATFORM_ARM=OFF
-      - make -C build-x86-deb -j `nproc`
-      - cmake . -B build-x86-rel -DCMAKE_BUILD_TYPE=Release -DPLATFORM_ARM=OFF
-      - make -C build-x86-rel -j `nproc`
 
   deploy_rel:
     image: ${DOCKER_PREFIX}/network-utils

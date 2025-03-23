@@ -29,6 +29,7 @@
 struct Entity;
 struct Interface;
 struct Timer;
+struct Timer64;
 struct Usb;
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void);
@@ -44,6 +45,7 @@ struct Timer *boardSetupTimerPIT(void);
 struct Timer *boardSetupTimerPIT0(void);
 struct Timer *boardSetupTimerPIT2(void);
 struct Timer *boardSetupTimerPIT3(void);
+struct Timer64 *boardSetupTimer64(void);
 struct Usb *boardSetupUsb(void);
 struct Usb *boardSetupUsb1(void);
 struct Usb *boardSetupUsb2(void);
