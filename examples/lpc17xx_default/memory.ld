@@ -8,14 +8,14 @@ EXTERN(vector_table)
 
 MEMORY
 {
-  ROM (rx)  : ORIGIN = ${ROM_ORIGIN}, LENGTH = ${ROM_LENGTH}
-  RAM (rwx) : ORIGIN = 0x10000000, LENGTH = 32K
+  FLASH (rx) : ORIGIN = ${ROM_ORIGIN}, LENGTH = ${ROM_LENGTH}
+  RAM (rwx)  : ORIGIN = 0x10000000, LENGTH = 32K
 
-  GPIO (rw) : ORIGIN = 0x2009C000, LENGTH = 16K
-  APB0 (rw) : ORIGIN = 0x40000000, LENGTH = 512K
-  APB1 (rw) : ORIGIN = 0x40080000, LENGTH = 512K
-  AHB (rw)  : ORIGIN = 0x50000000, LENGTH = 2M
-  PPB (rw)  : ORIGIN = 0xE0000000, LENGTH = 1M
+  GPIO (rw)  : ORIGIN = 0x2009C000, LENGTH = 16K
+  APB0 (rw)  : ORIGIN = 0x40000000, LENGTH = 512K
+  APB1 (rw)  : ORIGIN = 0x40080000, LENGTH = 512K
+  AHB (rw)   : ORIGIN = 0x50000000, LENGTH = 2M
+  PPB (rw)   : ORIGIN = 0xE0000000, LENGTH = 1M
 }
 
 SECTIONS
@@ -31,12 +31,9 @@ SECTIONS
     *(.rodata*)
 
     _etext = .;
+  } >FLASH =0xFF
 
-    . = ALIGN(4);
-    _sidata = .;
-  } >ROM =0xFF
-
-  .data : AT(_sidata) ALIGN(4)
+  .data : ALIGN(4)
   {
     _sdata = .;
 
@@ -44,7 +41,9 @@ SECTIONS
     *(.data*)
 
     _edata = .;
-  } >RAM
+  } >RAM AT >FLASH
+
+  _sidata = LOADADDR(.data);
 
   .bss : ALIGN(4)
   {

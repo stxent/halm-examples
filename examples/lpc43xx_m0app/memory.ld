@@ -49,12 +49,9 @@ SECTIONS
     *(.rodata*)
 
     _etext = .;
-
-    . = ALIGN(4);
-    _sidata = .;
   } >ROM =0xFF
 
-  .data : AT(_sidata) ALIGN(4)
+  .data : ALIGN(4)
   {
     _sdata = .;
 
@@ -62,7 +59,9 @@ SECTIONS
     *(.data*)
 
     _edata = .;
-  } >RAM
+  } >RAM AT >ROM
+
+  _sidata = LOADADDR(.data);
 
   .bss : ALIGN(4)
   {

@@ -11,7 +11,6 @@ MEMORY
   FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 1024K
   RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 128K
 
-  /* TODO Round sizes */
   APB1 (rw)  : ORIGIN = 0x40000000, LENGTH = 30K
   APB2 (rw)  : ORIGIN = 0x40010000, LENGTH = 19K
   AHB1 (rw)  : ORIGIN = 0x40020000, LENGTH = 384K
@@ -33,12 +32,9 @@ SECTIONS
     *(.rodata*)
 
     _etext = .;
-
-    . = ALIGN(4);
-    _sidata = .;
   } >FLASH =0xFF
 
-  .data : AT(_sidata) ALIGN(4)
+  .data : ALIGN(4)
   {
     _sdata = .;
 
@@ -46,7 +42,9 @@ SECTIONS
     *(.data*)
 
     _edata = .;
-  } >RAM
+  } >RAM AT >FLASH
+
+  _sidata = LOADADDR(.data);
 
   .bss : ALIGN(4)
   {

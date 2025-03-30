@@ -55,7 +55,7 @@ steps:
           eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
           cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Release $${BUILD_DIR_ARGS}
           make -C $${BUILD_DIR} -j `nproc`
-          cd $${BUILD_DIR} && find . -name "*.elf" -exec arm-none-eabi-size {} \; | grep \.elf | sort -k6 | sed "$${SED_PATTERN}" > ../deploy/$${ARTIFACT_PREFIX}$${BUILD_DIR_SUFFIX}.csv && cd -
+          cd $${BUILD_DIR} && find . -name "*.elf" -exec arm-none-eabi-size {} \; | grep \.elf | sort -k6 | sed "$${SED_PATTERN}" >> ../deploy/$${ARTIFACT_PREFIX}$${BUILD_DIR_SUFFIX}.csv && cd -
         done
 
   deploy_rel:
