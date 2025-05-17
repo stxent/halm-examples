@@ -971,7 +971,7 @@ struct Interface *boardSetupSerialDma2(void)
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpi0(void)
 {
-  static const struct SpiConfig spi0Config = {
+  static const struct SpiConfig spiConfig = {
       .rate = 2000000,
       .sck = PIN(PORT_3, 0),
       .miso = PIN(PORT_1, 1),
@@ -982,14 +982,14 @@ struct Interface *boardSetupSpi0(void)
 
   enablePeriphClock(Ssp0Clock);
 
-  struct Interface * const interface = init(Spi, &spi0Config);
+  struct Interface * const interface = init(Spi, &spiConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpi1(void)
 {
-  static const struct SpiConfig spi1Config = {
+  static const struct SpiConfig spiConfig = {
       .rate = 2000000,
       .sck = PIN(PORT_F, 4),
       .miso = PIN(PORT_1, 3),
@@ -1000,14 +1000,14 @@ struct Interface *boardSetupSpi1(void)
 
   enablePeriphClock(Ssp1Clock);
 
-  struct Interface * const interface = init(Spi, &spi1Config);
+  struct Interface * const interface = init(Spi, &spiConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpiDma0(void)
 {
-  static const struct SpiDmaConfig spiDma0Config = {
+  static const struct SpiDmaConfig spiDmaConfig = {
       .rate = 2000000,
       .sck = PIN(PORT_3, 0),
       .miso = PIN(PORT_1, 1),
@@ -1019,14 +1019,14 @@ struct Interface *boardSetupSpiDma0(void)
 
   enablePeriphClock(Ssp0Clock);
 
-  struct Interface * const interface = init(SpiDma, &spiDma0Config);
+  struct Interface * const interface = init(SpiDma, &spiDmaConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpiDma1(void)
 {
-  static const struct SpiDmaConfig spiDma1Config = {
+  static const struct SpiDmaConfig spiDmaConfig = {
       .rate = 2000000,
       .sck = PIN(PORT_F, 4),
       .miso = PIN(PORT_1, 3),
@@ -1038,7 +1038,7 @@ struct Interface *boardSetupSpiDma1(void)
 
   enablePeriphClock(Ssp1Clock);
 
-  struct Interface * const interface = init(SpiDma, &spiDma1Config);
+  struct Interface * const interface = init(SpiDma, &spiDmaConfig);
   assert(interface != NULL);
   return interface;
 }

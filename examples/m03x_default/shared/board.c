@@ -135,7 +135,7 @@ struct Interface *boardSetupAdcDma(void)
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupAdcTimer(void)
 {
-  static const struct GpTimerConfig adcTimerConfig = {
+  static const struct GpTimerConfig timerConfig = {
       .frequency = 1000000,
       .channel = 1,
       .trigger = {
@@ -143,7 +143,7 @@ struct Timer *boardSetupAdcTimer(void)
       }
   };
 
-  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
+  struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer != NULL);
   return timer;
 }

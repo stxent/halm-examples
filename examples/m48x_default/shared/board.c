@@ -69,6 +69,10 @@ static const struct ExtendedClockConfig spiClockConfig = {
     .source = CLOCK_APB
 };
 
+static const struct GenericClockConfig timerClockConfig = {
+    .source = CLOCK_APB
+};
+
 static const struct ExtendedClockConfig uartClockConfig = {
     .divisor = 1,
     .source = CLOCK_PLL
@@ -161,15 +165,20 @@ struct Interface *boardSetupAdcDma(void)
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupAdcTimer(void)
 {
-  static const struct GpTimerConfig adcTimerConfig = {
+  static const struct GpTimerConfig timerConfig = {
       .frequency = 1000000,
       .channel = 1,
       .trigger = {
           .adc = true
       }
   };
+  const void * const TIMER_CLOCKS[] = {
+      Timer0Clock, Timer1Clock, Timer2Clock, Timer3Clock
+  };
 
-  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
+  clockEnable(TIMER_CLOCKS[timerConfig.channel], &timerClockConfig);
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer != NULL);
   return timer;
 }
@@ -343,8 +352,11 @@ struct Interface *boardSetupSpi(void)
       .channel = 3,
       .mode = 0
   };
+  const void * const SPI_CLOCKS[] = {
+      Spi0Clock, Spi1Clock, Spi2Clock, Spi3Clock
+  };
 
-  clockEnable(Spi0Clock, &spiClockConfig);
+  clockEnable(SPI_CLOCKS[spiConfig.channel], &spiClockConfig);
 
   struct Interface * const interface = init(Spi, &spiConfig);
   assert(interface != NULL);
@@ -362,8 +374,11 @@ struct Interface *boardSetupSpiDma(void)
       .mode = 0,
       .dma = {DMA0_CHANNEL0, DMA0_CHANNEL1}
   };
+  const void * const SPI_CLOCKS[] = {
+      Spi0Clock, Spi1Clock, Spi2Clock, Spi3Clock
+  };
 
-  clockEnable(Spi0Clock, &spiClockConfig);
+  clockEnable(SPI_CLOCKS[spiDmaConfig.channel], &spiClockConfig);
 
   struct Interface * const interface = init(SpiDma, &spiDmaConfig);
   assert(interface != NULL);
@@ -395,6 +410,11 @@ struct Timer *boardSetupTimer(void)
       .frequency = 1000000,
       .channel = 0
   };
+  const void * const TIMER_CLOCKS[] = {
+      Timer0Clock, Timer1Clock, Timer2Clock, Timer3Clock
+  };
+
+  clockEnable(TIMER_CLOCKS[timerConfig.channel], &timerClockConfig);
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer != NULL);

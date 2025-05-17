@@ -285,13 +285,13 @@ struct Timer *boardSetupTimer16B1(void)
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupTimer32B0(void)
 {
-  static const struct GpTimerConfig adcTimerConfig = {
+  static const struct GpTimerConfig timerConfig = {
       .frequency = 1000000,
       .event = GPTIMER_MATCH0, /* Used as an ADC trigger */
       .channel = GPTIMER_CT32B0
   };
 
-  struct Timer * const timer = init(GpTimer, &adcTimerConfig);
+  struct Timer * const timer = init(GpTimer, &timerConfig);
   assert(timer != NULL);
   return timer;
 }

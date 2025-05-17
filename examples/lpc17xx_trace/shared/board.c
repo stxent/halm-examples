@@ -126,7 +126,7 @@ struct Interface *boardSetupSerial(void)
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpi0(void)
 {
-  static const struct SpiDmaConfig spiDma0Config = {
+  static const struct SpiDmaConfig spiDmaConfig = {
       .rate = 2000000,
       .miso = PIN(0, 17),
       .mosi = PIN(0, 18),
@@ -136,14 +136,14 @@ struct Interface *boardSetupSpi0(void)
       .dma = {0, 1}
   };
 
-  struct Interface * const interface = init(SpiDma, &spiDma0Config);
+  struct Interface * const interface = init(SpiDma, &spiDmaConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSpi1(void)
 {
-  static const struct SpiDmaConfig spiDma1Config = {
+  static const struct SpiDmaConfig spiDmaConfig = {
       .rate = 2000000,
       .miso = PIN(0, 8),
       .mosi = PIN(0, 9),
@@ -153,7 +153,7 @@ struct Interface *boardSetupSpi1(void)
       .dma = {0, 1}
   };
 
-  struct Interface * const interface = init(SpiDma, &spiDma1Config);
+  struct Interface * const interface = init(SpiDma, &spiDmaConfig);
   assert(interface != NULL);
   return interface;
 }
