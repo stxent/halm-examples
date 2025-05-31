@@ -44,7 +44,7 @@
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-[[gnu::alias("boardSetupTimer3")]] struct Timer *boardSetupAdcTimer(void);
+[[gnu::alias("boardSetupTimerSCT")]] struct Timer *boardSetupAdcTimer(void);
 [[gnu::alias("boardSetupTimer0")]] struct Timer *boardSetupTimer(void);
 
 [[gnu::alias("boardSetupCounterTimerGPT")]]
@@ -973,9 +973,9 @@ struct Interface *boardSetupSpi0(void)
 {
   static const struct SpiConfig spiConfig = {
       .rate = 2000000,
-      .sck = PIN(PORT_3, 0),
       .miso = PIN(PORT_1, 1),
       .mosi = PIN(PORT_1, 2),
+      .sck = PIN(PORT_3, 0),
       .channel = 0,
       .mode = 0
   };
@@ -991,9 +991,9 @@ struct Interface *boardSetupSpi1(void)
 {
   static const struct SpiConfig spiConfig = {
       .rate = 2000000,
-      .sck = PIN(PORT_F, 4),
       .miso = PIN(PORT_1, 3),
       .mosi = PIN(PORT_1, 4),
+      .sck = PIN(PORT_F, 4),
       .channel = 1,
       .mode = 0
   };
@@ -1009,9 +1009,9 @@ struct Interface *boardSetupSpiDma0(void)
 {
   static const struct SpiDmaConfig spiDmaConfig = {
       .rate = 2000000,
-      .sck = PIN(PORT_3, 0),
       .miso = PIN(PORT_1, 1),
       .mosi = PIN(PORT_1, 2),
+      .sck = PIN(PORT_3, 0),
       .channel = 0,
       .mode = 0,
       .dma = {0, 1}
@@ -1028,9 +1028,9 @@ struct Interface *boardSetupSpiDma1(void)
 {
   static const struct SpiDmaConfig spiDmaConfig = {
       .rate = 2000000,
-      .sck = PIN(PORT_F, 4),
       .miso = PIN(PORT_1, 3),
       .mosi = PIN(PORT_1, 4),
+      .sck = PIN(PORT_F, 4),
       .channel = 1,
       .mode = 0,
       .dma = {0, 1}
@@ -1147,6 +1147,7 @@ struct Timer *boardSetupTimerSCT(void)
 {
   static const struct SctTimerConfig timerConfig = {
       .frequency = 1000000,
+      .output = SCT_OUTPUT_15,
       .part = SCT_UNIFIED,
       .channel = 0
   };

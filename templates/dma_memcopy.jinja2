@@ -12,7 +12,13 @@
 /*----------------------------------------------------------------------------*/
 typedef uint32_t BufferEntry;
 
+{%- if config.DMA_TRANSFERS is defined %}
+
+#define BUFFER_LENGTH {{config.DMA_TRANSFERS}}
+{%- else %}
+
 #define BUFFER_LENGTH 1024
+{%- endif %}
 #define BUFFER_LEVEL  (BUFFER_LENGTH - 32)
 /*----------------------------------------------------------------------------*/
 static BufferEntry dstBuffer[BUFFER_LENGTH];
