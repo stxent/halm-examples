@@ -1,5 +1,5 @@
 /*
- * {{group.name}}/i2c/main.c
+ * {{group.name}}/{{group.alias}}/main.c
  * Automatically generated file
  */
 
@@ -46,14 +46,21 @@ static void deviceConfigIO(struct Interface *interface, bool zerocopy)
 }
 /*----------------------------------------------------------------------------*/
 static void deviceRead(struct Interface *interface, uint32_t position,
-    void *buffer, size_t length, bool zerocopy)
+    void *buffer, size_t length, bool zerocopy, bool repeated)
 {
+  [[maybe_unused]] enum Result res;
   uint8_t packet[ADDRESS_SIZE];
 
   for (size_t i = 0; i < ADDRESS_SIZE; ++i)
     packet[i] = position >> ((ADDRESS_SIZE - 1 - i) * 8);
 
   deviceConfigIO(interface, zerocopy);
+
+  if (repeated)
+  {
+    res = ifSetParam(interface, IF_I2C_REPEATED_START, NULL);
+    assert(res == E_OK);
+  }
 
   if (!zerocopy)
   {
@@ -65,23 +72,29 @@ static void deviceRead(struct Interface *interface, uint32_t position,
     ifWrite(interface, packet, sizeof(packet));
     udelay(2 * 9 * 1000 * (sizeof(packet) + 1) / (DEVICE_RATE / 1000));
 
-    if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+    if (ifGetParam(interface, IF_STATUS, NULL) == E_OK)
     {
-      ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
-      return;
+      ifRead(interface, buffer, length);
+      udelay(2 * 9 * 1000 * (length + 1) / (DEVICE_RATE / 1000));
+
+      if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+      {
+        res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+        assert(res == E_OK);
+      }
     }
-
-    ifRead(interface, buffer, length);
-    udelay(2 * 9 * 1000 * (length + 1) / (DEVICE_RATE / 1000));
-
-    if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
-      ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+    else
+    {
+      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+      assert(res == E_OK);
+    }
   }
 }
 /*----------------------------------------------------------------------------*/
 static void deviceWrite(struct Interface *interface, uint32_t position,
     const void *buffer, size_t length, bool zerocopy)
 {
+  [[maybe_unused]] enum Result res;
   uint8_t packet[length + ADDRESS_SIZE];
 
   for (size_t i = 0; i < ADDRESS_SIZE; ++i)
@@ -96,7 +109,10 @@ static void deviceWrite(struct Interface *interface, uint32_t position,
     udelay(2 * 9 * 1000 * (sizeof(packet) + 1) / (DEVICE_RATE / 1000));
 
     if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
-      ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+    {
+      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+      assert(res == E_OK);
+    }
   }
 }
 /*----------------------------------------------------------------------------*/
@@ -107,6 +123,7 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const bool testRepeatedStart = false;
   static const bool testZerocopyMode = true;
 
   uint8_t buffer[16];
@@ -118,7 +135,13 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
+{%- if config.I2C_DMA is defined and config.I2C_DMA %}
+
+  struct Interface * const i2c = boardSetupI2CDma();
+{%- else %}
+
   struct Interface * const i2c = boardSetupI2C();
+{%- endif %}
 
   struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer));
@@ -142,7 +165,8 @@ int main(void)
 
     /* Read and verify memory page */
     memset(buffer, 0, sizeof(buffer));
-    deviceRead(i2c, 0, buffer, sizeof(buffer), testZerocopyMode);
+    deviceRead(i2c, 0, buffer, sizeof(buffer), testZerocopyMode,
+        testRepeatedStart);
 
     if (checkBuffer(buffer, sizeof(buffer), iteration))
       pinWrite(led, BOARD_LED_INV);

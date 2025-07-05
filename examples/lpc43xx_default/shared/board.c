@@ -624,7 +624,7 @@ struct Interface *boardSetupFlash(void)
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C0(void)
 {
-  static const struct I2CConfig i2c0Config = {
+  static const struct I2CConfig i2cConfig = {
       .rate = 100000,
       .scl = PIN(PORT_I2C, PIN_I2C0_SCL),
       .sda = PIN(PORT_I2C, PIN_I2C0_SDA),
@@ -634,14 +634,14 @@ struct Interface *boardSetupI2C0(void)
   /* I2C0 is connected to the APB1 bus */
   enablePeriphClock(Apb1Clock);
 
-  struct Interface * const interface = init(I2C, &i2c0Config);
+  struct Interface * const interface = init(I2C, &i2cConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C1(void)
 {
-  static const struct I2CConfig i2c1Config = {
+  static const struct I2CConfig i2cConfig = {
       .rate = 100000,
       .scl = PIN(PORT_2, 4),
       .sda = PIN(PORT_2, 3),
@@ -651,14 +651,14 @@ struct Interface *boardSetupI2C1(void)
   /* I2C1 is connected to the APB3 bus */
   enablePeriphClock(Apb3Clock);
 
-  struct Interface * const interface = init(I2C, &i2c1Config);
+  struct Interface * const interface = init(I2C, &i2cConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2CSlave0(void)
 {
-  static const struct I2CSlaveConfig i2cSlave0Config = {
+  static const struct I2CSlaveConfig i2cSlaveConfig = {
       .size = 16,
       .scl = PIN(PORT_I2C, PIN_I2C0_SCL),
       .sda = PIN(PORT_I2C, PIN_I2C0_SDA),
@@ -668,14 +668,14 @@ struct Interface *boardSetupI2CSlave0(void)
   /* I2C0 is connected to the APB1 bus */
   enablePeriphClock(Apb1Clock);
 
-  struct Interface * const interface = init(I2CSlave, &i2cSlave0Config);
+  struct Interface * const interface = init(I2CSlave, &i2cSlaveConfig);
   assert(interface != NULL);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2CSlave1(void)
 {
-  static const struct I2CSlaveConfig i2cSlave1Config = {
+  static const struct I2CSlaveConfig i2cSlaveConfig = {
       .size = 16,
       .scl = PIN(PORT_2, 4),
       .sda = PIN(PORT_2, 3),
@@ -685,7 +685,7 @@ struct Interface *boardSetupI2CSlave1(void)
   /* I2C1 is connected to the APB3 bus */
   enablePeriphClock(Apb3Clock);
 
-  struct Interface * const interface = init(I2CSlave, &i2cSlave1Config);
+  struct Interface * const interface = init(I2CSlave, &i2cSlaveConfig);
   assert(interface != NULL);
   return interface;
 }

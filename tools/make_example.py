@@ -44,7 +44,7 @@ def parse_config(text):
 
     return options
 
-def make_example(platform, family, group, config, name):
+def make_example(platform, family, group, config, name, alias=''):
     path = os.path.dirname(os.path.abspath(__file__))
     path_templates = os.path.abspath(f'{path}/../templates')
     options = parse_config(config)
@@ -54,6 +54,7 @@ def make_example(platform, family, group, config, name):
         'group': {
             'platform': platform,
             'family': family,
+            'alias': alias if alias != '' else name,
             'name': group
         }
     }
@@ -85,7 +86,8 @@ def main():
         raise ValueError()
 
     for name in options.templates:
-        text = make_example(options.platform, options.family, options.group, options.config, name)
+        text = make_example(options.platform, options.family, options.group, options.config, name,
+                            options.alias)
 
         if options.output:
             example_name = options.alias if options.alias else name

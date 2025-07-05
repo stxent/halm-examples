@@ -1,14 +1,15 @@
 /*
- * {{group.name}}/adc_oneshot/main.c
+ * {{group.name}}/{{group.alias}}/main.c
  * Automatically generated file
  */
 
 #include "board.h"
+#include <halm/generic/adc.h>
 #include <halm/timer.h>
 #include <xcore/interface.h>
 #include <xcore/memory.h>
+#include <assert.h>
 #include <stdio.h>
-#include <string.h>
 /*----------------------------------------------------------------------------*/
 #define ADC_RATE 50
 /*----------------------------------------------------------------------------*/
@@ -27,6 +28,17 @@ int main(void)
   pinOutput(led, BOARD_LED_INV);
 
   struct Interface * const adc = boardSetupAdcOneShot();
+{%- if config.ADC_CALIBRATE is defined and config.ADC_CALIBRATE %}
+
+  /* Calibrate ADC */
+  if (ifSetParam(adc, IF_ADC_CALIBRATE, NULL) == E_BUSY)
+  {
+    while (ifGetParam(adc, IF_STATUS, NULL) == E_BUSY)
+      barrier();
+  }
+  assert(ifGetParam(adc, IF_STATUS, NULL) == E_OK);
+{%- endif %}
+
   struct Interface * const serial = boardSetupSerial();
 
   struct Timer * const timer = boardSetupTimer();
@@ -41,12 +53,13 @@ int main(void)
     event = false;
 
     uint16_t buffer;
+    size_t length;
     char text[8];
 
     ifRead(adc, &buffer, sizeof(buffer));
 
-    sprintf(text, "%5u\r\n", (unsigned int)buffer);
-    ifWrite(serial, text, strlen(text));
+    length = sprintf(text, "%5u\r\n", (unsigned int)buffer);
+    ifWrite(serial, text, length);
 
     pinToggle(led);
   }

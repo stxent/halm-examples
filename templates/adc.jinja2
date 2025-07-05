@@ -1,5 +1,5 @@
 /*
- * {{group.name}}/adc/main.c
+ * {{group.name}}/{{group.alias}}/main.c
  * Automatically generated file
  */
 
@@ -8,6 +8,7 @@
 #include <halm/timer.h>
 #include <xcore/interface.h>
 #include <xcore/memory.h>
+#include <assert.h>
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
 #define ADC_RATE 10
@@ -32,10 +33,13 @@ int main(void)
 {%- if config.ADC_CALIBRATE is defined and config.ADC_CALIBRATE %}
 
   /* Calibrate ADC */
-  ifSetParam(adc, IF_ADC_CALIBRATE, NULL);
-  while (ifGetParam(adc, IF_STATUS, NULL) == E_BUSY)
-    barrier();
-  event = false;
+  if (ifSetParam(adc, IF_ADC_CALIBRATE, NULL) == E_BUSY)
+  {
+    while (!event)
+      barrier();
+    event = false;
+  }
+  assert(ifGetParam(adc, IF_STATUS, NULL) == E_OK);
 {%- endif %}
 
   /* Enable converter */
