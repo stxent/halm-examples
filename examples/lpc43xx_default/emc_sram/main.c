@@ -32,14 +32,16 @@ static const struct GenericDividerConfig dividerConfig = {
 };
 
 static const struct EmcSramConfig emcSramConfig = {
-    .addressWidth = 13,
-    .dataWidth = 8,
-
     .timings = {
         .oe = 0,
         .rc = 30,
         .wc = 30,
         .we = 20
+    },
+
+    .width = {
+        .address = 13,
+        .data = 8
     },
 
     .channel = 0,

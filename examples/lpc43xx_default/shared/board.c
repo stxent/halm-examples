@@ -91,7 +91,7 @@ static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
 
-[[gnu::section(".shared")]] static struct ClockSettings sharedClockSettings;
+[[gnu::section(".shared")]] struct ClockSettings sharedClockSettings;
 /*----------------------------------------------------------------------------*/
 static void enablePeriphClock(const void *clock)
 {
