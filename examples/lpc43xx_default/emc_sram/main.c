@@ -5,7 +5,6 @@
  */
 
 #include "board.h"
-#include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/emc_sram.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
@@ -13,39 +12,22 @@
 
 typedef uint32_t EmcWord;
 /*----------------------------------------------------------------------------*/
-static const struct GenericClockConfig initialClockConfig = {
-    .source = CLOCK_INTERNAL
-};
-
-static const struct GenericClockConfig mainClockConfig = {
-    .source = CLOCK_IDIVE
-};
-
-static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 12000000,
-    .bypass = false
-};
-
-static const struct GenericDividerConfig dividerConfig = {
-    .source = CLOCK_EXTERNAL,
-    .divisor = 1
-};
-
 static const struct EmcSramConfig emcSramConfig = {
     .timings = {
         .oe = 0,
-        .rc = 30,
-        .wc = 30,
-        .we = 20
+        .rd = 70,
+        .we = 30,
+        .wr = 70
     },
 
     .width = {
-        .address = 13,
-        .data = 8
+        .address = 23,
+        .data = 16
     },
 
     .channel = 0,
-    .partitioned = false
+    .buffering = true,
+    .useWriteEnable = true
 };
 /*----------------------------------------------------------------------------*/
 static EmcWord patternOnes(size_t)
@@ -73,19 +55,6 @@ static EmcWord patternZeros(size_t)
   return (EmcWord)0x00000000UL;
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  clockEnable(MainClock, &initialClockConfig);
-
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
-
-  clockEnable(DividerE, &dividerConfig);
-  while (!clockReady(DividerE));
-
-  clockEnable(MainClock, &mainClockConfig);
-}
-/*----------------------------------------------------------------------------*/
 static bool test(void *base, size_t size, EmcWord (*pattern)(size_t))
 {
   const size_t elements = size / sizeof(EmcWord);
@@ -108,7 +77,7 @@ static bool test(void *base, size_t size, EmcWord (*pattern)(size_t))
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockPllCustom(96000000);
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);

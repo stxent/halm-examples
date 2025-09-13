@@ -5,8 +5,6 @@
  */
 
 #include "board.h"
-#include <halm/delay.h>
-#include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/emc_sdram.h>
 #include <assert.h>
 #include <string.h>
@@ -37,7 +35,7 @@ static const struct EmcSdramConfig emcSdramConfig = {
 
     .clocks = {true, false, true, false},
     .channel = 0,
-    .latency = 3,
+    .latency = 2,
     .banks = 4,
     .columns = 9,
     .rows = 12
@@ -70,8 +68,6 @@ static const struct EmcSdramConfig emcSdramConfig = {
     .rows = 13
 };
 #endif
-
-extern struct ClockSettings sharedClockSettings;
 /*----------------------------------------------------------------------------*/
 static EmcWord patternOnes(size_t)
 {
@@ -98,97 +94,6 @@ static EmcWord patternZeros(size_t)
   return (EmcWord)0x00000000UL;
 }
 /*----------------------------------------------------------------------------*/
-static void setupClock(void)
-{
-  static const struct ExternalOscConfig extOscConfig = {
-      .frequency = 12000000,
-      .bypass = false
-  };
-  static const struct GenericDividerConfig sysDivConfig = {
-      .divisor = 2,
-      .source = CLOCK_PLL
-  };
-  static const struct PllConfig sysPllConfig = {
-      .divisor = 2,
-      .multiplier = 17,
-      .source = CLOCK_EXTERNAL
-  };
-
-  bool clockSettingsLoaded = loadClockSettings(&sharedClockSettings);
-  const bool spifiClockEnabled = clockReady(SpifiClock);
-
-  if (clockSettingsLoaded)
-  {
-    /* Check clock sources */
-    if (!clockReady(ExternalOsc) || !clockReady(SystemPll))
-    {
-      memset(&sharedClockSettings, 0, sizeof(sharedClockSettings));
-      clockSettingsLoaded = false;
-    }
-  }
-
-  if (!clockSettingsLoaded)
-  {
-    clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
-
-    if (spifiClockEnabled)
-    {
-      /* Running from NOR Flash, switch SPIFI clock to IRC without disabling */
-      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_INTERNAL});
-    }
-
-    clockEnable(ExternalOsc, &extOscConfig);
-    while (!clockReady(ExternalOsc));
-
-    clockEnable(SystemPll, &sysPllConfig);
-    while (!clockReady(SystemPll));
-
-    if (sysPllConfig.divisor == 1)
-    {
-      /* High frequency, make a PLL clock divided by 2 for base clock ramp up */
-      clockEnable(DividerA, &sysDivConfig);
-      while (!clockReady(DividerA));
-
-      clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_IDIVA});
-      udelay(50);
-      clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
-
-      /* Base clock is ready, temporary clock divider is not needed anymore */
-      clockDisable(DividerA);
-    }
-    else
-    {
-      /* Low CPU frequency */
-      clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_PLL});
-    }
-  }
-
-  /* SPIFI */
-  if (!clockSettingsLoaded && spifiClockEnabled)
-  {
-    static const uint32_t spifiMaxFrequency = 30000000;
-    const uint32_t frequency = clockFrequency(SystemPll);
-
-    /* Running from NOR Flash, update SPIFI clock without disabling */
-    if (frequency > spifiMaxFrequency)
-    {
-      const struct GenericDividerConfig spifiDivConfig = {
-          .divisor = (frequency + spifiMaxFrequency - 1) / spifiMaxFrequency,
-          .source = CLOCK_PLL
-      };
-
-      clockEnable(DividerD, &spifiDivConfig);
-      while (!clockReady(DividerD));
-
-      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_IDIVD});
-    }
-    else
-    {
-      clockEnable(SpifiClock, &(struct GenericClockConfig){CLOCK_PLL});
-    }
-  }
-}
-/*----------------------------------------------------------------------------*/
 static bool test(void *base, size_t size, EmcWord (*pattern)(size_t))
 {
   const size_t elements = size / sizeof(EmcWord);
@@ -211,7 +116,7 @@ static bool test(void *base, size_t size, EmcWord (*pattern)(size_t))
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  setupClock();
+  boardSetupClockPllCustom(96000000);
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);

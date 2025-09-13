@@ -41,7 +41,10 @@
 #include <halm/platform/lpc/sct_timer.h>
 #include <halm/platform/lpc/usb_device.h>
 #include <halm/platform/lpc/wwdt.h>
+#include <xcore/accel.h>
 #include <assert.h>
+#include <limits.h>
+#include <stdlib.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
 [[gnu::alias("boardSetupTimerSCT")]] struct Timer *boardSetupAdcTimer(void);
@@ -70,6 +73,8 @@
 [[gnu::alias("boardSetupUsb0")]] struct Usb *boardSetupUsb(void);
 
 static void enablePeriphClock(const void *);
+static long int findPllConfig(unsigned long, unsigned long, unsigned int *,
+    unsigned int *);
 static uint32_t uacWrapperGetFeedbackRatio(const void *);
 static void uacWrapperSetSampleRate(void *, uint32_t);
 /*----------------------------------------------------------------------------*/
@@ -91,6 +96,8 @@ static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
 
+static const uint32_t maxCoreFrequency = 204000000;
+
 [[gnu::section(".shared")]] struct ClockSettings sharedClockSettings;
 /*----------------------------------------------------------------------------*/
 static void enablePeriphClock(const void *clock)
@@ -106,6 +113,58 @@ static void enablePeriphClock(const void *clock)
     clockEnable(clock, &(struct GenericClockConfig){CLOCK_INTERNAL});
 
   while (!clockReady(clock));
+}
+/*----------------------------------------------------------------------------*/
+static long int findPllConfig(unsigned long input, unsigned long target,
+    unsigned int *div, unsigned int *mul)
+{
+  /*
+   * Divisor values: 1, 2, 4, 8, 16
+   * Multiplier values: 1..256
+   * CCO range: from 156 MHz to 320 MHz
+   */
+
+  static const unsigned long CCO_MIN = 156000000UL;
+  static const unsigned long CCO_MAX = 320000000UL;
+
+  const unsigned int lowerMul = MAX(1, (CCO_MIN + input - 1) / input);
+  const unsigned int upperMul = MIN(256, CCO_MAX / input);
+  unsigned long frequencyError = ULONG_MAX;
+  bool found = false;
+
+  for (unsigned int m = lowerMul; m <= upperMul; ++m)
+  {
+    const unsigned long ccoFrequency = m * input;
+    const unsigned int lowerDiv = MAX(1, ccoFrequency / target);
+    const unsigned int upperDiv =
+        MIN(32, (ccoFrequency + target - 1) / target);
+    const unsigned int lowerDivPow = 31 - countLeadingZeros32(lowerDiv);
+
+    for (unsigned int d = 1 << lowerDivPow; d <= upperDiv; d <<= 1)
+    {
+      const unsigned long currentError =
+          labs((long int)(ccoFrequency / d) - (long int)target);
+
+      if (currentError < frequencyError)
+      {
+        frequencyError = currentError;
+        *div = d;
+        *mul = m;
+        found = true;
+
+        if (!currentError)
+          break;
+      }
+    }
+
+    if (!frequencyError)
+      break;
+  }
+
+  if (found)
+    return (long int)((*mul * input) / *div) - (long int)target;
+  else
+    return LONG_MAX;
 }
 /*----------------------------------------------------------------------------*/
 static uint32_t uacWrapperGetFeedbackRatio(const void *object)
@@ -212,13 +271,32 @@ const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
 {
+  boardSetupClockPllGeneric(1, maxCoreFrequency / extOscConfig.frequency);
+}
+/*----------------------------------------------------------------------------*/
+void boardSetupClockPllCustom(uint32_t frequency)
+{
+  /* Use fail-safe settings for 96 MHz PLL */
+  unsigned int divisor = 2;
+  unsigned int multiplier = maxCoreFrequency / extOscConfig.frequency;
+
+  const long int error = findPllConfig(extOscConfig.frequency, frequency,
+      &divisor, &multiplier);
+  assert(!error);
+
+  boardSetupClockPllGeneric(divisor, multiplier);
+}
+/*----------------------------------------------------------------------------*/
+void boardSetupClockPllGeneric(unsigned int divisor, unsigned int multiplier)
+{
   static const struct GenericDividerConfig sysDivConfig = {
       .divisor = 2,
       .source = CLOCK_PLL
   };
-  static const struct PllConfig sysPllConfig = {
-      .divisor = 1,
-      .multiplier = 17,
+  const struct PllConfig sysPllConfig = {
+      .divisor = divisor,
+      .multiplier = multiplier ?
+          multiplier : maxCoreFrequency / extOscConfig.frequency,
       .source = CLOCK_EXTERNAL
   };
 

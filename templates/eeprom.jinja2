@@ -5,29 +5,30 @@
 
 #include "board.h"
 #include <xcore/interface.h>
+#include <string.h>
 /*----------------------------------------------------------------------------*/
 static bool program(struct Interface *interface, uint32_t address,
     size_t length, bool clear)
 {
   uint32_t capacity;
   uint32_t next = 0;
-  uint8_t buffer[length];
+  uint32_t buffer[length / 4];
 
   if (ifGetParam(interface, IF_SIZE, &capacity) != E_OK)
     return false;
-  if (capacity < address + (uint32_t)length)
+  if (capacity < address + sizeof(buffer))
     return false;
 
-  for (size_t i = 0; i < length; ++i)
-    buffer[i] = clear ? 0xFF : (uint8_t)i;
+  for (size_t i = 0; i < ARRAY_SIZE(buffer); ++i)
+    buffer[i] = clear ? 0xFFFFFFFFUL : (uint32_t)i;
 
   if (ifSetParam(interface, IF_POSITION, &address) != E_OK)
     return false;
-  if (ifWrite(interface, buffer, length) != length)
+  if (ifWrite(interface, buffer, sizeof(buffer)) != sizeof(buffer))
     return false;
   if (ifGetParam(interface, IF_POSITION, &next) != E_OK)
     return false;
-  if (next != address + length)
+  if (next != address + sizeof(buffer))
     return false;
 
   return true;
@@ -37,23 +38,22 @@ static bool verify(struct Interface *interface, uint32_t address,
     size_t length, bool clear)
 {
   uint32_t next = 0;
-  uint8_t buffer[length];
+  uint32_t buffer[length / 4];
 
-  for (size_t i = 0; i < length; ++i)
-    buffer[i] = 0;
+  memset(buffer, 0, sizeof(buffer));
 
   if (ifSetParam(interface, IF_POSITION, &address) != E_OK)
     return false;
-  if (ifRead(interface, buffer, length) != length)
+  if (ifRead(interface, buffer, sizeof(buffer)) != sizeof(buffer))
     return false;
   if (ifGetParam(interface, IF_POSITION, &next) != E_OK)
     return false;
-  if (next != address + length)
+  if (next != address + sizeof(buffer))
     return false;
 
-  for (size_t i = 0; i < length; ++i)
+  for (size_t i = 0; i < ARRAY_SIZE(buffer); ++i)
   {
-    if (buffer[i] != (clear ? 0xFF : (uint8_t)i))
+    if (buffer[i] != (clear ? 0xFFFFFFFFUL : (uint32_t)i))
       return false;
   }
 

@@ -1,54 +1,38 @@
 /*
- * {{group.name}}/{{group.alias}}/main.c
- * Automatically generated file
+ * lpc43xx_default/emc_flash/main.c
+ * Copyright (C) 2025 xent
+ * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
 #include "board.h"
+#include "flash_cfi.h"
 #include <halm/generic/flash.h>
+#include <halm/platform/lpc/emc_sram.h>
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE 2048
-
-extern unsigned long _stext;
-extern unsigned long _sidata;
-extern unsigned long _sdata;
-extern unsigned long _edata;
+#define BUFFER_SIZE     2048
+#define MEMORY_CAPACITY (2 * 1024 * 1024)
+#define MEMORY_OFFSET   (64 * 1024)
 /*----------------------------------------------------------------------------*/
-static uint32_t findNearestRegion(const struct Interface *interface)
-{
-  const size_t textSize = (size_t)((uintptr_t)&_sidata - (uintptr_t)&_stext);
-  const size_t dataSize = (size_t)((uintptr_t)&_edata - (uintptr_t)&_sdata);
-  const uint32_t address = (uint32_t)(textSize + dataSize);
+/* SST39VF3201 */
+static const struct EmcSramConfig emcFlashConfig = {
+    .timings = {
+        .oe = 0,
+        .rd = 70,
+        .we = 30,
+        .wr = 70
+    },
 
-  struct FlashGeometry geometry[2];
+    .width = {
+        .address = 23,
+        .data = 16
+    },
 
-  const size_t count = flashGetGeometry(interface, geometry,
-      ARRAY_SIZE(geometry));
-  assert(count > 0);
-
-  const struct FlashGeometry * const region = flashFindRegion(geometry,
-      count, address);
-  assert(region != NULL);
-
-  return (address & ~(region->size - 1)) + region->size;
-}
-/*----------------------------------------------------------------------------*/
-static uint32_t findRegionSize(const struct Interface *interface,
-    uint32_t address)
-{
-  struct FlashGeometry geometry[2];
-
-  const size_t count = flashGetGeometry(interface, geometry,
-      ARRAY_SIZE(geometry));
-  assert(count > 0);
-
-  const struct FlashGeometry * const region = flashFindRegion(geometry,
-      count, address);
-  assert(region != NULL);
-
-  return region->size;
-}
+    .channel = 0,
+    .buffering = false,
+    .useWriteEnable = true
+};
 /*----------------------------------------------------------------------------*/
 static bool program(struct Interface *interface, uint32_t address,
     size_t length)
@@ -100,7 +84,7 @@ static bool verify(struct Interface *interface, uint32_t address,
 bool memoryTestSequence(struct Interface *interface, int paramSize,
     int paramErase)
 {
-  const uint32_t address = findNearestRegion(interface);
+  const uint32_t address = MEMORY_OFFSET;
   size_t size = BUFFER_SIZE;
 
   uint32_t capacity;
@@ -113,12 +97,6 @@ bool memoryTestSequence(struct Interface *interface, int paramSize,
 
   if (ifGetParam(interface, paramSize, &chunk) == E_OK)
   {
-    if (!chunk)
-    {
-      /* Size is ambiguous, use flash geometry instead */
-      chunk = findRegionSize(interface, address);
-    }
-
     size = MIN(size, (size_t)chunk);
 
     if (ifSetParam(interface, paramErase, &address) != E_OK)
@@ -136,16 +114,20 @@ bool memoryTestSequence(struct Interface *interface, int paramSize,
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  boardSetupClockExt();
+  boardSetupClockPllCustom(96000000);
 
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
-  struct Interface * const flash = boardSetupFlash();
+  struct EmcSram * const memory = init(EmcSram, &emcFlashConfig);
+  assert(memory != NULL);
 
-  /* Test page erase */
-  if (!memoryTestSequence(flash, IF_FLASH_PAGE_SIZE, IF_FLASH_ERASE_PAGE))
-    pinWrite(led, !BOARD_LED_INV);
+  const struct FlashCFIConfig config = {
+      .address = emcSramAddress(memory),
+      .size = MEMORY_CAPACITY
+  };
+  struct Interface * const flash = init(FlashCFI, &config);
+  assert(flash != NULL);
 
   /* Test sector erase */
   if (!memoryTestSequence(flash, IF_FLASH_SECTOR_SIZE, IF_FLASH_ERASE_SECTOR))
