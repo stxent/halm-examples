@@ -22,7 +22,7 @@ struct Interrupt;
 struct Timer;
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
-void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
+void boardSetAdcTimerRate(struct Timer *, size_t, unsigned int);
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 struct Timer *boardSetupAdcTimer(void);

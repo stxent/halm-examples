@@ -36,6 +36,7 @@
 /*----------------------------------------------------------------------------*/
 [[gnu::alias("boardSetupTimer1")]] struct Timer *boardSetupAdcTimer(void);
 [[gnu::alias("boardSetupTimer0")]] struct Timer *boardSetupTimer(void);
+[[gnu::alias("boardSetupTimer1")]] struct Timer *boardSetupTimerAux(void);
 
 [[gnu::alias("boardSetupSpiDma0")]] struct Interface *boardSetupSpiSdio(void);
 
@@ -61,7 +62,7 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer, size_t count, uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, size_t count, unsigned int rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / (count * rate * 2));
 }
@@ -88,7 +89,7 @@ void boardSetupClockExt(void)
   clockEnable(MainClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
 }
 /*----------------------------------------------------------------------------*/
-const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
+const struct ClockClass *boardSetupClockOutput(unsigned int divisor)
 {
   const struct ClockOutputConfig clockOutputConfig = {
       .divisor = divisor,

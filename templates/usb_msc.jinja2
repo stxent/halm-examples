@@ -155,7 +155,7 @@ int main(void)
 
   /* Configure the timer for timeout calculations */
   struct Timer * const busyTimer = testBusyTimer ?
-      boardSetupAdcTimer() : NULL;
+      boardSetupTimerAux() : NULL;
 
   /* Initialize SDMMC layer */
   struct Interface * const sdio = boardSetupSdio(testWideBus, busyTimer);

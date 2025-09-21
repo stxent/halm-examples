@@ -49,6 +49,7 @@
 /*----------------------------------------------------------------------------*/
 [[gnu::alias("boardSetupTimerSCT")]] struct Timer *boardSetupAdcTimer(void);
 [[gnu::alias("boardSetupTimer0")]] struct Timer *boardSetupTimer(void);
+[[gnu::alias("boardSetupTimer3")]] struct Timer *boardSetupTimerAux(void);
 
 [[gnu::alias("boardSetupCounterTimerGPT")]]
     struct Timer *boardSetupCounterTimer(void);
@@ -182,7 +183,7 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer, size_t count, uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, size_t count, unsigned int rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / (count * rate * 2));
 }
@@ -249,7 +250,7 @@ void boardSetupClockExt(void)
   }
 }
 /*----------------------------------------------------------------------------*/
-const struct ClockClass *boardSetupClockOutput(uint32_t divisor)
+const struct ClockClass *boardSetupClockOutput(unsigned int divisor)
 {
   static const struct ClockOutputConfig clockOutputConfig = {
       .pin = PIN(PORT_CLK, 2),
@@ -274,7 +275,7 @@ void boardSetupClockPll(void)
   boardSetupClockPllGeneric(1, maxCoreFrequency / extOscConfig.frequency);
 }
 /*----------------------------------------------------------------------------*/
-void boardSetupClockPllCustom(uint32_t frequency)
+void boardSetupClockPllCustom(unsigned long frequency)
 {
   /* Use fail-safe settings for 96 MHz PLL */
   unsigned int divisor = 2;

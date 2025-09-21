@@ -22,6 +22,7 @@
 /*----------------------------------------------------------------------------*/
 [[gnu::alias("boardSetupTimer2")]] struct Timer *boardSetupAdcTimer(void);
 [[gnu::alias("boardSetupTimer5")]] struct Timer *boardSetupTimer(void);
+[[gnu::alias("boardSetupTimer2")]] struct Timer *boardSetupTimerAux(void);
 
 [[gnu::alias("boardSetupI2C1")]] struct Interface *boardSetupI2C(void);
 
@@ -51,7 +52,7 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer, size_t, uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, size_t, unsigned int rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / rate);
 }

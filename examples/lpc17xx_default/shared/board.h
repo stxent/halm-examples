@@ -78,10 +78,10 @@ struct StreamPackage
 };
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
-void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
+void boardSetAdcTimerRate(struct Timer *, size_t, unsigned int);
 void boardResetClock(void);
 void boardSetupClockExt(void);
-const struct ClockClass *boardSetupClockOutput(uint32_t);
+const struct ClockClass *boardSetupClockOutput(unsigned int);
 void boardSetupClockPll(void);
 void boardSetupLowPriorityWQ(void);
 struct Interface *boardSetupAdc(void);
@@ -115,6 +115,7 @@ struct Interface *boardSetupSpiSdio(void);
 struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimer0(void);
 struct Timer *boardSetupTimer1(void);
+struct Timer *boardSetupTimerAux(void);
 struct Timer *boardSetupTimerRIT(void);
 struct Usb *boardSetupUsb(void);
 struct Watchdog *boardSetupWdt(bool);

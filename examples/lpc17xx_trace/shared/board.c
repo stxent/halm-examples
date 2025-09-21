@@ -16,6 +16,7 @@
 /*----------------------------------------------------------------------------*/
 [[gnu::alias("boardSetupTimer1")]] struct Timer *boardSetupAdcTimer(void);
 [[gnu::alias("boardSetupTimer0")]] struct Timer *boardSetupTimer(void);
+[[gnu::alias("boardSetupTimer1")]] struct Timer *boardSetupTimerAux(void);
 
 [[gnu::alias("boardSetupSpi0")]] struct Interface *boardSetupSpiSdio(void);
 

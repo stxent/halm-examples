@@ -40,7 +40,7 @@ struct Usb;
 struct Watchdog;
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
-void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
+void boardSetAdcTimerRate(struct Timer *, size_t, unsigned int);
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 void boardSetupLowPriorityWQ(void);
@@ -57,6 +57,7 @@ struct Interface *boardSetupSpiSdio(void);
 struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimer2(void);
 struct Timer *boardSetupTimer3(void);
+struct Timer *boardSetupTimerAux(void);
 struct Usb *boardSetupUsb(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/

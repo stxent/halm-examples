@@ -27,6 +27,8 @@
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 [[gnu::alias("boardSetupPwmBPWM")]] struct PwmPackage boardSetupPwm(bool);
+[[gnu::alias("boardSetupTimer0")]] struct Timer *boardSetupTimer(void);
+[[gnu::alias("boardSetupTimer1")]] struct Timer *boardSetupTimerAux(void);
 
 [[gnu::alias("boardSetupUsbHs")]] struct Usb *boardSetupUsb(void);
 /*----------------------------------------------------------------------------*/
@@ -83,7 +85,7 @@ size_t boardGetAdcPinCount(void)
   return ARRAY_SIZE(adcPinArray) - 1;
 }
 /*----------------------------------------------------------------------------*/
-void boardSetAdcTimerRate(struct Timer *timer, size_t, uint32_t rate)
+void boardSetAdcTimerRate(struct Timer *timer, size_t, unsigned int rate)
 {
   timerSetOverflow(timer, timerGetFrequency(timer) / rate);
 }
@@ -404,11 +406,28 @@ struct Interface *boardSetupSpim(struct Timer *timer)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupTimer(void)
+struct Timer *boardSetupTimer0(void)
 {
   static const struct GpTimerConfig timerConfig = {
       .frequency = 1000000,
       .channel = 0
+  };
+  const void * const TIMER_CLOCKS[] = {
+      Timer0Clock, Timer1Clock, Timer2Clock, Timer3Clock
+  };
+
+  clockEnable(TIMER_CLOCKS[timerConfig.channel], &timerClockConfig);
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimer1(void)
+{
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 1000000,
+      .channel = 1
   };
   const void * const TIMER_CLOCKS[] = {
       Timer0Clock, Timer1Clock, Timer2Clock, Timer3Clock

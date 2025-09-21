@@ -134,7 +134,7 @@ int main(void)
 
   /* Helper timer for SDIO status polling */
   struct Timer * const busyTimer = testBusyTimer ?
-      boardSetupAdcTimer() : NULL;
+      boardSetupTimerAux() : NULL;
 
   if (busyTimer != NULL)
   {

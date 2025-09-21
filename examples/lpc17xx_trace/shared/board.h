@@ -51,6 +51,7 @@ struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimer0(void);
 struct Timer *boardSetupTimer1(void);
 struct Timer *boardSetupTimer2(void);
+struct Timer *boardSetupTimerAux(void);
 struct Usb *boardSetupUsb(void);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC17XX_TRACE_SHARED_BOARD_H_ */

@@ -98,12 +98,12 @@ struct UacFeedbackPackage
 };
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
-void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
+void boardSetAdcTimerRate(struct Timer *, size_t, unsigned int);
 void boardResetClock(void);
 void boardSetupClockExt(void);
-const struct ClockClass *boardSetupClockOutput(uint32_t);
+const struct ClockClass *boardSetupClockOutput(unsigned int);
 void boardSetupClockPll(void);
-void boardSetupClockPllCustom(uint32_t);
+void boardSetupClockPllCustom(unsigned long);
 void boardSetupClockPllGeneric(unsigned int, unsigned int);
 struct Interface *boardSetupAdc(void);
 struct Interface *boardSetupAdcDma(void);
@@ -147,6 +147,7 @@ struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimer0(void);
 struct Timer *boardSetupTimer3(void);
 struct Timer *boardSetupTimerAlarm(void);
+struct Timer *boardSetupTimerAux(void);
 struct Timer *boardSetupTimerRIT(void);
 struct Timer *boardSetupTimerSCT(void);
 struct UacFeedbackPackage boardSetupUacFeedback(void);

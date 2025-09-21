@@ -54,9 +54,9 @@ struct PwmPackage
 };
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
-void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
+void boardSetAdcTimerRate(struct Timer *, size_t, unsigned int);
 void boardSetupClockExt(void);
-const struct ClockClass *boardSetupClockOutput(uint32_t);
+const struct ClockClass *boardSetupClockOutput(unsigned int);
 void boardSetupClockPll(void);
 struct Interface *boardSetupAdc(void);
 struct Interface *boardSetupAdcOneShot(void);
