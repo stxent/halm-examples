@@ -15,6 +15,10 @@
 #define BOARD_LED_1       PIN(0, 21)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false
+#define BOARD_PWM_0       PIN(0, 24)
+#define BOARD_PWM_1       PIN(0, 28)
+#define BOARD_PWM_2       PIN(0, 4)
+#define BOARD_PWM         BOARD_PWM_0
 #define BOARD_SPI_CS      PIN(0, 0)
 #define BOARD_UART_BUFFER 128
 
@@ -24,12 +28,26 @@ struct Interface;
 struct Interrupt;
 struct Timer;
 struct Watchdog;
+
+struct PwmPackage
+{
+  struct Timer *timer;
+  struct Pwm *output;
+  struct Pwm *outputs[3];
+};
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 struct Interrupt *boardSetupBod(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupFlash(void);
+struct PwmPackage boardSetupPwm(bool);
+struct Timer *boardSetupTimer(void);
+struct Timer *boardSetupTimerMRT(void);
+struct Timer *boardSetupTimerSCT(void);
+struct Timer *boardSetupTimerSCTHigh(void);
+struct Timer *boardSetupTimerSCTLow(void);
+struct Timer *boardSetupTimerWKT(void);
 struct Watchdog *boardSetupWdt(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC82X_DEFAULT_SHARED_BOARD_H_ */
