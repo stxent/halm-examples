@@ -53,16 +53,12 @@
 
 [[gnu::alias("boardSetupCounterTimerGPT")]]
     struct Timer *boardSetupCounterTimer(void);
-[[gnu::alias("boardSetupCounterTimerSCTDivided")]]
-    struct Timer *boardSetupCounterTimerSCT(void);
 
 [[gnu::alias("boardSetupI2C1")]] struct Interface *boardSetupI2C(void);
 [[gnu::alias("boardSetupI2CSlave1")]]
     struct Interface *boardSetupI2CSlave(void);
 
 [[gnu::alias("boardSetupPwmSCT")]] struct PwmPackage boardSetupPwm(bool);
-[[gnu::alias("boardSetupPwmSCTDivided")]]
-    struct PwmPackage boardSetupPwmSCT(bool);
 
 [[gnu::alias("boardSetupSerial1")]] struct Interface *boardSetupSerial(void);
 [[gnu::alias("boardSetupSerialDma1")]]
@@ -281,8 +277,8 @@ void boardSetupClockPllCustom(unsigned long frequency)
   unsigned int divisor = 2;
   unsigned int multiplier = maxCoreFrequency / extOscConfig.frequency;
 
-  const long int error = findPllConfig(extOscConfig.frequency, frequency,
-      &divisor, &multiplier);
+  [[maybe_unused]] const long int error = findPllConfig(extOscConfig.frequency,
+      frequency, &divisor, &multiplier);
   assert(!error);
 
   boardSetupClockPllGeneric(divisor, multiplier);
@@ -554,30 +550,16 @@ struct Timer *boardSetupCounterTimerGPT(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
-struct Timer *boardSetupCounterTimerSCTDivided(void)
+struct Timer *boardSetupCounterTimerSCT(void)
 {
   static const struct SctCounterConfig counterTimerConfig = {
       .pin = BOARD_CAPTURE,
       .edge = INPUT_RISING,
-      .part = SCT_LOW,
+      .part = SCT_HIGH,
       .channel = 0
   };
 
   struct Timer * const timer = init(SctCounter, &counterTimerConfig);
-  assert(timer != NULL);
-  return timer;
-}
-/*----------------------------------------------------------------------------*/
-struct Timer *boardSetupCounterTimerSCTUnified(void)
-{
-  static const struct SctCounterConfig counterTimerConfig = {
-      .pin = BOARD_CAPTURE,
-      .edge = INPUT_RISING,
-      .part = SCT_UNIFIED,
-      .channel = 0
-  };
-
-  struct Timer * const timer = init(SctUnifiedCounter, &counterTimerConfig);
   assert(timer != NULL);
   return timer;
 }
@@ -809,41 +791,12 @@ struct StreamPackage boardSetupI2S(void)
   };
 }
 /*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwmSCTDivided(bool centered)
+struct PwmPackage boardSetupPwmSCT(bool centered)
 {
   const struct SctPwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
       .resolution = 20000,
       .part = SCT_HIGH,
-      .channel = 0,
-      .centered = centered
-  };
-  const bool inversion = false;
-
-  struct SctPwmUnit * const timer = init(SctPwmUnit, &pwmTimerConfig);
-  assert(timer != NULL);
-
-  struct Pwm * const pwm0 = sctPwmCreate(timer, BOARD_PWM_0, inversion);
-  assert(pwm0 != NULL);
-  struct Pwm * const pwm1 = sctPwmCreate(timer, BOARD_PWM_1, inversion);
-  assert(pwm1 != NULL);
-  struct Pwm * const pwm2 = sctPwmCreateDoubleEdge(timer, BOARD_PWM_2,
-      inversion);
-  assert(pwm2 != NULL);
-
-  return (struct PwmPackage){
-      (struct Timer *)timer,
-      pwm0,
-      {pwm0, pwm1, pwm2}
-  };
-}
-/*----------------------------------------------------------------------------*/
-struct PwmPackage boardSetupPwmSCTUnified(bool centered)
-{
-  const struct SctPwmUnitConfig pwmTimerConfig = {
-      .frequency = 1000000,
-      .resolution = 20000,
-      .part = SCT_UNIFIED,
       .channel = 0,
       .centered = centered
   };

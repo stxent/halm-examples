@@ -8,9 +8,15 @@
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/bod.h>
 #include <halm/platform/lpc/flash.h>
+#include <halm/platform/lpc/mrt.h>
 #include <halm/platform/lpc/pin_int.h>
+#include <halm/platform/lpc/sct_pwm.h>
+#include <halm/platform/lpc/sct_timer.h>
+#include <halm/platform/lpc/wkt.h>
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
+/*----------------------------------------------------------------------------*/
+[[gnu::alias("boardSetupTimerMRT")]] struct Timer *boardSetupTimer(void);
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
@@ -19,8 +25,12 @@ static const struct ExternalOscConfig extOscConfig = {
 void boardSetupClockExt(void)
 {
   static const struct GenericClockConfig mainClockConfigExt = {
+      .divisor = 1,
       .source = CLOCK_EXTERNAL
   };
+
+  clockEnable(LowPowerOsc, NULL);
+  while (!clockReady(LowPowerOsc));
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -31,13 +41,17 @@ void boardSetupClockExt(void)
 void boardSetupClockPll(void)
 {
   static const struct PllConfig sysPllConfig = {
-      .divisor = 8,
+      .divisor = 4,
       .multiplier = 20,
       .source = CLOCK_EXTERNAL
   };
   static const struct GenericClockConfig mainClockConfigPll = {
+      .divisor = 2,
       .source = CLOCK_PLL
   };
+
+  clockEnable(LowPowerOsc, NULL);
+  while (!clockReady(LowPowerOsc));
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -78,6 +92,99 @@ struct Interface *boardSetupFlash(void)
   struct Interface * const interface = init(Flash, NULL);
   assert(interface != NULL);
   return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct PwmPackage boardSetupPwm(bool centered)
+{
+  const struct SctPwmUnitConfig pwmTimerConfig = {
+      .frequency = 1000000,
+      .resolution = 20000,
+      .part = SCT_LOW,
+      .channel = 0,
+      .centered = centered
+  };
+  const bool inversion = false;
+
+  struct SctPwmUnit * const timer = init(SctPwmUnit, &pwmTimerConfig);
+  assert(timer != NULL);
+
+  struct Pwm * const pwm0 = sctPwmCreate(timer, BOARD_PWM_0, inversion);
+  assert(pwm0 != NULL);
+  struct Pwm * const pwm1 = sctPwmCreate(timer, BOARD_PWM_1, inversion);
+  assert(pwm1 != NULL);
+  struct Pwm * const pwm2 = sctPwmCreateDoubleEdge(timer, BOARD_PWM_2,
+      inversion);
+  assert(pwm2 != NULL);
+
+  return (struct PwmPackage){
+      (struct Timer *)timer,
+      pwm0,
+      {pwm0, pwm1, pwm2}
+  };
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerMRT(void)
+{
+  static const struct MrtConfig mrtConfig = {
+      .channel = 0
+  };
+
+  struct Timer * const timer = init(Mrt, &mrtConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerSCT(void)
+{
+  static const struct SctTimerConfig timerConfig = {
+      .frequency = 1000000,
+      .output = SCT_OUTPUT_3,
+      .part = SCT_UNIFIED,
+      .channel = 0
+  };
+
+  struct Timer * const timer = init(SctUnifiedTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerSCTHigh(void)
+{
+  static const struct SctTimerConfig timerConfig = {
+      .frequency = 1000000,
+      .output = SCT_OUTPUT_3,
+      .part = SCT_HIGH,
+      .channel = 0
+  };
+
+  struct Timer * const timer = init(SctTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerSCTLow(void)
+{
+  static const struct SctTimerConfig timerConfig = {
+      .frequency = 1000000,
+      .part = SCT_LOW,
+      .channel = 0
+  };
+
+  struct Timer * const timer = init(SctTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
+struct Timer *boardSetupTimerWKT(void)
+{
+  static const struct WktConfig wktConfig = {
+      .pin = 0,
+      .source = WKT_CLOCK_LOW_POWER
+  };
+
+  struct Timer * const timer = init(Wkt, &wktConfig);
+  assert(timer != NULL);
+  return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct Watchdog *boardSetupWdt(bool disarmed)
