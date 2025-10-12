@@ -163,18 +163,10 @@ struct Timer *boardSetupCounterTimer(void);
 struct Timer *boardSetupCounterTimerGPT(void);
 /* State Configurable Timer alias */
 struct Timer *boardSetupCounterTimerSCT(void);
-/* Low part of the State Configurable Timer */
-struct Timer *boardSetupCounterTimerSCTDivided(void);
-/* Unified State Configurable Timer */
-struct Timer *boardSetupCounterTimerSCTUnified(void);
 
 /* PWM alias */
 struct PwmPackage boardSetupPwm(bool);
 /* State Configurable Timer alias */
 struct PwmPackage boardSetupPwmSCT(bool);
-/* High part of the State Configurable Timer */
-struct PwmPackage boardSetupPwmSCTDivided(bool);
-/* Unified State Configurable Timer */
-struct PwmPackage boardSetupPwmSCTUnified(bool);
 /*----------------------------------------------------------------------------*/
 #endif /* LPC43XX_DEFAULT_SHARED_BOARD_H_ */

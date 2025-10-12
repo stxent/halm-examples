@@ -11,7 +11,12 @@ set(TEMPLATES_LIST
         bod
         flash
         pin_int
+        pm_sleep
+        pwm
         systick
+        timer_mrt=timer:TIMER_SUFFIX=MRT
+        timer_sct=timer:TIMER_SUFFIX=SCT
+        timer_wkt=timer:TIMER_SUFFIX=WKT
         wdt
         wdt_timer
 )
