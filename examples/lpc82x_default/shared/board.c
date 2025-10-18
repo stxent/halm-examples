@@ -12,6 +12,9 @@
 #include <halm/platform/lpc/pin_int.h>
 #include <halm/platform/lpc/sct_pwm.h>
 #include <halm/platform/lpc/sct_timer.h>
+#include <halm/platform/lpc/serial.h>
+#include <halm/platform/lpc/serial_dma.h>
+#include <halm/platform/lpc/serial_poll.h>
 #include <halm/platform/lpc/wkt.h>
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
@@ -121,6 +124,53 @@ struct PwmPackage boardSetupPwm(bool centered)
       pwm0,
       {pwm0, pwm1, pwm2}
   };
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerial(void)
+{
+  static const struct SerialConfig serialConfig = {
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(0, 26),
+      .tx = PIN(0, 25),
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(Serial, &serialConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerialDma(void)
+{
+  static const struct SerialDmaConfig serialDmaConfig = {
+      .rxChunks = 8,
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(0, 26),
+      .tx = PIN(0, 25),
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(SerialDma, &serialDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerialPoll(void)
+{
+  static const struct SerialPollConfig serialPollConfig = {
+      .rate = 19200,
+      .rx = PIN(0, 26),
+      .tx = PIN(0, 25),
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(SerialPoll, &serialPollConfig);
+  assert(interface != NULL);
+  return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Timer *boardSetupTimerMRT(void)
