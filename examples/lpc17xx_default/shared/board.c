@@ -335,16 +335,16 @@ struct StreamPackage boardSetupI2S(void)
       .size = 2,
       .rate = 96000,
       .width = I2S_WIDTH_16,
+      .rx = {
+          .sda = PIN(0, 6),
+          .dma = 7
+      },
       .tx = {
           .sda = PIN(0, 9),
           .sck = PIN(0, 7),
           .ws = PIN(0, 8),
           .mclk = PIN(4, 29),
           .dma = 6
-      },
-      .rx = {
-          .sda = PIN(0, 6),
-          .dma = 7
       },
       .channel = 0,
       .mono = false,

@@ -41,10 +41,20 @@ int main(void)
 
   const struct Pin dataLed = pinInit(BOARD_LED);
   pinOutput(dataLed, BOARD_LED_INV);
+
+#ifdef BOARD_USB_IND0
   const struct Pin linkLed = pinInit(BOARD_USB_IND0);
   pinOutput(linkLed, BOARD_LED_INV);
+#else
+  const struct Pin linkLed = pinStub();
+#endif
+
+#ifdef BOARD_USB_IND1
   const struct Pin rateLed = pinInit(BOARD_USB_IND1);
   pinOutput(rateLed, BOARD_LED_INV);
+#else
+  const struct Pin rateLed = pinStub();
+#endif
 
   struct Usb * const usb = boardSetupUsb();
 
@@ -81,14 +91,20 @@ int main(void)
       if (status & CDC_ACM_SUSPENDED)
       {
         pinWrite(dataLed, BOARD_LED_INV);
-        pinWrite(linkLed, BOARD_LED_INV);
-        pinWrite(rateLed, BOARD_LED_INV);
+        if (pinValid(linkLed))
+          pinWrite(linkLed, BOARD_LED_INV);
+        if (pinValid(rateLed))
+          pinWrite(rateLed, BOARD_LED_INV);
       }
       else
       {
-        pinWrite(linkLed, !BOARD_LED_INV);
-        pinWrite(rateLed, usbDevGetSpeed(usb) == USB_HS ?
-            !BOARD_LED_INV : BOARD_LED_INV);
+        if (pinValid(linkLed))
+          pinWrite(linkLed, !BOARD_LED_INV);
+        if (pinValid(rateLed))
+        {
+          pinWrite(rateLed, usbDevGetSpeed(usb) == USB_HS ?
+              !BOARD_LED_INV : BOARD_LED_INV);
+        }
       }
     }
 

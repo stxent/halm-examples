@@ -16,8 +16,6 @@
 #define BOARD_LED_INV     false
 #define BOARD_UART_BUFFER 512
 
-#define BOARD_USB_IND0    BOARD_LED_1
-#define BOARD_USB_IND1    BOARD_LED_2
 #define BOARD_USB_CDC_INT 0x81
 #define BOARD_USB_CDC_RX  0x02
 #define BOARD_USB_CDC_TX  0x83

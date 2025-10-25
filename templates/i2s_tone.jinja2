@@ -46,7 +46,7 @@ static const int16_t patternR[] = {
     -32433, -29805, -17715
 };
 
-#define BUFFER_COUNT  2
+#define BUFFER_COUNT  3
 #define CHANNEL_COUNT 2
 #define BUFFER_LENGTH (ARRAY_SIZE(patternL) * 4)
 
@@ -119,47 +119,35 @@ int main(void)
       .led = txLed
   };
 
-  struct StreamRequest rxRequests[2] = {
-      {
-          BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
-          0,
-          onDataReceived,
-          &rxContext,
-          &rxBuffers[0]
-      }, {
-          BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
-          0,
-          onDataReceived,
-          &rxContext,
-          &rxBuffers[1]
-      }
-  };
-  struct StreamRequest txRequests[2] = {
-      {
-          BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
-          0,
-          onDataSent,
-          &txContext,
-          &txBuffers[0]
-      }, {
-          BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
-          0,
-          onDataSent,
-          &txContext,
-          &txBuffers[1]
-      }
-  };
+  struct StreamRequest rxRequests[BUFFER_COUNT];
+  struct StreamRequest txRequests[BUFFER_COUNT];
+
+  for (size_t index = 0; index < BUFFER_COUNT; ++index)
+  {
+    rxRequests[index] = (struct StreamRequest){
+        BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
+        0,
+        onDataReceived,
+        &rxContext,
+        &rxBuffers[index]
+    };
+    txRequests[index] = (struct StreamRequest){
+        BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
+        0,
+        onDataSent,
+        &txContext,
+        &txBuffers[index]
+    };
+  }
 
   /* Enqueue buffers */
-  rxRequests[0].length = 0;
-  streamEnqueue(audio.rx, &rxRequests[0]);
-  txRequests[0].length = txRequests[0].capacity;
-  streamEnqueue(audio.tx, &txRequests[0]);
-
-  rxRequests[1].length = 0;
-  streamEnqueue(audio.rx, &rxRequests[1]);
-  txRequests[1].length = txRequests[1].capacity;
-  streamEnqueue(audio.tx, &txRequests[1]);
+  for (size_t index = 0; index < BUFFER_COUNT; ++index)
+  {
+    rxRequests[index].length = 0;
+    streamEnqueue(audio.rx, &rxRequests[index]);
+    txRequests[index].length = txRequests[index].capacity;
+    streamEnqueue(audio.tx, &txRequests[index]);
+  }
 
   while (1);
   return 0;

@@ -13,8 +13,8 @@
 /*----------------------------------------------------------------------------*/
 #define BOARD_BUTTON      PIN(PORT_A, 0)
 #define BOARD_BUTTON_INV  true
-#define BOARD_LED_0       PIN(PORT_E, 5)
-#define BOARD_LED_1       PIN(PORT_E, 6)
+#define BOARD_LED_0       PIN(PORT_C, 13)
+#define BOARD_LED_1       PIN(PORT_C, 15)
 #define BOARD_LED_2       PIN(PORT_E, 7)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false
@@ -25,8 +25,6 @@
 #define BOARD_USB_CDC_INT 0x81
 #define BOARD_USB_CDC_RX  0x02
 #define BOARD_USB_CDC_TX  0x82
-#define BOARD_USB_IND0    BOARD_LED_1
-#define BOARD_USB_IND1    BOARD_LED_2
 #define BOARD_USB_MSC_RX  0x01
 #define BOARD_USB_MSC_TX  0x81
 

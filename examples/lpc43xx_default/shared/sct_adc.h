@@ -44,7 +44,7 @@ struct SctAdcConfig
   enum SctAdcOutput adc;
   /** Mandatory: output event for DMA. */
   enum SctAdcDmaOutput dma;
-  /** Optional: timer part. */
+  /** Mandatory: timer part. */
   enum SctPart part;
   /** Mandatory: peripheral identifier. */
   uint8_t channel;
@@ -63,9 +63,9 @@ struct SctAdc
   enum SctAdcDmaOutput dma;
 
   /* ADC event channel */
-  int8_t adcOutput;
+  enum SctOutput adcOutput;
   /* DMA event channel */
-  int8_t dmaOutput;
+  enum SctOutput dmaOutput;
 
   /* Match channel used for ADC conversion event */
   uint8_t conversion;

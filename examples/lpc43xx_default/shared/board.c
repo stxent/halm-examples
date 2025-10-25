@@ -775,16 +775,16 @@ struct StreamPackage boardSetupI2S(void)
       .size = 8,
       .rate = 96000,
       .width = I2S_WIDTH_16,
+      .rx = {
+          .sda = PIN(PORT_6, 2),
+          .dma = 7
+      },
       .tx = {
           .sda = PIN(PORT_7, 2),
           .sck = PIN(PORT_4, 7),
           .ws = PIN(PORT_7, 1),
           .mclk = PIN(PORT_CLK, 2),
           .dma = 6
-      },
-      .rx = {
-          .sda = PIN(PORT_6, 2),
-          .dma = 7
       },
       .channel = 0,
       .mono = false,

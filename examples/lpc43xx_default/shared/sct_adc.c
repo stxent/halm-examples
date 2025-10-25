@@ -92,20 +92,26 @@ static enum Result tmrInit(void *object, const void *configBase)
   switch (timer->adc)
   {
     case SCTADC_ADC_OUTPUT_8:
-      timer->adcOutput = 8;
+      timer->adcOutput = SCT_OUTPUT_8;
       break;
     case SCTADC_ADC_OUTPUT_15:
-      timer->adcOutput = 15;
+      timer->adcOutput = SCT_OUTPUT_15;
       break;
     default:
+      timer->adcOutput = SCT_OUTPUT_NONE;
       break;
   }
-  if (timer->adcOutput != -1)
+  if (timer->adcOutput != SCT_OUTPUT_NONE)
   {
-    reg->OUTPUTDIRCTRL &= ~OUTPUTDIRCTRL_SETCLR_MASK(timer->adcOutput);
-    reg->RES &= ~RES_OUTPUT_MASK(timer->adcOutput);
-    reg->OUT[timer->adcOutput].CLR = 1 << timer->memory;
-    reg->OUT[timer->adcOutput].SET = 1 << timer->conversion;
+    if (!sctReserveOutputChannel(&timer->base, timer->adcOutput))
+      return E_BUSY;
+
+    const unsigned int adcIndex = timer->adcOutput - 1;
+
+    reg->OUTPUTDIRCTRL &= ~OUTPUTDIRCTRL_SETCLR_MASK(adcIndex);
+    reg->RES &= ~RES_OUTPUT_MASK(adcIndex);
+    reg->OUT[adcIndex].CLR = 1 << timer->memory;
+    reg->OUT[adcIndex].SET = 1 << timer->conversion;
   }
 
   /* Configure memory transfer event */
@@ -122,28 +128,33 @@ static enum Result tmrInit(void *object, const void *configBase)
   switch (timer->dma)
   {
     case SCTADC_DMA_0:
-      timer->dmaOutput = -1;
+      timer->dmaOutput = SCT_OUTPUT_NONE;
       reg->DMAREQ0 |= 1 << timer->memory;
       break;
     case SCTADC_DMA_1:
-      timer->dmaOutput = -1;
+      timer->dmaOutput = SCT_OUTPUT_NONE;
       reg->DMAREQ1 |= 1 << timer->memory;
       break;
     case SCTADC_DMA_OUTPUT_2:
-      timer->dmaOutput = 2;
+      timer->dmaOutput = SCT_OUTPUT_2;
       break;
     case SCTADC_DMA_OUTPUT_3:
-      timer->dmaOutput = 3;
+      timer->dmaOutput = SCT_OUTPUT_3;
       break;
     default:
       break;
   }
-  if (timer->dmaOutput != -1)
+  if (timer->dmaOutput != SCT_OUTPUT_NONE)
   {
-    reg->OUTPUTDIRCTRL &= ~OUTPUTDIRCTRL_SETCLR_MASK(timer->dmaOutput);
-    reg->RES &= ~RES_OUTPUT_MASK(timer->dmaOutput);
-    reg->OUT[timer->dmaOutput].CLR = 1 << timer->reset;
-    reg->OUT[timer->dmaOutput].SET = 1 << timer->memory;
+    if (!sctReserveOutputChannel(&timer->base, timer->dmaOutput))
+      return E_BUSY;
+
+    const unsigned int dmaIndex = timer->dmaOutput - 1;
+
+    reg->OUTPUTDIRCTRL &= ~OUTPUTDIRCTRL_SETCLR_MASK(dmaIndex);
+    reg->RES &= ~RES_OUTPUT_MASK(dmaIndex);
+    reg->OUT[dmaIndex].CLR = 1 << timer->reset;
+    reg->OUT[dmaIndex].SET = 1 << timer->memory;
   }
 
   /* Configure reset event */
@@ -188,15 +199,17 @@ static void tmrDeinit(void *object)
     default:
       break;
   }
-  if (timer->dmaOutput != -1)
+  if (timer->dmaOutput != SCT_OUTPUT_NONE)
   {
-    reg->OUT[timer->dmaOutput].CLR = 0;
-    reg->OUT[timer->dmaOutput].SET = 0;
+    reg->OUT[timer->dmaOutput - 1].CLR = 0;
+    reg->OUT[timer->dmaOutput - 1].SET = 0;
+    sctReleaseOutputChannel(&timer->base, timer->dmaOutput);
   }
-  if (timer->adcOutput != -1)
+  if (timer->adcOutput != SCT_OUTPUT_NONE)
   {
-    reg->OUT[timer->adcOutput].CLR = 0;
-    reg->OUT[timer->adcOutput].SET = 0;
+    reg->OUT[timer->adcOutput - 1].CLR = 0;
+    reg->OUT[timer->adcOutput - 1].SET = 0;
+    sctReleaseOutputChannel(&timer->base, timer->adcOutput);
   }
 
   /* Disable allocated SCT events */

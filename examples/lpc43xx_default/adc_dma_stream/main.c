@@ -25,15 +25,12 @@ struct EventTuple
 static void onConversionCompleted(void *argument, struct StreamRequest *request,
     enum StreamRequestStatus)
 {
+  struct EventTuple * const context = argument;
   const size_t count = boardGetAdcPinCount();
   const size_t chunks = (request->length >> 1) / count;
-
-  struct EventTuple * const context = argument;
   const uint16_t *buffer = request->buffer;
 
-  pinToggle(context->led);
   ifWrite(context->serial, "\r\n", 2);
-
   for (size_t chunk = 0; chunk < chunks; ++chunk)
   {
     char text[count * 6 + 3];
@@ -51,6 +48,7 @@ static void onConversionCompleted(void *argument, struct StreamRequest *request,
 
   request->length = 0;
   streamEnqueue(context->stream, request);
+  pinToggle(context->led);
 }
 /*----------------------------------------------------------------------------*/
 int main(void)

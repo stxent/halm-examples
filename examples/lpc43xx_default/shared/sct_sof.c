@@ -147,6 +147,11 @@ static enum Result tmrInit(void *object, const void *configBase)
   timer->mwsValid = false;
   timer->sofValid = false;
 
+  if (!sctReserveInputChannel(&timer->base, timer->i2sInput))
+    return E_BUSY;
+  if (!sctReserveInputChannel(&timer->base, timer->usbInput))
+    return E_BUSY;
+
   routeGimaInput(config->i2s);
   routeGimaInput(config->usb);
 
@@ -163,7 +168,7 @@ static enum Result tmrInit(void *object, const void *configBase)
   /* Configure I2S event */
   reg->EV[timer->i2sEvent].CTRL =
       (timer->base.part == SCT_HIGH ? EVCTRL_HEVENT : 0)
-      // | EVCTRL_OUTSEL_IN // TODO
+      | EVCTRL_OUTSEL_IN
       | EVCTRL_IOSEL(timer->i2sInput - 1)
       | EVCTRL_IOCOND(IOCOND_RISE)
       | EVCTRL_COMBMODE(COMBMODE_IO)
@@ -175,7 +180,7 @@ static enum Result tmrInit(void *object, const void *configBase)
   /* Configure USB event */
   reg->EV[timer->usbEvent].CTRL =
       (timer->base.part == SCT_HIGH ? EVCTRL_HEVENT : 0)
-      // | EVCTRL_OUTSEL_IN // TODO
+      | EVCTRL_OUTSEL_IN
       | EVCTRL_IOSEL(timer->usbInput - 1)
       | EVCTRL_IOCOND(IOCOND_RISE)
       | EVCTRL_COMBMODE(COMBMODE_IO)
@@ -223,6 +228,10 @@ static void tmrDeinit(void *object)
   reg->EV[timer->i2sEvent].CTRL = 0;
   reg->EV[timer->i2sEvent].STATE = 0;
   sctReleaseEvent(&timer->base, timer->i2sEvent);
+
+  /* Release allocated SCT inputs */
+  sctReleaseInputChannel(&timer->base, timer->usbInput);
+  sctReleaseInputChannel(&timer->base, timer->i2sInput);
 
   /* Reset to default state */
   reg->CONFIG &= ~CONFIG_NORELOAD(part);

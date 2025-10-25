@@ -36,7 +36,7 @@ struct SctSofConfig
   enum SctSofInput i2s;
   /** Mandatory: input channel for USB SOF. */
   enum SctSofInput usb;
-  /** Optional: timer part. */
+  /** Mandatory: timer part. */
   enum SctPart part;
   /** Optional: timer inerrupt priority. */
   IrqPriority priority;
