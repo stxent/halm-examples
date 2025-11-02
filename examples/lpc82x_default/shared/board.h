@@ -35,9 +35,23 @@ struct PwmPackage
   struct Pwm *output;
   struct Pwm *outputs[3];
 };
+
+struct StreamPackage
+{
+  struct Interface *interface;
+  struct Stream *rx;
+  struct Stream *tx;
+};
 /*----------------------------------------------------------------------------*/
+size_t boardGetAdcPinCount(void);
+void boardSetAdcTimerRate(struct Timer *, size_t, uint32_t);
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
+struct Interface *boardSetupAdc(void);
+struct Interface *boardSetupAdcDma(void);
+struct Interface *boardSetupAdcOneShot(void);
+struct StreamPackage boardSetupAdcStream(void);
+struct Timer *boardSetupAdcTimer(void);
 struct Interrupt *boardSetupBod(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupFlash(void);

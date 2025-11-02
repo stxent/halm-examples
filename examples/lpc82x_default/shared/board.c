@@ -5,6 +5,10 @@
  */
 
 #include "board.h"
+#include <halm/platform/lpc/adc.h>
+#include <halm/platform/lpc/adc_dma.h>
+#include <halm/platform/lpc/adc_dma_stream.h>
+#include <halm/platform/lpc/adc_oneshot.h>
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/bod.h>
 #include <halm/platform/lpc/flash.h>
@@ -19,11 +23,33 @@
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+[[gnu::alias("boardSetupTimerSCT")]] struct Timer *boardSetupAdcTimer(void);
 [[gnu::alias("boardSetupTimerMRT")]] struct Timer *boardSetupTimer(void);
 /*----------------------------------------------------------------------------*/
+static const PinNumber adcPinArray[] = {
+    PIN(0, 7),
+    PIN(0, 6),
+    PIN(0, 14),
+    PIN(0, 23),
+    PIN(0, 18),
+    PIN(0, 17),
+    PIN(0, 13),
+    0
+};
+
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 12000000
 };
+/*----------------------------------------------------------------------------*/
+size_t boardGetAdcPinCount(void)
+{
+  return ARRAY_SIZE(adcPinArray) - 1;
+}
+/*----------------------------------------------------------------------------*/
+void boardSetAdcTimerRate(struct Timer *timer, size_t, uint32_t rate)
+{
+  timerSetOverflow(timer, timerGetFrequency(timer) / (rate * 2));
+}
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
@@ -63,6 +89,72 @@ void boardSetupClockPll(void)
   while (!clockReady(SystemPll));
 
   clockEnable(MainClock, &mainClockConfigPll);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupAdc(void)
+{
+  static const struct AdcConfig adcConfig = {
+      .pins = adcPinArray,
+      .event = ADC_SCT0_OUT3,
+      .sequence = ADC0_SEQA,
+      .sensitivity = INPUT_RISING,
+      .preemption = false,
+      .singlestep = false
+  };
+
+  struct Interface * const interface = init(Adc, &adcConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupAdcDma(void)
+{
+  static const struct AdcDmaConfig adcDmaConfig = {
+      .pins = adcPinArray,
+      .event = ADC_SCT0_OUT3,
+      .sequence = ADC0_SEQA,
+      .sensitivity = INPUT_RISING,
+      .dma = 16,
+      .preemption = false,
+      .singlestep = false
+  };
+
+  struct Interface * const interface = init(AdcDma, &adcDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupAdcOneShot(void)
+{
+  const struct AdcOneShotConfig adcOneShotConfig = {
+      .pin = adcPinArray[0],
+      .sequence = ADC0_SEQA
+  };
+
+  struct Interface * const interface = init(AdcOneShot, &adcOneShotConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct StreamPackage boardSetupAdcStream(void)
+{
+  static const struct AdcDmaStreamConfig adcStreamConfig = {
+      .pins = adcPinArray,
+      .size = 2,
+      .event = ADC_SCT0_OUT3,
+      .sequence = ADC0_SEQA,
+      .dma = 16,
+      .preemption = false,
+      .singlestep = false
+  };
+
+  struct AdcDmaStream * const interface = init(AdcDmaStream, &adcStreamConfig);
+  assert(interface != NULL);
+
+  struct Stream * const stream = adcDmaStreamGetInput(interface);
+  assert(stream != NULL);
+
+  return (struct StreamPackage){(struct Interface *)interface, stream, NULL};
 }
 /*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupBod(void)

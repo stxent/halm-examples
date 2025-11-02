@@ -8,6 +8,9 @@ set(PLATFORM "LPC82X")
 
 # Define template list
 set(TEMPLATES_LIST
+        adc:ADC_CALIBRATE=true
+        adc_dma
+        adc_oneshot:ADC_CALIBRATE=true
         bod
         flash
         pin_int
