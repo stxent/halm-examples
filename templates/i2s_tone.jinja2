@@ -46,8 +46,8 @@ static const int16_t patternR[] = {
     -32433, -29805, -17715
 };
 
-#define BUFFER_COUNT  3
 #define CHANNEL_COUNT 2
+#define BUFFER_COUNT  3
 #define BUFFER_LENGTH (ARRAY_SIZE(patternL) * 4)
 
 static int16_t rxBuffers[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
@@ -124,13 +124,16 @@ int main(void)
 
   for (size_t index = 0; index < BUFFER_COUNT; ++index)
   {
-    rxRequests[index] = (struct StreamRequest){
-        BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
-        0,
-        onDataReceived,
-        &rxContext,
-        &rxBuffers[index]
-    };
+    if (audio.rx != NULL)
+    {
+      rxRequests[index] = (struct StreamRequest){
+          BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
+          0,
+          onDataReceived,
+          &rxContext,
+          &rxBuffers[index]
+      };
+    }
     txRequests[index] = (struct StreamRequest){
         BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
         0,
@@ -143,8 +146,11 @@ int main(void)
   /* Enqueue buffers */
   for (size_t index = 0; index < BUFFER_COUNT; ++index)
   {
-    rxRequests[index].length = 0;
-    streamEnqueue(audio.rx, &rxRequests[index]);
+    if (audio.rx != NULL)
+    {
+      rxRequests[index].length = 0;
+      streamEnqueue(audio.rx, &rxRequests[index]);
+    }
     txRequests[index].length = txRequests[index].capacity;
     streamEnqueue(audio.tx, &txRequests[index]);
   }

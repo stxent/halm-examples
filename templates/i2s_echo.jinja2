@@ -26,8 +26,8 @@ static void onDataReceived(void *, struct StreamRequest *,
 static void onDataSent(void *, struct StreamRequest *,
     enum StreamRequestStatus);
 /*----------------------------------------------------------------------------*/
-#define BUFFER_COUNT  5
 #define CHANNEL_COUNT 2
+#define BUFFER_COUNT  5
 #define BUFFER_LENGTH 512
 
 static int16_t arena[BUFFER_COUNT][BUFFER_LENGTH * CHANNEL_COUNT];
