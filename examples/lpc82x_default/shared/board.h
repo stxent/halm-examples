@@ -59,6 +59,8 @@ struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);
 struct Interface *boardSetupSerialPoll(void);
+struct Interface *boardSetupSpi(void);
+struct Interface *boardSetupSpiDma(void);
 struct Timer *boardSetupTimer(void);
 struct Timer *boardSetupTimerMRT(void);
 struct Timer *boardSetupTimerSCT(void);

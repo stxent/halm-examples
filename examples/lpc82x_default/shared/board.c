@@ -19,6 +19,8 @@
 #include <halm/platform/lpc/serial.h>
 #include <halm/platform/lpc/serial_dma.h>
 #include <halm/platform/lpc/serial_poll.h>
+#include <halm/platform/lpc/spi.h>
+#include <halm/platform/lpc/spi_dma.h>
 #include <halm/platform/lpc/wkt.h>
 #include <halm/platform/lpc/wwdt.h>
 #include <assert.h>
@@ -261,6 +263,38 @@ struct Interface *boardSetupSerialPoll(void)
   };
 
   struct Interface * const interface = init(SerialPoll, &serialPollConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSpi(void)
+{
+  static const struct SpiConfig spiConfig = {
+      .rate = 500000,
+      .miso = PIN(0, 22),
+      .mosi = PIN(0, 11),
+      .sck = PIN(0, 10),
+      .channel = 0,
+      .mode = 0
+  };
+
+  struct Interface * const interface = init(Spi, &spiConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSpiDma(void)
+{
+  static const struct SpiDmaConfig spiDmaConfig = {
+      .rate = 500000,
+      .miso = PIN(0, 22),
+      .mosi = PIN(0, 11),
+      .sck = PIN(0, 10),
+      .channel = 0,
+      .mode = 0
+  };
+
+  struct Interface * const interface = init(SpiDma, &spiDmaConfig);
   assert(interface != NULL);
   return interface;
 }

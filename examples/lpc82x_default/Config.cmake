@@ -16,6 +16,10 @@ set(TEMPLATES_LIST
         pin_int
         pm_sleep
         pwm
+        serial
+        serial_dma:SERIAL_DMA_TIMER=true
+        spi
+        spi_dma
         systick
         timer_mrt=timer:TIMER_SUFFIX=MRT
         timer_sct=timer:TIMER_SUFFIX=SCT
