@@ -9,9 +9,9 @@ set(PLATFORM "LPC82X")
 # Define template list
 set(TEMPLATES_LIST
         adc:ADC_CALIBRATE=true
-        adc_dma
         adc_oneshot:ADC_CALIBRATE=true
         bod
+        dma_memcopy:DMA_TRANSFERS=512
         flash
         pin_int
         pm_sleep
@@ -27,3 +27,7 @@ set(TEMPLATES_LIST
         wdt
         wdt_timer
 )
+
+if(NOT "${CMAKE_BUILD_TYPE}" MATCHES "Debug|^$")
+    list(APPEND TEMPLATES_LIST adc_dma:ADC_CALIBRATE=true)
+endif()

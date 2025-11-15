@@ -35,7 +35,7 @@ elseif(TARGET_SDRAM)
     math(EXPR ROM_ORIGIN "${MEMORY_ADDRESS_SDRAM}")
     set(DISABLE_LITERAL_POOL ON)
 elseif(TARGET_SRAM)
-    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
+    if("${CMAKE_BUILD_TYPE}" MATCHES "Debug|^$")
         # Use debug builds on flash-less parts only
         math(EXPR ROM_LENGTH "${MEMORY_SIZE_SRAM0_FLASHLESS}")
     else()
