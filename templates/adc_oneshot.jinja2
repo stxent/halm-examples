@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <stdio.h>
 /*----------------------------------------------------------------------------*/
-#define ADC_RATE 50
+#define ADC_RATE 10
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -20,6 +20,7 @@ static void onTimerOverflow(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  const size_t channels = boardGetAdcPinCount();
   bool event = false;
 
   boardSetupClockPll();
@@ -52,14 +53,17 @@ int main(void)
       barrier();
     event = false;
 
-    uint16_t buffer;
-    size_t length;
-    char text[8];
+    uint16_t buffer[channels];
+    char text[channels * 6 + 3];
+    char *iter = text;
 
-    ifRead(adc, &buffer, sizeof(buffer));
+    const size_t count = ifRead(adc, buffer, sizeof(buffer));
+    assert(count / sizeof(uint16_t) == channels);
 
-    length = sprintf(text, "%5u\r\n", (unsigned int)buffer);
-    ifWrite(serial, text, length);
+    for (size_t index = 0; index < count / sizeof(uint16_t); ++index)
+      iter += sprintf(iter, "%5u ", (unsigned int)buffer[index]);
+    iter += sprintf(iter, "\r\n");
+    ifWrite(serial, text, iter - text);
 
     pinToggle(led);
   }

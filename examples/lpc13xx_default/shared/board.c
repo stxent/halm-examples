@@ -108,7 +108,7 @@ struct Interface *boardSetupAdc(void)
 struct Interface *boardSetupAdcOneShot(void)
 {
   const struct AdcOneShotConfig adcOneShotConfig = {
-      .pin = adcPinArray[0],
+      .pins = adcPinArray,
       .channel = 0
   };
 

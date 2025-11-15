@@ -20,7 +20,7 @@ static void onConversionCompleted(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
-  const size_t count = boardGetAdcPinCount();
+  const size_t channels = boardGetAdcPinCount();
   bool event = false;
 
   boardSetupClockPll();
@@ -48,7 +48,7 @@ int main(void)
   struct Interface * const serial = boardSetupSerial();
 
   struct Timer * const timer = boardSetupAdcTimer();
-  boardSetAdcTimerRate(timer, count, ADC_RATE);
+  boardSetAdcTimerRate(timer, channels, ADC_RATE);
   timerEnable(timer);
 
   while (1)
@@ -57,13 +57,14 @@ int main(void)
       barrier();
     event = false;
 
-    uint16_t buffer[count];
-    char text[count * 6 + 3];
+    uint16_t buffer[channels];
+    char text[channels * 6 + 3];
     char *iter = text;
 
-    ifRead(adc, buffer, sizeof(buffer));
+    const size_t count = ifRead(adc, buffer, sizeof(buffer));
+    assert(count / sizeof(uint16_t) == channels);
 
-    for (size_t index = 0; index < count; ++index)
+    for (size_t index = 0; index < count / sizeof(uint16_t); ++index)
       iter += sprintf(iter, "%5u ", (unsigned int)buffer[index]);
     iter += sprintf(iter, "\r\n");
     ifWrite(serial, text, iter - text);
