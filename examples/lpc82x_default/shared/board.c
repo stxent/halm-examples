@@ -129,8 +129,9 @@ struct Interface *boardSetupAdcDma(void)
 struct Interface *boardSetupAdcOneShot(void)
 {
   const struct AdcOneShotConfig adcOneShotConfig = {
-      .pin = adcPinArray[0],
-      .sequence = ADC0_SEQA
+      .pins = adcPinArray,
+      .sequence = ADC0_SEQA,
+      .preemption = true
   };
 
   struct Interface * const interface = init(AdcOneShot, &adcOneShotConfig);
@@ -245,7 +246,8 @@ struct Interface *boardSetupSerialDma(void)
       .rate = 19200,
       .rx = PIN(0, 26),
       .tx = PIN(0, 25),
-      .channel = 0
+      .channel = 0,
+      .oversampling = 15
   };
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
