@@ -13,6 +13,8 @@ set(TEMPLATES_LIST
         bod
         dma_memcopy:DMA_TRANSFERS=512
         flash
+        i2c
+        i2c_dma=i2c:I2C_DMA=true
         pin_int
         pm_sleep
         pwm

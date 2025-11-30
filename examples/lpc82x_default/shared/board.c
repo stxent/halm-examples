@@ -12,6 +12,8 @@
 #include <halm/platform/lpc/clocking.h>
 #include <halm/platform/lpc/bod.h>
 #include <halm/platform/lpc/flash.h>
+#include <halm/platform/lpc/i2c.h>
+#include <halm/platform/lpc/i2c_dma.h>
 #include <halm/platform/lpc/mrt.h>
 #include <halm/platform/lpc/pin_int.h>
 #include <halm/platform/lpc/sct_pwm.h>
@@ -188,6 +190,34 @@ struct Interrupt *boardSetupButton(void)
 struct Interface *boardSetupFlash(void)
 {
   struct Interface * const interface = init(Flash, NULL);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2C(void)
+{
+  static const struct I2CConfig i2cConfig = {
+      .rate = 100000,
+      .scl = PIN(PORT_0, 10),
+      .sda = PIN(PORT_0, 11),
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(I2C, &i2cConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2CDma(void)
+{
+  static const struct I2CDmaConfig i2cDmaConfig = {
+      .rate = 100000,
+      .scl = PIN(PORT_0, 10),
+      .sda = PIN(PORT_0, 11),
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(I2CDma, &i2cDmaConfig);
   assert(interface != NULL);
   return interface;
 }
