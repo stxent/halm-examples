@@ -36,7 +36,14 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
+{%- if config.SPI_DMA is defined and config.SPI_DMA %}
+
+  struct Interface * const spi = boardSetupSpiDma();
+{%- else %}
+
   struct Interface * const spi = boardSetupSpi();
+{%- endif %}
+
   res = ifSetParam(spi, IF_RATE, &testSpiRate);
   assert(res == E_OK);
   res = ifSetParam(spi, IF_SPI_MODE, &testSpiMode);

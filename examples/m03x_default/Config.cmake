@@ -19,7 +19,7 @@ set(TEMPLATES_LIST
         serial_dma:SERIAL_DMA_TIMER=true
         serial_dma_toc=serial_dma:SERIAL_DMA_SUFFIX=TOC
         spi
-        spi_dma
+        spi_dma=spi:SPI_DMA=true
         systick
         timer
         timer_factory

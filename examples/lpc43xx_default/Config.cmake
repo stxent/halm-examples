@@ -84,7 +84,7 @@ set(TEMPLATES_LIST
         serial
         serial_dma:SERIAL_DMA_TIMER=true
         spi
-        spi_dma
+        spi_dma=spi:SPI_DMA=true
         spim
         systick
         timer

@@ -50,7 +50,7 @@ set(TEMPLATES_LIST
         pwm_bpwm=pwm:PWM_SUFFIX=BPWM
         serial
         spi
-        spi_dma
+        spi_dma=spi:SPI_DMA=true
         spim:SPIM_TIMER=true
         systick
         timer
