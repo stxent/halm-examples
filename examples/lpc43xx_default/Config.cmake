@@ -71,6 +71,7 @@ set(TEMPLATES_LIST
         flash
         i2c
         i2c_slave
+        i2c_test
         i2s_echo
         i2s_tone
         lifetime:EMULATE=true

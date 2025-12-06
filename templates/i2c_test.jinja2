@@ -1,0 +1,102 @@
+/*
+ * {{group.name}}/{{group.alias}}/main.c
+ * Automatically generated file
+ */
+
+#include "board.h"
+#include <halm/delay.h>
+#include <halm/generic/i2c.h>
+#include <halm/timer.h>
+#include <xcore/interface.h>
+#include <xcore/memory.h>
+#include <assert.h>
+/*----------------------------------------------------------------------------*/
+#define DEVICE_ADDRESS  0x60
+#define DEVICE_RATE     400000
+/*----------------------------------------------------------------------------*/
+static void deviceConfigIO(struct Interface *interface, bool zerocopy)
+{
+  [[maybe_unused]] enum Result res;
+
+  res = ifSetParam(interface, IF_ADDRESS, &(uint32_t){DEVICE_ADDRESS});
+  assert(res == E_OK);
+  res = ifSetParam(interface, IF_RATE, &(uint32_t){DEVICE_RATE});
+  assert(res == E_OK);
+  res = ifSetParam(interface, zerocopy ? IF_ZEROCOPY : IF_BLOCKING, NULL);
+  assert(res == E_OK);
+}
+/*----------------------------------------------------------------------------*/
+static bool deviceWrite(struct Interface *interface, uint8_t buffer,
+    bool zerocopy)
+{
+  [[maybe_unused]] enum Result res;
+  uint8_t packet[2] = {0, buffer};
+  size_t count;
+
+  deviceConfigIO(interface, zerocopy);
+  count = ifWrite(interface, packet, sizeof(packet));
+
+  if (count != sizeof(packet))
+    return false;
+
+  if (zerocopy)
+  {
+    udelay(2 * 9 * 1000 * (sizeof(packet) + 1) / (DEVICE_RATE / 1000));
+
+    if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+    {
+      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+      assert(res == E_OK);
+
+      return false;
+    }
+  }
+
+  return true;
+}
+/*----------------------------------------------------------------------------*/
+static void onTimerOverflow(void *argument)
+{
+  *(bool *)argument = true;
+}
+/*----------------------------------------------------------------------------*/
+int main(void)
+{
+  static const bool testZerocopyMode = true;
+
+  uint8_t iteration = 0;
+  bool event = false;
+
+  boardSetupClockPll();
+
+  const struct Pin led = pinInit(BOARD_LED);
+  pinOutput(led, BOARD_LED_INV);
+
+{%- if config.I2C_DMA is defined and config.I2C_DMA %}
+
+  struct Interface * const i2c = boardSetupI2CDma();
+{%- else %}
+
+  struct Interface * const i2c = boardSetupI2C();
+{%- endif %}
+
+  struct Timer * const timer = boardSetupTimer();
+  timerSetOverflow(timer, timerGetFrequency(timer));
+  timerSetCallback(timer, onTimerOverflow, &event);
+  timerEnable(timer);
+
+  while (1)
+  {
+    while (!event)
+      barrier();
+    event = false;
+
+    pinWrite(led, !BOARD_LED_INV);
+    if (deviceWrite(i2c, iteration, testZerocopyMode))
+      pinWrite(led, BOARD_LED_INV);
+
+    ++iteration;
+  }
+
+  return 0;
+}

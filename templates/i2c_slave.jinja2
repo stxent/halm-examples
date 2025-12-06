@@ -18,13 +18,24 @@ int main(void)
   static const uint32_t testDefaultAddress = 0x60;
   static const uint32_t testDefaultOffset = 0;
 
-  bool event = false;
   [[maybe_unused]] enum Result res;
+  struct Pin leds[3] = {pinInit(BOARD_LED_0), pinStub(), pinStub()};
+  bool event = false;
 
   boardSetupClockPll();
 
-  const struct Pin led = pinInit(BOARD_LED);
-  pinOutput(led, BOARD_LED_INV);
+#ifdef BOARD_LED_1
+  leds[1] = pinInit(BOARD_LED_1);
+#endif
+#ifdef BOARD_LED_2
+  leds[2] = pinInit(BOARD_LED_2);
+#endif
+
+  for (size_t i = 0; i < ARRAY_SIZE(leds); ++i)
+  {
+    if (pinValid(leds[i]))
+      pinOutput(leds[i], BOARD_LED_INV);
+  }
 
   struct Interface * const i2c = boardSetupI2CSlave();
   ifSetCallback(i2c, onDeviceMemoryChanged, &event);
@@ -42,7 +53,12 @@ int main(void)
 
     ifSetParam(i2c, IF_POSITION, &testDefaultOffset);
     ifRead(i2c, &state, sizeof(state));
-    pinWrite(led, (state & 1) ? !BOARD_LED_INV : BOARD_LED_INV);
+
+    for (size_t i = 0; i < ARRAY_SIZE(leds); ++i)
+    {
+      if (pinValid(leds[i]))
+        pinWrite(leds[i], (state & (1 << i)) ? !BOARD_LED_INV : BOARD_LED_INV);
+    }
   }
 
   return 0;

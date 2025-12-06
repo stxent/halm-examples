@@ -15,13 +15,14 @@ set(TEMPLATES_LIST
         flash
         i2c
         i2c_dma=i2c:I2C_DMA=true
+        i2c_slave
         pin_int
         pm_sleep
         pwm
         serial
         serial_dma:SERIAL_DMA_TIMER=true
         spi
-        spi_dma
+        spi_dma=spi:SPI_DMA=true
         systick
         timer_mrt=timer:TIMER_SUFFIX=MRT
         timer_sct=timer:TIMER_SUFFIX=SCT

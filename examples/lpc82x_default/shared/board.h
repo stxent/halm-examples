@@ -57,6 +57,7 @@ struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupFlash(void);
 struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupI2CDma(void);
+struct Interface *boardSetupI2CSlave(void);
 struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);

@@ -14,6 +14,7 @@
 #include <halm/platform/lpc/flash.h>
 #include <halm/platform/lpc/i2c.h>
 #include <halm/platform/lpc/i2c_dma.h>
+#include <halm/platform/lpc/i2c_slave.h>
 #include <halm/platform/lpc/mrt.h>
 #include <halm/platform/lpc/pin_int.h>
 #include <halm/platform/lpc/sct_pwm.h>
@@ -218,6 +219,20 @@ struct Interface *boardSetupI2CDma(void)
   };
 
   struct Interface * const interface = init(I2CDma, &i2cDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2CSlave(void)
+{
+  static const struct I2CSlaveConfig i2cSlaveConfig = {
+      .size = 16,
+      .scl = PIN(PORT_0, 10),
+      .sda = PIN(PORT_0, 11),
+      .channel = 0
+  };
+
+  struct Interface * const interface = init(I2CSlave, &i2cSlaveConfig);
   assert(interface != NULL);
   return interface;
 }
