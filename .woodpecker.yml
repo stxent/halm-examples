@@ -58,6 +58,36 @@ steps:
           cd $${BUILD_DIR} && find . -name "*.elf" -exec arm-none-eabi-size {} \; | grep \.elf | sort -k6 | sed "$${SED_PATTERN}" >> ../deploy/$${ARTIFACT_PREFIX}$${BUILD_DIR_SUFFIX}.csv && cd -
         done
 
+  build_risc_deb:
+    image: ${DOCKER_PREFIX}/gcc-riscv-embedded
+    pull: true
+    commands:
+      - cd project
+      - source ./envvars
+      - |
+        for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
+          export BUILD_DIR="build-deb$${BUILD_DIR_SUFFIX}"
+          eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
+          cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Debug $${BUILD_DIR_ARGS}
+          make -C $${BUILD_DIR} -j `nproc`
+        done
+
+  build_risc_rel:
+    image: ${DOCKER_PREFIX}/gcc-riscv-embedded
+    pull: true
+    commands:
+      - cd project
+      - source ./envvars
+      - mkdir -p deploy
+      - |
+        for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
+          export BUILD_DIR="build-rel$${BUILD_DIR_SUFFIX}"
+          eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
+          cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Release $${BUILD_DIR_ARGS}
+          make -C $${BUILD_DIR} -j `nproc`
+          cd $${BUILD_DIR} && find . -name "*.elf" -exec riscv-none-elf-size {} \; | grep \.elf | sort -k6 | sed "$${SED_PATTERN}" >> ../deploy/$${ARTIFACT_PREFIX}$${BUILD_DIR_SUFFIX}.csv && cd -
+        done
+
   deploy_rel:
     image: ${DOCKER_PREFIX}/network-utils
     pull: true
