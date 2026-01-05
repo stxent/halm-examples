@@ -65,7 +65,7 @@ steps:
       - cd project
       - source ./envvars
       - |
-        for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
+        for BUILD_DIR_SUFFIX in "" "_sram" ; do
           export BUILD_DIR="build-deb$${BUILD_DIR_SUFFIX}"
           eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
           cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Debug $${BUILD_DIR_ARGS}
@@ -80,7 +80,7 @@ steps:
       - source ./envvars
       - mkdir -p deploy
       - |
-        for BUILD_DIR_SUFFIX in "" "_nor" "_sram" ; do
+        for BUILD_DIR_SUFFIX in "" "_sram" ; do
           export BUILD_DIR="build-rel$${BUILD_DIR_SUFFIX}"
           eval "export BUILD_DIR_ARGS=\$${CMAKE_ARGS$${BUILD_DIR_SUFFIX}}"
           cmake . -B $${BUILD_DIR} -DCMAKE_BUILD_TYPE=Release $${BUILD_DIR_ARGS}

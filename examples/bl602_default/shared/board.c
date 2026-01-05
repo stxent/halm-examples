@@ -17,6 +17,10 @@ static const struct ExternalOscConfig extOscConfig = {
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
+  static const struct GenericClockConfig flashClockConfigDefault = {
+      .divisor = 1,
+      .source = CLOCK_SYSTEM
+  };
   static const struct GenericClockConfig mainClockConfigExt = {
       .divisor = 1,
       .source = CLOCK_EXTERNAL
@@ -26,10 +30,19 @@ void boardSetupClockExt(void)
   while (!clockReady(ExternalOsc));
 
   clockEnable(MainClock, &mainClockConfigExt);
+  clockEnable(FlashClock, &flashClockConfigDefault);
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
 {
+  static const struct GenericClockConfig flashClockConfigDefault = {
+      .divisor = 1,
+      .source = CLOCK_SYSTEM
+  };
+    static const struct GenericClockConfig flashClockConfigPll = {
+      .divisor = 2,
+      .source = CLOCK_PLL_80MHZ
+  };
   static const struct GenericClockConfig mainClockConfigInt = {
       .divisor = 1,
       .source = CLOCK_INTERNAL
@@ -40,6 +53,7 @@ void boardSetupClockPll(void)
   };
 
   clockEnable(MainClock, &mainClockConfigInt);
+  clockEnable(FlashClock, &flashClockConfigDefault);
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -48,6 +62,7 @@ void boardSetupClockPll(void)
   while (!clockReady(SystemPll));
 
   clockEnable(MainClock, &mainClockConfigPll);
+  clockEnable(MainClock, &flashClockConfigPll);
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)

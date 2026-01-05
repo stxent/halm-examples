@@ -8,20 +8,12 @@ EXTERN(trap_trampoline vector_trampoline vector_table)
 
 MEMORY
 {
-  /* FLASH (rx)   : ORIGIN = 0x21000000, LENGTH = 128K
-  RETRAM (rwx) : ORIGIN = 0x40010000, LENGTH = 4K
-  TCM0 (rwx)   : ORIGIN = 0x42008000, LENGTH = 48K
-  TCM1 (rwx)   : ORIGIN = 0x42014000, LENGTH = 48K
-  RAM (rwx)    : ORIGIN = 0x42020000, LENGTH = 64K
-  WRAM (rwx)   : ORIGIN = 0x42030000, LENGTH = 112K */
-
-  /* RAM as FLASH */
-  FLASH (rx)   : ORIGIN = 0x22020000, LENGTH = 64K
-  /* TCM0 as RAM */
-  RAM (rwx)    : ORIGIN = 0x42008000, LENGTH = 48K
+  /* External Flash or RAM */
+  ROM (rx)    : ORIGIN = ${ROM_ORIGIN}, LENGTH = ${ROM_LENGTH}
+  /* RAM or TCM RAM */
+  RAM (rwx)   : ORIGIN = ${RAM_ORIGIN}, LENGTH = ${RAM_LENGTH}
 
   RETRAM (rwx) : ORIGIN = 0x40010000, LENGTH = 4K
-  TCM1 (rwx)   : ORIGIN = 0x42014000, LENGTH = 48K
   WRAM (rwx)   : ORIGIN = 0x42030000, LENGTH = 112K
 
   CLIC (rw)    : ORIGIN = 0x02000000, LENGTH = 2004K
@@ -48,12 +40,9 @@ SECTIONS
     *(.srodata*)
 
     _etext = .;
+  } >ROM =0xFF
 
-    . = ALIGN(4);
-    _sidata = .;
-  } >FLASH =0xFF
-
-  .data : AT(_sidata) ALIGN(4)
+  .data : ALIGN(4)
   {
     _sdata = .;
 
@@ -63,7 +52,9 @@ SECTIONS
     *(.sdata*)
 
     _edata = .;
-  } >RAM
+  } >RAM AT >ROM
+
+  _sidata = LOADADDR(.data);
 
   .bss : ALIGN(4)
   {
@@ -77,7 +68,7 @@ SECTIONS
 
     _ebss = .;
 
-    . = ALIGN(4);
+    . = ALIGN(8);
     heap_start = .;
   } >RAM
 
