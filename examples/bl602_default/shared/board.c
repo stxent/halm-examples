@@ -9,6 +9,7 @@
 #include <halm/platform/bouffalo/clocking.h>
 #include <halm/platform/bouffalo/gptimer.h>
 #include <halm/platform/bouffalo/serial.h>
+#include <halm/platform/bouffalo/serial_dma.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
@@ -84,6 +85,31 @@ struct Interface *boardSetupSerial(void)
   while (!clockReady(UartClock));
 
   struct Interface * const interface = init(Serial, &serialConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSerialDma(void)
+{
+  static const struct SerialDmaConfig serialDmaConfig = {
+      .rxChunk = BOARD_UART_BUFFER / 4,
+      .rxLength = BOARD_UART_BUFFER,
+      .txLength = BOARD_UART_BUFFER,
+      .rate = 19200,
+      .rx = PIN(0, 7),
+      .tx = PIN(0, 16),
+      .channel = 0,
+      .dma = {0, 1}
+  };
+  static const struct GenericClockConfig uartClockConfig = {
+      .divisor = 1,
+      .source = CLOCK_SYSTEM
+  };
+
+  clockEnable(UartClock, &uartClockConfig);
+  while (!clockReady(UartClock));
+
+  struct Interface * const interface = init(SerialDma, &serialDmaConfig);
   assert(interface != NULL);
   return interface;
 }

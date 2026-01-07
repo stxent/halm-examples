@@ -23,6 +23,7 @@ struct Timer64;
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 struct Interface *boardSetupSerial(void);
+struct Interface *boardSetupSerialDma(void);
 struct Timer *boardSetupTimer(void);
 struct Timer64 *boardSetupTimer64(void);
 /*----------------------------------------------------------------------------*/
