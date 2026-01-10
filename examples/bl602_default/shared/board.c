@@ -10,10 +10,16 @@
 #include <halm/platform/bouffalo/gptimer.h>
 #include <halm/platform/bouffalo/serial.h>
 #include <halm/platform/bouffalo/serial_dma.h>
+#include <halm/platform/bouffalo/spi.h>
+#include <halm/platform/bouffalo/spi_dma.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 40000000
+};
+
+static const struct DividedClockConfig socClockConfig = {
+    .divisor = 1
 };
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
@@ -32,6 +38,7 @@ void boardSetupClockExt(void)
 
   clockEnable(MainClock, &mainClockConfigExt);
   clockEnable(FlashClock, &flashClockConfigDefault);
+  clockEnable(SocClock, &socClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
@@ -63,7 +70,8 @@ void boardSetupClockPll(void)
   while (!clockReady(SystemPll));
 
   clockEnable(MainClock, &mainClockConfigPll);
-  clockEnable(MainClock, &flashClockConfigPll);
+  clockEnable(FlashClock, &flashClockConfigPll);
+  clockEnable(SocClock, &socClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)
@@ -110,6 +118,51 @@ struct Interface *boardSetupSerialDma(void)
   while (!clockReady(UartClock));
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSpi(void)
+{
+  static const struct SpiConfig spiConfig = {
+      .rate = 2000000,
+      .miso = PIN(0, 4),
+      .mosi = PIN(0, 5),
+      .sck = PIN(0, 7),
+      .channel = 0,
+      .mode = 3
+  };
+  static const struct DividedClockConfig spiClockConfig = {
+      .divisor = 4
+  };
+
+  clockEnable(SpiClock, &spiClockConfig);
+  while (!clockReady(SpiClock));
+
+  struct Interface * const interface = init(Spi, &spiConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupSpiDma(void)
+{
+  static const struct SpiDmaConfig spiConfig = {
+      .rate = 2000000,
+      .miso = PIN(0, 4),
+      .mosi = PIN(0, 5),
+      .sck = PIN(0, 7),
+      .channel = 0,
+      .mode = 3,
+      .dma = {2, 3}
+  };
+  static const struct DividedClockConfig spiClockConfig = {
+      .divisor = 4
+  };
+
+  clockEnable(SpiClock, &spiClockConfig);
+  while (!clockReady(SpiClock));
+
+  struct Interface * const interface = init(SpiDma, &spiConfig);
   assert(interface != NULL);
   return interface;
 }

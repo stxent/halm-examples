@@ -14,6 +14,7 @@
 #define BOARD_LED_2       PIN(0, 5)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false
+#define BOARD_SPI_CS      PIN(0, 16)
 #define BOARD_UART_BUFFER 128
 /*----------------------------------------------------------------------------*/
 struct Interface;
@@ -24,6 +25,8 @@ void boardSetupClockExt(void);
 void boardSetupClockPll(void);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);
+struct Interface *boardSetupSpi(void);
+struct Interface *boardSetupSpiDma(void);
 struct Timer *boardSetupTimer(void);
 struct Timer64 *boardSetupTimer64(void);
 /*----------------------------------------------------------------------------*/

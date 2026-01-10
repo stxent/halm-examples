@@ -40,6 +40,8 @@ set(TEMPLATES_LIST
         machine_timer
         serial
         serial_dma
+        spi
+        spi_dma=spi:SPI_DMA=true
         timer
         timer_factory
         work_queue
