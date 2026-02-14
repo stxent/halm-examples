@@ -7,6 +7,7 @@
 #include "board.h"
 #include <halm/platform/numicro/adc.h>
 #include <halm/platform/numicro/adc_dma.h>
+#include <halm/platform/numicro/bod.h>
 #include <halm/platform/numicro/bpwm.h>
 #include <halm/platform/numicro/clocking.h>
 #include <halm/platform/numicro/flash.h>
@@ -148,6 +149,20 @@ struct Timer *boardSetupAdcTimer(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
+struct Interrupt *boardSetupBod(void)
+{
+  static const struct BodConfig bodConfig = {
+      .event = INPUT_FALLING,
+      .level = BOD_LEVEL_2V5,
+      .timeout = BOD_TIMEOUT_HCLK_64,
+      .slow = true
+  };
+
+  struct Interrupt * const interrupt = init(Bod, &bodConfig);
+  assert(interrupt != NULL);
+  return interrupt;
+}
+/*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupButton(void)
 {
   static const struct PinIntConfig buttonIntConfig = {
@@ -165,6 +180,28 @@ struct Interface *boardSetupFlash(void)
 {
   static const struct FlashConfig flashConfig = {
       .bank = FLASH_APROM
+  };
+
+  struct Interface * const interface = init(Flash, &flashConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupFlashLDROM(void)
+{
+  static const struct FlashConfig flashConfig = {
+      .bank = FLASH_LDROM
+  };
+
+  struct Interface * const interface = init(Flash, &flashConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupFlashSPROM(void)
+{
+  static const struct FlashConfig flashConfig = {
+      .bank = FLASH_SPROM
   };
 
   struct Interface * const interface = init(Flash, &flashConfig);

@@ -10,7 +10,10 @@ set(PLATFORM "M03X")
 set(TEMPLATES_LIST
         adc:ADC_CALIBRATE=true
         adc_dma:ADC_CALIBRATE=true
+        bod
         flash
+        flash_ldrom=flash:FLASH_SUFFIX=LDROM
+        flash_sprom=flash:FLASH_SUFFIX=SPROM,FLASH_BUFFER=512
         i2c
         pin_int
         pm_sleep

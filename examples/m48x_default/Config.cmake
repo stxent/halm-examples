@@ -41,9 +41,12 @@ endif()
 set(TEMPLATES_LIST
         adc
         adc_dma
+        bod
         can
         dma_memcopy
         flash
+        flash_ldrom=flash:FLASH_SUFFIX=LDROM
+        flash_sprom=flash:FLASH_SUFFIX=SPROM
         i2c
         mmcsd
         pin_int

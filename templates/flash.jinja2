@@ -8,12 +8,18 @@
 #include <assert.h>
 #include <string.h>
 /*----------------------------------------------------------------------------*/
-#define BUFFER_SIZE 2048
+{%- if config.FLASH_BUFFER is defined %}
+#define BUFFER_LENGTH {{config.FLASH_BUFFER}}
+{%- else %}
+#define BUFFER_LENGTH 2048
+{%- endif %}
 
 extern unsigned long _stext;
 extern unsigned long _sidata;
 extern unsigned long _sdata;
 extern unsigned long _edata;
+
+{%- if config.FLASH_SUFFIX is not defined %}
 /*----------------------------------------------------------------------------*/
 static uint32_t findNearestRegion(const struct Interface *interface)
 {
@@ -33,6 +39,7 @@ static uint32_t findNearestRegion(const struct Interface *interface)
 
   return (address & ~(region->size - 1)) + region->size;
 }
+{%- endif %}
 /*----------------------------------------------------------------------------*/
 static uint32_t findRegionSize(const struct Interface *interface,
     uint32_t address)
@@ -100,8 +107,12 @@ static bool verify(struct Interface *interface, uint32_t address,
 bool memoryTestSequence(struct Interface *interface, int paramSize,
     int paramErase)
 {
+{%- if config.FLASH_SUFFIX is defined %}
+  const uint32_t address = 0;
+{%- else %}
   const uint32_t address = findNearestRegion(interface);
-  size_t size = BUFFER_SIZE;
+{%- endif %}
+  size_t size = BUFFER_LENGTH;
 
   uint32_t capacity;
   uint32_t chunk;
@@ -141,7 +152,13 @@ int main(void)
   const struct Pin led = pinInit(BOARD_LED);
   pinOutput(led, BOARD_LED_INV);
 
+{%- if config.FLASH_SUFFIX is defined %}
+
+  struct Interface * const flash = boardSetupFlash{{config.FLASH_SUFFIX}}();
+{%- else %}
+
   struct Interface * const flash = boardSetupFlash();
+{%- endif %}
 
   /* Test page erase */
   if (!memoryTestSequence(flash, IF_FLASH_PAGE_SIZE, IF_FLASH_ERASE_PAGE))

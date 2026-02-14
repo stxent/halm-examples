@@ -5,6 +5,7 @@
  */
 
 #include "board.h"
+#include <halm/platform/numicro/bod.h>
 #include <halm/platform/numicro/bpwm.h>
 #include <halm/platform/numicro/can.h>
 #include <halm/platform/numicro/clocking.h>
@@ -52,13 +53,11 @@ static const struct DividedClockConfig adcClockConfig = {
     .divisor = 2
 };
 
-static const struct ExtendedClockConfig bpwmClockConfig = {
-    .divisor = 1,
+static const struct GenericClockConfig pwmClockConfig = {
     .source = CLOCK_APB
 };
 
-static const struct ExtendedClockConfig qspiClockConfig = {
-    .divisor = 1,
+static const struct GenericClockConfig qspiClockConfig = {
     .source = CLOCK_APB
 };
 
@@ -66,8 +65,7 @@ static const struct GenericClockConfig sdhClockConfig = {
     .source = CLOCK_EXTERNAL
 };
 
-static const struct ExtendedClockConfig spiClockConfig = {
-    .divisor = 1,
+static const struct GenericClockConfig spiClockConfig = {
     .source = CLOCK_APB
 };
 
@@ -185,6 +183,20 @@ struct Timer *boardSetupAdcTimer(void)
   return timer;
 }
 /*----------------------------------------------------------------------------*/
+struct Interrupt *boardSetupBod(void)
+{
+  static const struct BodConfig bodConfig = {
+      .event = INPUT_FALLING,
+      .level = BOD_LEVEL_3V0,
+      .timeout = BOD_TIMEOUT_HCLK_4,
+      .slow = true
+  };
+
+  struct Interrupt * const interrupt = init(Bod, &bodConfig);
+  assert(interrupt != NULL);
+  return interrupt;
+}
+/*----------------------------------------------------------------------------*/
 struct Interrupt *boardSetupButton(void)
 {
   static const struct PinIntConfig buttonIntConfig = {
@@ -226,6 +238,28 @@ struct Interface *boardSetupFlash(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
+struct Interface *boardSetupFlashLDROM(void)
+{
+  static const struct FlashConfig flashConfig = {
+      .bank = FLASH_LDROM
+  };
+
+  struct Interface * const interface = init(Flash, &flashConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupFlashSPROM(void)
+{
+  static const struct FlashConfig flashConfig = {
+      .bank = FLASH_SPROM
+  };
+
+  struct Interface * const interface = init(Flash, &flashConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C(void)
 {
   static const struct I2CConfig i2cConfig = {
@@ -242,7 +276,7 @@ struct Interface *boardSetupI2C(void)
 /*----------------------------------------------------------------------------*/
 struct PwmPackage boardSetupPwmBPWM(bool centered)
 {
-  const struct BpwmUnitConfig bpwmTimerConfig = {
+  const struct BpwmUnitConfig pwmTimerConfig = {
       .frequency = 1000000,
       .resolution = 20000,
       .channel = 0,
@@ -250,10 +284,10 @@ struct PwmPackage boardSetupPwmBPWM(bool centered)
   };
   const bool inversion = centered;
 
-  clockEnable(bpwmTimerConfig.channel ? Bpwm1Clock : Bpwm0Clock,
-      &bpwmClockConfig);
+  clockEnable(pwmTimerConfig.channel ? Bpwm1Clock : Bpwm0Clock,
+      &pwmClockConfig);
 
-  struct BpwmUnit * const timer = init(BpwmUnit, &bpwmTimerConfig);
+  struct BpwmUnit * const timer = init(BpwmUnit, &pwmTimerConfig);
   assert(timer != NULL);
 
   struct Pwm * const pwm0 = bpwmCreate(timer, BOARD_BPWM_0, inversion);
