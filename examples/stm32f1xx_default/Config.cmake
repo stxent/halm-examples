@@ -16,6 +16,7 @@ set(TEMPLATES_LIST
         mmcsd_spi
         pin_int
         pm_sleep
+        pwm
         serial
         serial_dma
         spi

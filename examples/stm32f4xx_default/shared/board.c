@@ -11,7 +11,9 @@
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
 #include <halm/platform/stm32/gptimer.h>
+#include <halm/platform/stm32/gptimer_pwm.h>
 #include <halm/platform/stm32/i2c.h>
+#include <halm/platform/stm32/i2s_dma.h>
 #include <halm/platform/stm32/iwdg.h>
 #include <halm/platform/stm32/sdio.h>
 #include <halm/platform/stm32/serial.h>
@@ -207,6 +209,75 @@ struct Interface *boardSetupI2C2(void)
   struct Interface * const interface = init(I2C, &i2cConfig);
   assert(interface != NULL);
   return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct StreamPackage boardSetupI2S(void)
+{
+  static const struct AudioPllConfig audioPllConfig = {
+      .divisor = 2,
+      .multiplier = 48,
+      .source = CLOCK_EXTERNAL
+  };
+  const struct I2SDmaConfig i2sConfig = {
+      .depth = 96,
+      .size = 5,
+      .rate = 48000,
+      .width = I2S_WIDTH_16,
+      .tx = {
+          .sd = PIN(PORT_C, 3),
+          .dma = DMA1_STREAM4
+      },
+      .rx = {
+          .sd = PIN(PORT_C, 2),
+          .dma = DMA1_STREAM3
+      },
+      .mck = 0,
+      .sck = PIN(PORT_B, 10),
+      .ws = PIN(PORT_B, 12),
+      .channel = SPI2,
+      .slave = false
+  };
+
+  clockEnable(AudioPll, &audioPllConfig);
+  while (!clockReady(AudioPll));
+
+  struct I2SDma * const interface = init(I2SDma, &i2sConfig);
+  assert(interface != NULL);
+
+  struct Stream * const rxStream = i2sDmaGetInput(interface);
+  assert(rxStream != NULL);
+  struct Stream * const txStream = i2sDmaGetOutput(interface);
+  assert(txStream != NULL);
+
+  return (struct StreamPackage){
+      (struct Interface *)interface,
+      rxStream,
+      txStream
+  };
+}
+/*----------------------------------------------------------------------------*/
+struct PwmPackage boardSetupPwm(bool)
+{
+  static const struct GpTimerPwmUnitConfig pwmTimerConfig = {
+      .frequency = 1000000,
+      .resolution = 20000,
+      .channel = TIM3
+  };
+  const bool inversion = false;
+
+  struct GpTimerPwmUnit * const timer = init(GpTimerPwmUnit, &pwmTimerConfig);
+  assert(timer != NULL);
+
+  struct Pwm * const pwm0 = gpTimerPwmCreate(timer, BOARD_PWM_0, inversion);
+  assert(pwm0 != NULL);
+  struct Pwm * const pwm1 = gpTimerPwmCreate(timer, BOARD_PWM_1, inversion);
+  assert(pwm1 != NULL);
+
+  return (struct PwmPackage){
+      (struct Timer *)timer,
+      pwm0,
+      {pwm0, pwm1, NULL}
+  };
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSdio(bool wide, struct Timer *timer)

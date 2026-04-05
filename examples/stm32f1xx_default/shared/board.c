@@ -11,6 +11,7 @@
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
 #include <halm/platform/stm32/gptimer.h>
+#include <halm/platform/stm32/gptimer_pwm.h>
 #include <halm/platform/stm32/i2c.h>
 #include <halm/platform/stm32/iwdg.h>
 #include <halm/platform/stm32/serial.h>
@@ -185,6 +186,30 @@ struct Interface *boardSetupI2C(void)
   struct Interface * const interface = init(I2C, &i2cConfig);
   assert(interface != NULL);
   return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct PwmPackage boardSetupPwm(bool)
+{
+  static const struct GpTimerPwmUnitConfig pwmTimerConfig = {
+      .frequency = 1000000,
+      .resolution = 20000,
+      .channel = TIM3
+  };
+  const bool inversion = false;
+
+  struct GpTimerPwmUnit * const timer = init(GpTimerPwmUnit, &pwmTimerConfig);
+  assert(timer != NULL);
+
+  struct Pwm * const pwm0 = gpTimerPwmCreate(timer, BOARD_PWM_0, inversion);
+  assert(pwm0 != NULL);
+  struct Pwm * const pwm1 = gpTimerPwmCreate(timer, BOARD_PWM_1, inversion);
+  assert(pwm1 != NULL);
+
+  return (struct PwmPackage){
+      (struct Timer *)timer,
+      pwm0,
+      {pwm0, pwm1, NULL}
+  };
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)

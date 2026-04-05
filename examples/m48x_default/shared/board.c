@@ -282,7 +282,7 @@ struct PwmPackage boardSetupPwmBPWM(bool centered)
       .channel = 0,
       .centered = centered
   };
-  const bool inversion = centered;
+  const bool inversion = false;
 
   clockEnable(pwmTimerConfig.channel ? Bpwm1Clock : Bpwm0Clock,
       &pwmClockConfig);

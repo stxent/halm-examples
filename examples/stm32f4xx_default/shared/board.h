@@ -18,6 +18,9 @@
 #define BOARD_LED_2       PIN(PORT_E, 7)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false
+#define BOARD_PWM_0       PIN(PORT_B, 0)
+#define BOARD_PWM_1       PIN(PORT_B, 1)
+#define BOARD_PWM         BOARD_PWM_0
 #define BOARD_SPI_CS      PIN(PORT_B, 12)
 #define BOARD_SDIO_CS     BOARD_SPI_CS
 #define BOARD_UART_BUFFER 128
@@ -27,6 +30,9 @@
 #define BOARD_USB_CDC_TX  0x82
 #define BOARD_USB_MSC_RX  0x01
 #define BOARD_USB_MSC_TX  0x81
+#define BOARD_USB_UAC_FB  0x02
+#define BOARD_USB_UAC_RX  0x01
+#define BOARD_USB_UAC_TX  0x81
 
 #define BOARD_MEMCOPY_CH  DMA1_STREAM0
 
@@ -35,9 +41,24 @@ DEFINE_WQ_IRQ(WQ_LP)
 struct Entity;
 struct Interface;
 struct Interrupt;
+struct Pwm;
 struct Timer;
 struct Usb;
 struct Watchdog;
+
+struct PwmPackage
+{
+  struct Timer *timer;
+  struct Pwm *output;
+  struct Pwm *outputs[3];
+};
+
+struct StreamPackage
+{
+  struct Interface *interface;
+  struct Stream *rx;
+  struct Stream *tx;
+};
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
 void boardSetAdcTimerRate(struct Timer *, size_t, unsigned int);
@@ -52,6 +73,8 @@ struct Interface *boardSetupCan(struct Timer *);
 struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupI2C1(void);
 struct Interface *boardSetupI2C2(void);
+struct StreamPackage boardSetupI2S(void);
+struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSdio(bool, struct Timer *);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);

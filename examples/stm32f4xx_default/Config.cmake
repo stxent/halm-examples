@@ -13,9 +13,12 @@ set(TEMPLATES_LIST
         can
         dma_memcopy
         i2c
+        i2s_echo
+        i2s_tone
         mmcsd
         pin_int
         pm_sleep
+        pwm
         serial
         serial_dma
         spi
@@ -23,6 +26,7 @@ set(TEMPLATES_LIST
         timer
         usb_cdc
         usb_msc
+        usb_uac
         wdt
         work_queue
         work_queue_unique

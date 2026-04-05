@@ -18,6 +18,9 @@
 #define BOARD_LED_2       PIN(PORT_C, 15)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     true
+#define BOARD_PWM_0       PIN(PORT_B, 0)
+#define BOARD_PWM_1       PIN(PORT_B, 1)
+#define BOARD_PWM         BOARD_PWM_0
 #define BOARD_SPI_CS      PIN(PORT_A, 4)
 #define BOARD_SDIO_CS     BOARD_SPI_CS
 #define BOARD_UART_BUFFER 128
@@ -33,9 +36,17 @@ DEFINE_WQ_IRQ(WQ_LP)
 struct Entity;
 struct Interface;
 struct Interrupt;
+struct Pwm;
 struct Timer;
 struct Usb;
 struct Watchdog;
+
+struct PwmPackage
+{
+  struct Timer *timer;
+  struct Pwm *output;
+  struct Pwm *outputs[3];
+};
 /*----------------------------------------------------------------------------*/
 size_t boardGetAdcPinCount(void);
 void boardSetAdcTimerRate(struct Timer *, size_t, unsigned int);
@@ -48,6 +59,7 @@ struct Timer *boardSetupAdcTimer(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupCan(struct Timer *);
 struct Interface *boardSetupI2C(void);
+struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);
 struct Interface *boardSetupSpi(void);

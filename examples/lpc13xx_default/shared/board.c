@@ -201,13 +201,14 @@ struct PwmPackage boardSetupPwm(bool)
       .resolution = 20000,
       .channel = GPTIMER_CT16B1
   };
+  const bool inversion = false;
 
   struct GpTimerPwmUnit * const timer = init(GpTimerPwmUnit, &pwmTimerConfig);
   assert(timer != NULL);
 
-  struct Pwm * const pwm0 = gpTimerPwmCreate(timer, BOARD_PWM_0, false);
+  struct Pwm * const pwm0 = gpTimerPwmCreate(timer, BOARD_PWM_0, inversion);
   assert(pwm0 != NULL);
-  struct Pwm * const pwm1 = gpTimerPwmCreate(timer, BOARD_PWM_1, false);
+  struct Pwm * const pwm1 = gpTimerPwmCreate(timer, BOARD_PWM_1, inversion);
   assert(pwm1 != NULL);
 
   return (struct PwmPackage){

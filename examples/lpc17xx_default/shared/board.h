@@ -19,9 +19,9 @@
 #define BOARD_LED_2       PIN(1, 8)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false
-#define BOARD_PWM_0       PIN(1, 23)
+#define BOARD_PWM_0       PIN(1, 18)
 #define BOARD_PWM_1       PIN(1, 24)
-#define BOARD_PWM_2       PIN(1, 20)
+#define BOARD_PWM_2       PIN(1, 23)
 #define BOARD_PWM         BOARD_PWM_0
 #define BOARD_SPI0_CS0    PIN(0, 22)
 #define BOARD_SPI1_CS0    PIN(0, 6)
