@@ -24,7 +24,6 @@
 
 #define BOARD_MEMCOPY_CH  15
 /*----------------------------------------------------------------------------*/
-struct Entity;
 struct Interface;
 struct Timer;
 struct Timer64;

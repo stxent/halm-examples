@@ -23,12 +23,17 @@
 #define BOARD_PWM_1       PIN(1, 24)
 #define BOARD_PWM_2       PIN(1, 23)
 #define BOARD_PWM         BOARD_PWM_0
+#define BOARD_UART_BUFFER 128
+
+/* Chip Select on the SDMMC slot */
 #define BOARD_SPI0_CS0    PIN(0, 22)
+/* Chip Select on the SPI connector */
 #define BOARD_SPI1_CS0    PIN(0, 6)
+/* Chip Select for the Touch Sensor */
 #define BOARD_SPI1_CS1    PIN(1, 15)
+
 #define BOARD_SDIO_CS     BOARD_SPI0_CS0
 #define BOARD_SPI_CS      BOARD_SPI1_CS0
-#define BOARD_UART_BUFFER 128
 
 #define BOARD_USB_CDC_INT 0x81
 #define BOARD_USB_CDC_RX  0x02
@@ -45,7 +50,6 @@ DEFINE_WQ_IRQ(WQ_LP)
 /*----------------------------------------------------------------------------*/
 struct Capture;
 struct ClockClass;
-struct Entity;
 struct Interface;
 struct Interrupt;
 struct Pwm;

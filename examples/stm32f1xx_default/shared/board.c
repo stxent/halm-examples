@@ -10,6 +10,7 @@
 #include <halm/platform/stm32/can.h>
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
+#include <halm/platform/stm32/flash.h>
 #include <halm/platform/stm32/gptimer.h>
 #include <halm/platform/stm32/gptimer_pwm.h>
 #include <halm/platform/stm32/i2c.h>
@@ -168,6 +169,13 @@ struct Interface *boardSetupCan(struct Timer *timer)
   };
 
   struct Interface * const interface = init(Can, &canConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupFlash(void)
+{
+  struct Interface * const interface = init(Flash, NULL);
   assert(interface != NULL);
   return interface;
 }

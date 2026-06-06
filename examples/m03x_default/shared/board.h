@@ -27,7 +27,6 @@
 #define BOARD_USB_CDC_RX  0x02
 #define BOARD_USB_CDC_TX  0x82
 /*----------------------------------------------------------------------------*/
-struct Entity;
 struct Interface;
 struct Interrupt;
 struct Pwm;

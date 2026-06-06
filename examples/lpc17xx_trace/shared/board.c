@@ -142,23 +142,6 @@ struct Interface *boardSetupSpi0(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSpi1(void)
-{
-  static const struct SpiDmaConfig spiDmaConfig = {
-      .rate = 2000000,
-      .miso = PIN(0, 8),
-      .mosi = PIN(0, 9),
-      .sck = PIN(0, 7),
-      .channel = 1,
-      .mode = 3,
-      .dma = {0, 1}
-  };
-
-  struct Interface * const interface = init(SpiDma, &spiDmaConfig);
-  assert(interface != NULL);
-  return interface;
-}
-/*----------------------------------------------------------------------------*/
 struct Timer *boardSetupTimer0(void)
 {
   static const struct GpTimerConfig timerConfig = {

@@ -20,7 +20,6 @@
 #define BOARD_USB_CDC_RX  0x02
 #define BOARD_USB_CDC_TX  0x83
 /*----------------------------------------------------------------------------*/
-struct Entity;
 struct Interface;
 struct Timer;
 struct Usb;

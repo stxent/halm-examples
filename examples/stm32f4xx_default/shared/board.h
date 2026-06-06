@@ -14,16 +14,21 @@
 #define BOARD_BUTTON      PIN(PORT_A, 0)
 #define BOARD_BUTTON_INV  true
 #define BOARD_LED_0       PIN(PORT_C, 13)
-#define BOARD_LED_1       PIN(PORT_C, 15)
-#define BOARD_LED_2       PIN(PORT_E, 7)
+#define BOARD_LED_1       PIN(PORT_B, 2)
+#define BOARD_LED_2       PIN(PORT_A, 15)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false
-#define BOARD_PWM_0       PIN(PORT_B, 0)
-#define BOARD_PWM_1       PIN(PORT_B, 1)
+#define BOARD_PWM_0       PIN(PORT_A, 6)
+#define BOARD_PWM_1       PIN(PORT_B, 5)
 #define BOARD_PWM         BOARD_PWM_0
-#define BOARD_SPI_CS      PIN(PORT_B, 12)
-#define BOARD_SDIO_CS     BOARD_SPI_CS
+#define BOARD_SPI_CS_0    PIN(PORT_A, 3)
+#define BOARD_SPI_CS_1    PIN(PORT_B, 12)
+#define BOARD_SPI_CS_2    PIN(PORT_A, 4)
 #define BOARD_UART_BUFFER 128
+
+#define BOARD_MEM_CS      BOARD_SPI_CS_2
+#define BOARD_SDIO_CS     BOARD_SPI_CS_0
+#define BOARD_SPI_CS      BOARD_SPI_CS_0
 
 #define BOARD_USB_CDC_INT 0x81
 #define BOARD_USB_CDC_RX  0x02
@@ -38,7 +43,6 @@
 
 DEFINE_WQ_IRQ(WQ_LP)
 /*----------------------------------------------------------------------------*/
-struct Entity;
 struct Interface;
 struct Interrupt;
 struct Pwm;
@@ -70,6 +74,7 @@ struct Interface *boardSetupAdcDma(void);
 struct Timer *boardSetupAdcTimer(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupCan(struct Timer *);
+struct Interface *boardSetupFlash(void);
 struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupI2C1(void);
 struct Interface *boardSetupI2C2(void);

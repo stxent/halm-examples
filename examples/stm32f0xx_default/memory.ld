@@ -11,6 +11,7 @@ MEMORY
   FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 64K
   RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 8K
 
+  OB (rw)    : ORIGIN = 0x1FFFF7AC, LENGTH = 100
   APB (rw)   : ORIGIN = 0x40000000, LENGTH = 32K
   AHB1 (rw)  : ORIGIN = 0x40020000, LENGTH = 17K
   AHB2 (rw)  : ORIGIN = 0x48000000, LENGTH = 6K
@@ -57,6 +58,11 @@ SECTIONS
     . = ALIGN(4);
     heap_start = .;
   } >RAM
+
+  .ob :
+  {
+    OB_DOMAIN = .;
+  } >OB
 
   .apb :
   {

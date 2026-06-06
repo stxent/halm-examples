@@ -30,13 +30,18 @@
 #define BOARD_PWM_4       PIN(PORT_7, 4)
 #define BOARD_PWM_5       PIN(PORT_7, 0)
 #define BOARD_PWM         BOARD_PWM_0
-#define BOARD_SPI0_CS0    PIN(PORT_1, 0)
-#define BOARD_SPI0_CS1    PIN(PORT_5, 0)
-#define BOARD_SPI1_CS0    PIN(PORT_1, 5)
-#define BOARD_SPI_CS      PIN(PORT_5, 0)
 #define BOARD_USB0_IND0   PIN(PORT_6, 8)
 #define BOARD_USB0_IND1   PIN(PORT_6, 7)
 #define BOARD_UART_BUFFER 512
+
+/* Chip Select on the SPI connector for SPI0 */
+#define BOARD_SPI0_CS0    PIN(PORT_1, 0)
+/* Chip Select for the Touch Sensor (SPI0) */
+#define BOARD_SPI0_CS1    PIN(PORT_5, 0)
+/* Chip Select on the SPI connector for SPI1 */
+#define BOARD_SPI1_CS0    PIN(PORT_1, 5)
+
+#define BOARD_SPI_CS      BOARD_SPI0_CS0
 
 #define BOARD_USB_IND0    BOARD_USB0_IND0
 #define BOARD_USB_IND1    BOARD_USB0_IND1
@@ -53,7 +58,6 @@
 /*----------------------------------------------------------------------------*/
 struct Capture;
 struct ClockClass;
-struct Entity;
 struct Interface;
 struct Interrupt;
 struct Pwm;

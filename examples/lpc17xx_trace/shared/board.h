@@ -16,10 +16,7 @@
 #define BOARD_LED_2       PIN(1, 8)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false
-#define BOARD_SPI0_CS0    PIN(0, 22)
-#define BOARD_SPI1_CS0    PIN(0, 6)
-#define BOARD_SPI1_CS1    PIN(1, 15)
-#define BOARD_SDIO_CS     BOARD_SPI0_CS0
+#define BOARD_SDIO_CS     PIN(0, 22)
 #define BOARD_UART_BUFFER 8192
 
 #define BOARD_USB_CDC_INT 0x81
@@ -30,7 +27,6 @@
 
 DEFINE_WQ_IRQ(WQ_LP)
 /*----------------------------------------------------------------------------*/
-struct Entity;
 struct Interface;
 struct Timer;
 struct Usb;

@@ -10,6 +10,7 @@
 #include <halm/platform/stm32/can.h>
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
+#include <halm/platform/stm32/flash.h>
 #include <halm/platform/stm32/gptimer.h>
 #include <halm/platform/stm32/gptimer_pwm.h>
 #include <halm/platform/stm32/i2c.h>
@@ -32,14 +33,14 @@
 [[gnu::alias("boardSetupSpi2")]] struct Interface *boardSetupSpiSdio(void);
 /*----------------------------------------------------------------------------*/
 const PinNumber adcPinArray[] = {
-    PIN(PORT_A, 0),
-    PIN(PORT_C, 0),
-    PIN(PORT_C, 5),
+    PIN(PORT_A, 1),
+    PIN(PORT_B, 0),
+    PIN(PORT_B, 1),
     0
 };
 
 static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 8000000
+    .frequency = 25000000
 };
 
 static const struct MainClockConfig mainClockConfig = {
@@ -87,8 +88,8 @@ void boardSetupClockPll(void)
       .divisor = 4
   };
   static const struct MainPllConfig mainPllConfig = {
-      .divisor = 2,
-      .multiplier = 42,
+      .divisor = 4,
+      .multiplier = 16,
       .source = CLOCK_EXTERNAL
   };
   static const struct SystemClockConfig systemClockConfigPll = {
@@ -179,6 +180,17 @@ struct Interface *boardSetupCan(struct Timer *timer)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
+struct Interface *boardSetupFlash(void)
+{
+  static const struct FlashConfig flashConfig = {
+      .voltage = VR_2V7_3V6
+  };
+
+  struct Interface * const interface = init(Flash, &flashConfig);
+  assert(interface != NULL);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C1(void)
 {
   static const struct I2CConfig i2cConfig = {
@@ -200,7 +212,7 @@ struct Interface *boardSetupI2C2(void)
   static const struct I2CConfig i2cConfig = {
       .rate = 100000,
       .scl = PIN(PORT_B, 10),
-      .sda = PIN(PORT_B, 11),
+      .sda = PIN(PORT_B, 3),
       .channel = I2C2,
       .rxDma = DMA1_STREAM2,
       .txDma = DMA1_STREAM7
@@ -215,7 +227,7 @@ struct StreamPackage boardSetupI2S(void)
 {
   static const struct AudioPllConfig audioPllConfig = {
       .divisor = 2,
-      .multiplier = 48,
+      .multiplier = 16,
       .source = CLOCK_EXTERNAL
   };
   const struct I2SDmaConfig i2sConfig = {
@@ -353,7 +365,7 @@ struct Interface *boardSetupSpi1(void)
 {
   static const struct SpiConfig spiConfig = {
       .rate = 2000000,
-      .miso = PIN(PORT_A, 6),
+      .miso = PIN(PORT_B, 4),
       .mosi = PIN(PORT_A, 7),
       .sck = PIN(PORT_A, 5),
       .channel = SPI1,

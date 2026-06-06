@@ -30,7 +30,6 @@
 /*----------------------------------------------------------------------------*/
 struct Capture;
 struct ClockClass;
-struct Entity;
 struct Interface;
 struct Interrupt;
 struct Pwm;

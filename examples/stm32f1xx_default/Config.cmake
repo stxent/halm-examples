@@ -12,6 +12,7 @@ set(TEMPLATES_LIST
         adc_dma
         can
         dma_memcopy
+        flash
         i2c
         mmcsd_spi
         pin_int

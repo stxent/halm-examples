@@ -23,8 +23,8 @@
 #define BOARD_LED_2       PIN(PORT_H, 2)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     true
+#define BOARD_MEM_CS      PIN(PORT_C, 3)
 #define BOARD_SPI_CS      PIN(PORT_C, 9)
-#define BOARD_QSPI_CS     PIN(PORT_C, 3)
 #define BOARD_UART_BUFFER 512
 
 #define BOARD_USB_CDC_INT 0x81
@@ -35,7 +35,6 @@
 
 #define BOARD_MEMCOPY_CH  DMA0_CHANNEL15
 /*----------------------------------------------------------------------------*/
-struct Entity;
 struct Interface;
 struct Interrupt;
 struct Pwm;

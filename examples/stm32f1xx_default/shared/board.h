@@ -22,7 +22,6 @@
 #define BOARD_PWM_1       PIN(PORT_B, 1)
 #define BOARD_PWM         BOARD_PWM_0
 #define BOARD_SPI_CS      PIN(PORT_A, 4)
-#define BOARD_SDIO_CS     BOARD_SPI_CS
 #define BOARD_UART_BUFFER 128
 
 #define BOARD_USB_CDC_INT 0x81
@@ -33,7 +32,6 @@
 
 DEFINE_WQ_IRQ(WQ_LP)
 /*----------------------------------------------------------------------------*/
-struct Entity;
 struct Interface;
 struct Interrupt;
 struct Pwm;
@@ -58,6 +56,7 @@ struct Interface *boardSetupAdcDma(void);
 struct Timer *boardSetupAdcTimer(void);
 struct Interrupt *boardSetupButton(void);
 struct Interface *boardSetupCan(struct Timer *);
+struct Interface *boardSetupFlash(void);
 struct Interface *boardSetupI2C(void);
 struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSerial(void);

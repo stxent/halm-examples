@@ -8,15 +8,19 @@ EXTERN(vector_table)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 1024K
+  /* Internal flash, Local SRAM or External SRAM */
+  ROM (rx)   : ORIGIN = ${ROM_ORIGIN}, LENGTH = ${ROM_LENGTH}
+  /* Local SRAM */
   RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 128K
 
+  OB (rw)    : ORIGIN = 0x1FFEC000, LENGTH = 65K
   APB1 (rw)  : ORIGIN = 0x40000000, LENGTH = 30K
   APB2 (rw)  : ORIGIN = 0x40010000, LENGTH = 19K
   AHB1 (rw)  : ORIGIN = 0x40020000, LENGTH = 384K
   AHB2 (rw)  : ORIGIN = 0x50000000, LENGTH = 387K
   AHB3 (rw)  : ORIGIN = 0xA0000000, LENGTH = 4K
-  PPB (rw)   : ORIGIN = 0xE0000000, LENGTH = 1M
+  PPB (rw)   : ORIGIN = 0xE0000000, LENGTH = 256K
+  DBG (rw)   : ORIGIN = 0xE0042000, LENGTH = 16
 }
 
 SECTIONS
@@ -32,7 +36,7 @@ SECTIONS
     *(.rodata*)
 
     _etext = .;
-  } >FLASH =0xFF
+  } >ROM =0xFF
 
   .data : ALIGN(4)
   {
@@ -42,7 +46,7 @@ SECTIONS
     *(.data*)
 
     _edata = .;
-  } >RAM AT >FLASH
+  } >RAM AT >ROM
 
   _sidata = LOADADDR(.data);
 
@@ -59,6 +63,11 @@ SECTIONS
     . = ALIGN(4);
     heap_start = .;
   } >RAM
+
+  .ob :
+  {
+    OB_DOMAIN = .;
+  } >OB
 
   .apb1 :
   {
@@ -89,6 +98,11 @@ SECTIONS
   {
     PPB_DOMAIN = .;
   } >PPB
+
+  .dbg :
+  {
+    DBG_DOMAIN = .;
+  } >DBG
 
   /DISCARD/ :
   {
