@@ -29,9 +29,9 @@ SECTIONS
 
     *(.vectors)
     *(.text)
-    *(.text*)
+    *(.text.*)
     *(.rodata)
-    *(.rodata*)
+    *(.rodata.*)
 
     _etext = .;
   } >FLASH =0xFF
@@ -41,7 +41,7 @@ SECTIONS
     _sdata = .;
 
     *(.data)
-    *(.data*)
+    *(.data.*)
 
     _edata = .;
   } >RAM AT >FLASH
@@ -53,7 +53,7 @@ SECTIONS
     _sbss = .;
 
     *(.bss)
-    *(.bss*)
+    *(.bss.*)
     *(COMMON)
 
     _ebss = .;
@@ -104,9 +104,6 @@ SECTIONS
 
   /DISCARD/ :
   {
-    *(.init)
-    *(.fini)
-
     *(.ARM.exidx*)
     *(.gnu.linkonce.armexidx.*)
 

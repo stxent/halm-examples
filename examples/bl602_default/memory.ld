@@ -33,11 +33,11 @@ SECTIONS
     *(.vectors.trap)
 
     *(.text)
-    *(.text*)
+    *(.text.*)
     *(.rodata)
-    *(.rodata*)
+    *(.rodata.*)
     *(.srodata)
-    *(.srodata*)
+    *(.srodata.*)
 
     _etext = .;
   } >ROM =0xFF
@@ -47,9 +47,9 @@ SECTIONS
     _sdata = .;
 
     *(.data)
-    *(.data*)
+    *(.data.*)
     *(.sdata)
-    *(.sdata*)
+    *(.sdata.*)
 
     _edata = .;
   } >RAM AT >ROM
@@ -61,9 +61,9 @@ SECTIONS
     _sbss = .;
 
     *(.sbss)
-    *(.sbss*)
+    *(.sbss.*)
     *(.bss)
-    *(.bss*)
+    *(.bss.*)
     *(COMMON)
 
     _ebss = .;
@@ -84,9 +84,6 @@ SECTIONS
 
   /DISCARD/ :
   {
-    *(.init)
-    *(.fini)
-
     *(.ARM.exidx*)
     *(.gnu.linkonce.armexidx.*)
 
