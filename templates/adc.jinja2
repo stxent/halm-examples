@@ -64,8 +64,8 @@ int main(void)
     const size_t count = ifRead(adc, buffer, sizeof(buffer));
     assert(count / sizeof(uint16_t) == channels);
 
-    for (size_t index = 0; index < count / sizeof(uint16_t); ++index)
-      iter += sprintf(iter, "%5u ", (unsigned int)buffer[index]);
+    for (size_t i = 0; i < count / sizeof(uint16_t); ++i)
+      iter += sprintf(iter, "%5u ", (unsigned int)buffer[i]);
     iter += sprintf(iter, "\r\n");
     ifWrite(serial, text, iter - text);
 

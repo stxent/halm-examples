@@ -21,6 +21,7 @@ set(TEMPLATES_LIST
         serial
         spi
         systick
+        tickless_factory
         timer
         usb_cdc
         wdt

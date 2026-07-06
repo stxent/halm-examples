@@ -64,6 +64,7 @@ struct CapturePackage boardSetupCapture(void);
 struct Timer *boardSetupCounterTimer(void);
 struct Interface *boardSetupEeprom(void);
 struct Interface *boardSetupFlash(void);
+struct Timer *boardSetupFreerunningTimer(void);
 struct Interface *boardSetupI2C(void);
 struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSerial(void);

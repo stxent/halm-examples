@@ -290,8 +290,8 @@ struct Timer *boardSetupTimer3(void)
   /* ADC triggers TIM3_TRGO and TIM3_CC4 */
   static const struct GpTimerConfig timerConfig = {
       .frequency = 10000,
-      .channel = TIM3,
-      .event = TIM_EVENT_CC4
+      .event = TIM_EVENT_CC4,
+      .channel = TIM3
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);

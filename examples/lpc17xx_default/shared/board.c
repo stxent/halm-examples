@@ -301,6 +301,19 @@ struct Interface *boardSetupFlash(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupFreerunningTimer(void)
+{
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 1000,
+      .channel = 1,
+      .freerun = true
+  };
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != NULL);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C(void)
 {
   static const struct I2CConfig i2cConfig = {

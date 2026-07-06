@@ -34,8 +34,8 @@ static void fillBuffers(uint16_t *buffer)
 {
   const int width = (ARRAY_SIZE(table) - 1) * 2;
 
-  for (size_t index = 0; index < BUFFER_LENGTH * 2; ++index)
-    buffer[index] = table[(size_t)abs((int)index % width - width / 2)];
+  for (size_t i = 0; i < BUFFER_LENGTH * 2; ++i)
+    buffer[i] = table[(size_t)abs((int)i % width - width / 2)];
 }
 /*----------------------------------------------------------------------------*/
 static void onConversionCompleted(void *argument, struct StreamRequest *request,

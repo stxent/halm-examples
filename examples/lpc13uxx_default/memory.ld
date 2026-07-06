@@ -63,7 +63,6 @@ SECTIONS
   .sram1 : ALIGN(4)
   {
     *(.sram1)
-    *(.sram1*)
   } >SRAM1
 
   .sram2 :

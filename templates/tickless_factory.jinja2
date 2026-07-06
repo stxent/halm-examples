@@ -1,5 +1,3 @@
-
-
 /*
  * {{group.name}}/{{group.alias}}/main.c
  * Automatically generated file
@@ -7,6 +5,7 @@
 
 #include "board.h"
 #include <halm/generic/timer_factory.h>
+#include <halm/pm.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
 struct Context
@@ -17,6 +16,11 @@ struct Context
   uint32_t period;
   uint32_t previous;
 };
+/*----------------------------------------------------------------------------*/
+static void onReferenceTimerOverflow(void *argument)
+{
+  pinToggle(*(const struct Pin *)argument);
+}
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
 {
@@ -42,16 +46,24 @@ int main(void)
 
   boardSetupClockExt();
 
+  struct Pin referenceOutput = pinInit(BOARD_PWM);
+  pinOutput(referenceOutput, false);
+
   context[0].led = pinInit(BOARD_LED_0);
   context[1].led = pinInit(BOARD_LED_1);
   context[2].led = pinInit(BOARD_LED_2);
 
+  struct Timer * const referenceTimer = boardSetupTimer();
+  timerSetFrequency(referenceTimer, 1000);
+  timerSetOverflow(referenceTimer, timerGetFrequency(referenceTimer) / 2);
+  timerSetCallback(referenceTimer, onReferenceTimerOverflow, &referenceOutput);
+
   const struct TimerFactoryConfig factoryConfig = {
-      .timer = boardSetupTimer()
+      .timer = boardSetupFreerunningTimer()
   };
-  struct TimerFactory * const timerFactory = init(TimerFactory, &factoryConfig);
+  struct TimerFactory * const timerFactory = init(TicklessFactory,
+      &factoryConfig);
   assert(timerFactory != NULL);
-  timerSetOverflow(timerFactory, timerGetFrequency(timerFactory) / 1000);
 
   for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
   {
@@ -67,8 +79,13 @@ int main(void)
     timerEnable(context[i].timer);
   }
 
+  timerEnable(referenceTimer);
   timerEnable(timerFactory);
 
-  while (1);
+  while (1)
+  {
+    pmChangeState(PM_SLEEP);
+  }
+
   return 0;
 }

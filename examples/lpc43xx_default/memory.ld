@@ -8,7 +8,7 @@ EXTERN(vector_table)
 
 MEMORY
 {
-  /* Internal Flash, Local SRAM, SPIFI or SDRAM */
+  /* Internal flash, local SRAM, SPIFI or SDRAM */
   ROM (rx)    : ORIGIN = ${ROM_ORIGIN}, LENGTH = ${ROM_LENGTH}
   /* Local SRAM */
   RAM (rwx)   : ORIGIN = 0x10080000, LENGTH = 40K - 32

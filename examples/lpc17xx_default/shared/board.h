@@ -22,6 +22,7 @@
 #define BOARD_PWM_0       PIN(1, 18)
 #define BOARD_PWM_1       PIN(1, 24)
 #define BOARD_PWM_2       PIN(1, 23)
+#define BOARD_PWM_3       PIN(1, 26)
 #define BOARD_PWM         BOARD_PWM_0
 #define BOARD_UART_BUFFER 128
 
@@ -99,6 +100,7 @@ struct Timer *boardSetupCounterTimer(void);
 struct Interface *boardSetupDac(void);
 struct StreamPackage boardSetupDacDma(void);
 struct Interface *boardSetupFlash(void);
+struct Timer *boardSetupFreerunningTimer(void);
 struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupI2CSlave(void);
 struct StreamPackage boardSetupI2S(void);

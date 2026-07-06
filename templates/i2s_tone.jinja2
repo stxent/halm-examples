@@ -82,10 +82,10 @@ static void fillBuffers(void)
 
   for (size_t buffer = 0; buffer < BUFFER_COUNT; ++buffer)
   {
-    for (size_t index = 0; index < BUFFER_LENGTH; ++index)
+    for (size_t i = 0; i < BUFFER_LENGTH; ++i)
     {
-      txBuffers[buffer][index * 2 + 0] = patternL[index % ARRAY_SIZE(patternL)];
-      txBuffers[buffer][index * 2 + 1] = patternR[index % ARRAY_SIZE(patternR)];
+      txBuffers[buffer][i * 2 + 0] = patternL[i % ARRAY_SIZE(patternL)];
+      txBuffers[buffer][i * 2 + 1] = patternR[i % ARRAY_SIZE(patternR)];
     }
   }
 
@@ -122,37 +122,37 @@ int main(void)
   struct StreamRequest rxRequests[BUFFER_COUNT];
   struct StreamRequest txRequests[BUFFER_COUNT];
 
-  for (size_t index = 0; index < BUFFER_COUNT; ++index)
+  for (size_t i = 0; i < BUFFER_COUNT; ++i)
   {
     if (audio.rx != NULL)
     {
-      rxRequests[index] = (struct StreamRequest){
+      rxRequests[i] = (struct StreamRequest){
           BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
           0,
           onDataReceived,
           &rxContext,
-          &rxBuffers[index]
+          &rxBuffers[i]
       };
     }
-    txRequests[index] = (struct StreamRequest){
+    txRequests[i] = (struct StreamRequest){
         BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
         0,
         onDataSent,
         &txContext,
-        &txBuffers[index]
+        &txBuffers[i]
     };
   }
 
   /* Enqueue buffers */
-  for (size_t index = 0; index < BUFFER_COUNT; ++index)
+  for (size_t i = 0; i < BUFFER_COUNT; ++i)
   {
     if (audio.rx != NULL)
     {
-      rxRequests[index].length = 0;
-      streamEnqueue(audio.rx, &rxRequests[index]);
+      rxRequests[i].length = 0;
+      streamEnqueue(audio.rx, &rxRequests[i]);
     }
-    txRequests[index].length = txRequests[index].capacity;
-    streamEnqueue(audio.tx, &txRequests[index]);
+    txRequests[i].length = txRequests[i].capacity;
+    streamEnqueue(audio.tx, &txRequests[i]);
   }
 
   while (1);

@@ -22,6 +22,7 @@ set(TEMPLATES_LIST
         serial
         spi
         systick
+        tickless_factory
         timer
         timer_rit=timer:TIMER_SUFFIX=RIT
         usb_cdc

@@ -51,6 +51,7 @@ set(TEMPLATES_LIST
         spi
         spi_dma=spi:SPI_DMA=true
         systick
+        tickless_factory
         timer
         timer_rit=timer:TIMER_SUFFIX=RIT
         timer_factory
