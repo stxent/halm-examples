@@ -12,7 +12,7 @@
 #include <stdlib.h>
 /*----------------------------------------------------------------------------*/
 #define MAX_ITERATIONS 2
-#define MAX_TIMERS     3
+#define MAX_TIMERS     4
 
 struct Context
 {
@@ -53,7 +53,7 @@ static void periodicTask(void *argument)
     if (delta < 0)
       delta += overflow;
 
-    const bool failure = (unsigned long)delta != context->period;
+    const bool failure = delta != (long)context->period;
 
     printf("%09lu Task %c %3u delta %lu%s\r\n", timestamp, context->key,
         context->iteration, delta, failure ? " UNSYNC" : "");
@@ -97,7 +97,7 @@ int main(int, char *[])
 
   for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
   {
-    context[i].period = (i == ARRAY_SIZE(context) - 1) ? 500 : 9 + 10 * i * i;
+    context[i].period = (i == ARRAY_SIZE(context) - 1) ? 500 : 7 + 10 * i * i;
 
     context[i].timer = timerFactoryCreate(timerFactory);
     assert(context[i].timer != NULL);
