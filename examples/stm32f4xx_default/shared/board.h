@@ -79,6 +79,7 @@ struct Interface *boardSetupI2C(void);
 struct Interface *boardSetupI2C1(void);
 struct Interface *boardSetupI2C2(void);
 struct StreamPackage boardSetupI2S(void);
+void *boardSetupMemorySRAM(void);
 struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSdio(bool, struct Timer *);
 struct Interface *boardSetupSerial(void);

@@ -18,6 +18,8 @@
 #include <halm/platform/lpc/dac.h>
 #include <halm/platform/lpc/dac_dma.h>
 #include <halm/platform/lpc/eeprom.h>
+#include <halm/platform/lpc/emc_sdram.h>
+#include <halm/platform/lpc/emc_sram.h>
 #include <halm/platform/lpc/flash.h>
 #include <halm/platform/lpc/gptimer.h>
 #include <halm/platform/lpc/gptimer_capture.h>
@@ -94,6 +96,7 @@ static const struct ExternalOscConfig extOscConfig = {
 };
 
 static const uint32_t maxCoreFrequency = 204000000;
+static const uint32_t safeCoreFrequency = 96000000;
 
 [[gnu::section(".shared")]] struct ClockSettings sharedClockSettings;
 /*----------------------------------------------------------------------------*/
@@ -273,7 +276,7 @@ void boardSetupClockPll(void)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPllCustom(unsigned long frequency)
 {
-  /* Use fail-safe settings for 96 MHz PLL */
+  /* Use fail-safe settings for 102 MHz PLL */
   unsigned int divisor = 2;
   unsigned int multiplier = maxCoreFrequency / extOscConfig.frequency;
 
@@ -791,6 +794,102 @@ struct StreamPackage boardSetupI2S(void)
   };
 }
 /*----------------------------------------------------------------------------*/
+void *boardSetupMemorySDRAM(void)
+{
+#if 1
+  /* MT48LC8M32 */
+  static const struct EmcSdramConfig emcSdramConfig = {
+      .timings = {
+          .refresh = 15625,
+          .apr = 34,
+          .mrd = 20, /* For 100 MHz clock */
+          .ras = 42,
+          .rc = 70,
+          .rp = 20,
+          .rrd = 14,
+          .wr = 14,
+          .xsr = 70
+      },
+
+      .width = {
+          .bus = 32,
+          .device = 32
+      },
+
+      .clocks = {true, false, true, false},
+      .speed = PIN_SLEW_FAST,
+      .channel = 0,
+      .latency = 2,
+      .banks = 4,
+      .columns = 9,
+      .rows = 12
+  };
+#else
+  /* AS4C16M16 */
+  static const struct EmcSdramConfig emcSdramConfig = {
+      .timings = {
+          .refresh = 7812,
+          .apr = 35,
+          .mrd = 14,
+          .ras = 42,
+          .rc = 63,
+          .rp = 21,
+          .rrd = 14,
+          .wr = 14,
+          .xsr = 65
+      },
+
+      .width = {
+          .bus = 16,
+          .device = 16
+      },
+
+      .clocks = {true, false, true, false},
+      .speed = PIN_SLEW_FAST,
+      .channel = 0,
+      .latency = 3,
+      .banks = 4,
+      .columns = 9,
+      .rows = 13
+  };
+#endif
+
+  if (clockFrequency(MainClock) > safeCoreFrequency)
+    boardSetupClockPllCustom(safeCoreFrequency);
+
+  struct EmcSdram * const memory = init(EmcSdram, &emcSdramConfig);
+  assert(memory != NULL);
+
+  return emcSdramAddress(memory);
+}
+/*----------------------------------------------------------------------------*/
+void *boardSetupMemorySRAM(void)
+{
+  static const struct EmcSramConfig emcSramConfig = {
+      .timings = {
+          .oe = 0,
+          .rd = 70,
+          .we = 30,
+          .wr = 70
+      },
+
+      .width = {
+          .address = 23,
+          .data = 16
+      },
+
+      .speed = PIN_SLEW_FAST,
+      .channel = 0,
+      .buffering = true,
+      .useWriteEnable = true
+  };
+
+  struct EmcSram * const memory = init(EmcSram, &emcSramConfig);
+  assert(memory != NULL);
+
+  return emcSramAddress(memory);
+}
+/*----------------------------------------------------------------------------*/
 struct PwmPackage boardSetupPwmSCT(bool centered)
 {
   const struct SctPwmUnitConfig pwmTimerConfig = {
@@ -859,7 +958,8 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
       .rate = 1000000,
       .clk = PIN(PORT_CLK, 0),
       .cmd = PIN(PORT_1, 6),
-      .dat0 = PIN(PORT_1, 9)
+      .dat0 = PIN(PORT_1, 9),
+      .speed = PIN_SLEW_FAST
   };
   const struct SdmmcConfig sdmmcConfig4Bit = {
       .timer = timer,
@@ -869,7 +969,8 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
       .dat0 = PIN(PORT_1, 9),
       .dat1 = PIN(PORT_1, 10),
       .dat2 = PIN(PORT_1, 11),
-      .dat3 = PIN(PORT_1, 12)
+      .dat3 = PIN(PORT_1, 12),
+      .speed = PIN_SLEW_FAST
   };
 
   assert(clockReady(SystemPll));

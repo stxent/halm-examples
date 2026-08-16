@@ -130,6 +130,8 @@ struct Interface *boardSetupI2CSlave(void);
 struct Interface *boardSetupI2CSlave0(void);
 struct Interface *boardSetupI2CSlave1(void);
 struct StreamPackage boardSetupI2S(void);
+void *boardSetupMemorySDRAM(void);
+void *boardSetupMemorySRAM(void);
 struct RtClock *boardSetupRtc(bool);
 struct Interface *boardSetupSdio(bool, struct Timer *);
 struct Interface *boardSetupSerial(void);

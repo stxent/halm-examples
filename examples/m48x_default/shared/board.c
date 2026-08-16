@@ -332,6 +332,7 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
       .clk = PIN(PORT_E, 6),
       .cmd = PIN(PORT_E, 7),
       .dat0 = PIN(PORT_E, 2),
+      .speed = PIN_SLEW_FAST,
       .channel = 0
   };
   const struct SdhConfig sdhConfig4Bit = {
@@ -343,6 +344,7 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
       .dat1 = PIN(PORT_E, 3),
       .dat2 = PIN(PORT_B, 4),
       .dat3 = PIN(PORT_B, 5),
+      .speed = PIN_SLEW_FAST,
       .channel = 0
   };
 
@@ -432,6 +434,7 @@ struct Interface *boardSetupSpim(struct Timer *timer)
       .io2 = PIN(PORT_C, 5),
       .io3 = PIN(PORT_C, 4),
       .sck = PIN(PORT_C, 2),
+      .speed = PIN_SLEW_FAST,
       .channel = 0
   };
 

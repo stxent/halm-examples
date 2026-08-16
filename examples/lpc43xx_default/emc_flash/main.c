@@ -29,6 +29,7 @@ static const struct EmcSramConfig emcFlashConfig = {
         .data = 16
     },
 
+    .speed = PIN_SLEW_FAST,
     .channel = 0,
     .buffering = false,
     .useWriteEnable = true

@@ -11,6 +11,7 @@
 #include <halm/platform/stm32/clocking.h>
 #include <halm/platform/stm32/exti.h>
 #include <halm/platform/stm32/flash.h>
+#include <halm/platform/stm32/fsmc_sram.h>
 #include <halm/platform/stm32/gptimer.h>
 #include <halm/platform/stm32/gptimer_pwm.h>
 #include <halm/platform/stm32/i2c.h>
@@ -32,6 +33,14 @@
 [[gnu::alias("boardSetupSpi1")]] struct Interface *boardSetupSpi(void);
 [[gnu::alias("boardSetupSpi2")]] struct Interface *boardSetupSpiSdio(void);
 /*----------------------------------------------------------------------------*/
+enum
+{
+  PLL_CONFIG_8MHZ,
+  PLL_CONFIG_12MHZ,
+  PLL_CONFIG_16MHZ,
+  PLL_CONFIG_25MHZ
+};
+
 const PinNumber adcPinArray[] = {
     PIN(PORT_A, 1),
     PIN(PORT_B, 0),
@@ -40,12 +49,35 @@ const PinNumber adcPinArray[] = {
 };
 
 static const struct ExternalOscConfig extOscConfig = {
-    .frequency = 25000000
+    .frequency = 8000000
 };
 
 static const struct MainClockConfig mainClockConfig = {
     .divisor = 1,
     .range = VR_2V7_3V6
+};
+
+static const struct PllConfig pllConfigArray[] = {
+    [PLL_CONFIG_8MHZ] = {
+        .divisor = 2,
+        .multiplier = 25,
+        .source = CLOCK_EXTERNAL
+    },
+    [PLL_CONFIG_12MHZ] = {
+        .divisor = 2,
+        .multiplier = 16,
+        .source = CLOCK_EXTERNAL
+    },
+    [PLL_CONFIG_16MHZ] = {
+        .divisor = 2,
+        .multiplier = 12,
+        .source = CLOCK_EXTERNAL
+    },
+    [PLL_CONFIG_25MHZ] = {
+        .divisor = 2,
+        .multiplier = 8,
+        .source = CLOCK_EXTERNAL
+    }
 };
 /*----------------------------------------------------------------------------*/
 DECLARE_WQ_IRQ(WQ_LP, FLASH_ISR)
@@ -87,26 +119,35 @@ void boardSetupClockPll(void)
   static const struct BusClockConfig apbClockConfigSlow = {
       .divisor = 4
   };
-  static const struct MainPllConfig mainPllConfig = {
-      .divisor = 4,
-      .multiplier = 16,
-      .source = CLOCK_EXTERNAL
-  };
   static const struct SystemClockConfig systemClockConfigPll = {
       .source = CLOCK_PLL
   };
+  const struct PllConfig *mainPllConfig = NULL;
 
-  clockEnable(ExternalOsc, &extOscConfig);
-  while (!clockReady(ExternalOsc));
+  if (extOscConfig.frequency == 8000000)
+    mainPllConfig = &pllConfigArray[PLL_CONFIG_8MHZ];
+  else if (extOscConfig.frequency == 12000000)
+    mainPllConfig = &pllConfigArray[PLL_CONFIG_12MHZ];
+  else if (extOscConfig.frequency == 16000000)
+    mainPllConfig = &pllConfigArray[PLL_CONFIG_16MHZ];
+  else if (extOscConfig.frequency == 24000000)
+    mainPllConfig = &pllConfigArray[PLL_CONFIG_25MHZ];
+  assert(mainPllConfig != NULL);
 
-  clockEnable(MainPll, &mainPllConfig);
-  while (!clockReady(MainPll));
+  if (mainPllConfig != NULL)
+  {
+    clockEnable(ExternalOsc, &extOscConfig);
+    while (!clockReady(ExternalOsc));
 
-  clockEnable(Apb1Clock, &apbClockConfigSlow);
-  clockEnable(Apb2Clock, &apbClockConfigFast);
-  clockEnable(SystemClock, &systemClockConfigPll);
+    clockEnable(MainPll, mainPllConfig);
+    while (!clockReady(MainPll));
 
-  clockEnable(MainClock, &mainClockConfig);
+    clockEnable(Apb1Clock, &apbClockConfigSlow);
+    clockEnable(Apb2Clock, &apbClockConfigFast);
+    clockEnable(SystemClock, &systemClockConfigPll);
+
+    clockEnable(MainClock, &mainClockConfig);
+  }
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupLowPriorityWQ(void)
@@ -225,11 +266,6 @@ struct Interface *boardSetupI2C2(void)
 /*----------------------------------------------------------------------------*/
 struct StreamPackage boardSetupI2S(void)
 {
-  static const struct AudioPllConfig audioPllConfig = {
-      .divisor = 2,
-      .multiplier = 16,
-      .source = CLOCK_EXTERNAL
-  };
   const struct I2SDmaConfig i2sConfig = {
       .depth = 96,
       .size = 5,
@@ -249,9 +285,23 @@ struct StreamPackage boardSetupI2S(void)
       .channel = SPI2,
       .slave = false
   };
+  const struct PllConfig *audioPllConfig = NULL;
 
-  clockEnable(AudioPll, &audioPllConfig);
-  while (!clockReady(AudioPll));
+  if (extOscConfig.frequency == 8000000)
+    audioPllConfig = &pllConfigArray[PLL_CONFIG_8MHZ];
+  else if (extOscConfig.frequency == 12000000)
+    audioPllConfig = &pllConfigArray[PLL_CONFIG_12MHZ];
+  else if (extOscConfig.frequency == 16000000)
+    audioPllConfig = &pllConfigArray[PLL_CONFIG_16MHZ];
+  else if (extOscConfig.frequency == 24000000)
+    audioPllConfig = &pllConfigArray[PLL_CONFIG_25MHZ];
+  assert(audioPllConfig != NULL);
+
+  if (audioPllConfig != NULL)
+  {
+    clockEnable(AudioPll, audioPllConfig);
+    while (!clockReady(AudioPll));
+  }
 
   struct I2SDma * const interface = init(I2SDma, &i2sConfig);
   assert(interface != NULL);
@@ -266,6 +316,32 @@ struct StreamPackage boardSetupI2S(void)
       rxStream,
       txStream
   };
+}
+/*----------------------------------------------------------------------------*/
+void *boardSetupMemorySRAM(void)
+{
+  static const struct FsmcSramConfig fsmcSramConfig = {
+      .timings = {
+          .oe = 0,
+          .rd = 70,
+          .we = 30,
+          .wr = 70
+      },
+
+      .width = {
+          .address = 19,
+          .data = 16
+      },
+
+      .speed = PIN_SLEW_FAST,
+      .subbank = 2,
+      .useWriteEnable = true
+  };
+
+  struct FsmcSram * const memory = init(FsmcSram, &fsmcSramConfig);
+  assert(memory != NULL);
+
+  return fsmcSramAddress(memory);
 }
 /*----------------------------------------------------------------------------*/
 struct PwmPackage boardSetupPwm(bool)
@@ -300,6 +376,7 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
       .clk = PIN(PORT_C, 12),
       .cmd = PIN(PORT_D, 2),
       .dat0 = PIN(PORT_C, 8),
+      .speed = PIN_SLEW_FAST,
       .dma = {
           .priority = DMA_PRIORITY_LOW,
           .stream = DMA2_STREAM3
@@ -314,6 +391,7 @@ struct Interface *boardSetupSdio(bool wide, struct Timer *timer)
       .dat1 = PIN(PORT_C, 9),
       .dat2 = PIN(PORT_C, 10),
       .dat3 = PIN(PORT_C, 11),
+      .speed = PIN_SLEW_FAST,
       .dma = {
           .priority = DMA_PRIORITY_HIGH,
           .stream = DMA2_STREAM3

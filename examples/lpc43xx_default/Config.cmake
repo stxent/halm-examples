@@ -75,6 +75,8 @@ set(TEMPLATES_LIST
         i2s_echo
         i2s_tone
         lifetime:EMULATE=true
+        memory_sdram=external_memory:MEMORY_SUFFIX=SDRAM,MEMORY_SIZE=1048576
+        memory_sram=external_memory:MEMORY_SUFFIX=SRAM
         mmcsd
         mock_os
         pin_int

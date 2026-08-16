@@ -29,6 +29,7 @@ set(TEMPLATES_LIST
         i2c
         i2s_echo
         i2s_tone
+        memory_sram=external_memory:MEMORY_SUFFIX=SRAM
         mmcsd
         pin_int
         pm_sleep
