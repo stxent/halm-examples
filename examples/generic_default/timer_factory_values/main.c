@@ -58,15 +58,12 @@ static void periodicTaskA(void *argument)
 /*----------------------------------------------------------------------------*/
 static void periodicTaskB(void *argument)
 {
-  static unsigned int failures = 0;
   const unsigned long timestamp = timerGetValue(argument);
   const unsigned long offset = timestamp % 100;
   const bool failure = offset != 40 && offset != 80;
 
   printf("%09lu Task B offset %lu%s\r\n", timestamp, offset,
       failure ? " UNSYNC" : "");
-  if (failure)
-    ++failures;
 }
 /*----------------------------------------------------------------------------*/
 static void periodicTaskC(void *argument)

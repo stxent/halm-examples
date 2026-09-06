@@ -1,5 +1,3 @@
-
-
 /*
  * {{group.name}}/{{group.alias}}/main.c
  * Automatically generated file
@@ -29,8 +27,8 @@ static void onTimerOverflow(void *argument)
     delta += overflow;
 
   assert((uint32_t)delta == context->period);
-  if ((uint32_t)delta == context->period)
-    pinToggle(*(const struct Pin *)argument);
+  if ((uint32_t)delta == context->period && pinValid(context->led))
+    pinToggle(context->led);
 
   context->previous = timestamp;
 }
@@ -43,8 +41,16 @@ int main(void)
   boardSetupClockExt();
 
   context[0].led = pinInit(BOARD_LED_0);
+#ifdef BOARD_LED_1
   context[1].led = pinInit(BOARD_LED_1);
+#else
+  context[1].led = pinStub();
+#endif
+#ifdef BOARD_LED_2
   context[2].led = pinInit(BOARD_LED_2);
+#else
+  context[2].led = pinStub();
+#endif
 
   const struct TimerFactoryConfig factoryConfig = {
       .timer = boardSetupTimer()
@@ -55,7 +61,8 @@ int main(void)
 
   for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
   {
-    pinOutput(context[i].led, BOARD_LED_INV);
+    if (pinValid(context[i].led))
+      pinOutput(context[i].led, BOARD_LED_INV);
     context[i].chrono = (struct Timer *)timerFactory;
     context[i].period = periods[i];
     context[i].previous = 0;

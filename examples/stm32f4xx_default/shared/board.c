@@ -94,34 +94,18 @@ void boardSetAdcTimerRate(struct Timer *timer, size_t, unsigned int rate)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
-  static const struct BusClockConfig apbClockConfigBypass = {
-      .divisor = 1
-  };
-  static const struct SystemClockConfig systemClockConfigExt = {
-      .source = CLOCK_EXTERNAL
-  };
-
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(Apb1Clock, &apbClockConfigBypass);
-  clockEnable(Apb2Clock, &apbClockConfigBypass);
-  clockEnable(SystemClock, &systemClockConfigExt);
+  clockEnable(Apb1Clock, &(struct BusClockConfig){1});
+  clockEnable(Apb2Clock, &(struct BusClockConfig){1});
+  clockEnable(SystemClock, &(struct SystemClockConfig){CLOCK_EXTERNAL});
 
   clockEnable(MainClock, &mainClockConfig);
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
 {
-  static const struct BusClockConfig apbClockConfigFast = {
-      .divisor = 2
-  };
-  static const struct BusClockConfig apbClockConfigSlow = {
-      .divisor = 4
-  };
-  static const struct SystemClockConfig systemClockConfigPll = {
-      .source = CLOCK_PLL
-  };
   const struct PllConfig *mainPllConfig = NULL;
 
   if (extOscConfig.frequency == 8000000)
@@ -142,9 +126,9 @@ void boardSetupClockPll(void)
     clockEnable(MainPll, mainPllConfig);
     while (!clockReady(MainPll));
 
-    clockEnable(Apb1Clock, &apbClockConfigSlow);
-    clockEnable(Apb2Clock, &apbClockConfigFast);
-    clockEnable(SystemClock, &systemClockConfigPll);
+    clockEnable(Apb1Clock, &(struct BusClockConfig){4});
+    clockEnable(Apb2Clock, &(struct BusClockConfig){2});
+    clockEnable(SystemClock, &(struct SystemClockConfig){CLOCK_PLL});
 
     clockEnable(MainClock, &mainClockConfig);
   }

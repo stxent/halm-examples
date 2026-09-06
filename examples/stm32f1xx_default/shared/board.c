@@ -34,18 +34,6 @@ const PinNumber adcPinArray[] = {
     0
 };
 
-static const struct BusClockConfig ahbClockConfig = {
-    .divisor = 1
-};
-
-static const struct BusClockConfig apbClockConfigFast = {
-    .divisor = 1
-};
-
-static const struct BusClockConfig apbClockConfigSlow = {
-    .divisor = 2
-};
-
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 8000000
 };
@@ -64,18 +52,14 @@ void boardSetAdcTimerRate(struct Timer *timer, size_t, unsigned int rate)
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void)
 {
-  static const struct SystemClockConfig systemClockConfigExt = {
-      .source = CLOCK_EXTERNAL
-  };
-
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(Apb1Clock, &apbClockConfigFast);
-  clockEnable(Apb2Clock, &apbClockConfigFast);
-  clockEnable(SystemClock, &systemClockConfigExt);
+  clockEnable(Apb1Clock, &(struct BusClockConfig){1});
+  clockEnable(Apb2Clock, &(struct BusClockConfig){1});
+  clockEnable(SystemClock, &(struct SystemClockConfig){CLOCK_EXTERNAL});
 
-  clockEnable(MainClock, &ahbClockConfig);
+  clockEnable(MainClock, &(struct BusClockConfig){1});
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
@@ -85,9 +69,6 @@ void boardSetupClockPll(void)
       .multiplier = 9,
       .source = CLOCK_EXTERNAL
   };
-  static const struct SystemClockConfig systemClockConfigPll = {
-      .source = CLOCK_PLL
-  };
 
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
@@ -95,11 +76,11 @@ void boardSetupClockPll(void)
   clockEnable(MainPll, &mainPllConfig);
   while (!clockReady(MainPll));
 
-  clockEnable(Apb1Clock, &apbClockConfigSlow);
-  clockEnable(Apb2Clock, &apbClockConfigFast);
-  clockEnable(SystemClock, &systemClockConfigPll);
+  clockEnable(Apb1Clock, &(struct BusClockConfig){2});
+  clockEnable(Apb2Clock, &(struct BusClockConfig){1});
+  clockEnable(SystemClock, &(struct SystemClockConfig){CLOCK_PLL});
 
-  clockEnable(MainClock, &ahbClockConfig);
+  clockEnable(MainClock, &(struct BusClockConfig){1});
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupLowPriorityWQ(void)

@@ -10,13 +10,22 @@
 #include <xcore/asm.h>
 #include <assert.h>
 /*----------------------------------------------------------------------------*/
+struct Context
+{
+  struct Pin led;
+  struct Timer *timer;
+};
+/*----------------------------------------------------------------------------*/
 static const struct WorkQueueUniqueConfig wqConfig = {
     .size = 4
 };
 /*----------------------------------------------------------------------------*/
 static void blinkTask(void *argument)
 {
-  pinToggle(*(struct Pin *)argument);
+  struct Context * const context = argument;
+
+  if (pinValid(context->led))
+    pinToggle(context->led);
   wqStop(WQ_DEFAULT);
 }
 /*----------------------------------------------------------------------------*/
@@ -32,18 +41,25 @@ static void onWorkQueueProcess(void *argument)
 /*----------------------------------------------------------------------------*/
 int main(void)
 {
+  static const uint32_t periods[3] = {241, 499, 997};
+  struct Context context[3];
   bool event = false;
 
   boardSetupClockExt();
 
   /* Initialize peripherals */
 
-  struct Pin output0 = pinInit(BOARD_LED_0);
-  pinOutput(output0, BOARD_LED_INV);
-  struct Pin output1 = pinInit(BOARD_LED_1);
-  pinOutput(output1, BOARD_LED_INV);
-  struct Pin output2 = pinInit(BOARD_LED_2);
-  pinOutput(output2, BOARD_LED_INV);
+  context[0].led = pinInit(BOARD_LED_0);
+#ifdef BOARD_LED_1
+  context[1].led = pinInit(BOARD_LED_1);
+#else
+  context[1].led = pinStub();
+#endif
+#ifdef BOARD_LED_2
+  context[2].led = pinInit(BOARD_LED_2);
+#else
+  context[2].led = pinStub();
+#endif
 
   /* Base timer for batch processing of queued tasks */
 
@@ -53,32 +69,24 @@ int main(void)
 
   /* Timer Factory is used to create three timers adding tasks to the queue */
 
-  struct Timer * const tickTimer = boardSetupAdcTimer();
-  timerSetOverflow(tickTimer, timerGetFrequency(tickTimer) / 1000);
-
   const struct TimerFactoryConfig factoryConfig = {
-      .timer = tickTimer
+      .timer = boardSetupAdcTimer()
   };
   struct TimerFactory * const timerFactory = init(TimerFactory, &factoryConfig);
   assert(timerFactory != NULL);
+  timerSetOverflow(timerFactory, timerGetFrequency(timerFactory) / 1000);
 
-  struct Timer * const timer0 = timerFactoryCreate(timerFactory);
-  assert(timer0 != NULL);
-  timerSetCallback(timer0, onTimerOverflow, &output0);
-  timerSetOverflow(timer0, 199);
-  timerEnable(timer0);
+  for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
+  {
+    if (pinValid(context[i].led))
+      pinOutput(context[i].led, BOARD_LED_INV);
 
-  struct Timer * const timer1 = timerFactoryCreate(timerFactory);
-  assert(timer1 != NULL);
-  timerSetCallback(timer1, onTimerOverflow, &output1);
-  timerSetOverflow(timer1, 37);
-  timerEnable(timer1);
-
-  struct Timer * const timer2 = timerFactoryCreate(timerFactory);
-  assert(timer2 != NULL);
-  timerSetCallback(timer2, onTimerOverflow, &output2);
-  timerSetOverflow(timer2, 97);
-  timerEnable(timer2);
+    context[i].timer = timerFactoryCreate(timerFactory);
+    assert(context[i].timer != NULL);
+    timerSetCallback(context[i].timer, onTimerOverflow, &context[i]);
+    timerSetOverflow(context[i].timer, periods[i]);
+    timerEnable(context[i].timer);
+  }
 
   /* Initialize Work Queue */
   WQ_DEFAULT = init(WorkQueueUnique, &wqConfig);
@@ -86,7 +94,7 @@ int main(void)
 
   /* Start event generation and queue handler */
   timerEnable(baseTimer);
-  timerEnable(tickTimer);
+  timerEnable(timerFactory);
 
   while (1)
   {

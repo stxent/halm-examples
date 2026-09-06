@@ -64,13 +64,13 @@ int main(int, char *[])
   /* Periodic timer */
   struct Timer * const timer = init(Timer, NULL);
   assert(timer != NULL);
-  timerSetOverflow(timer, 100);
+  timerSetOverflow(timer, timerGetFrequency(timer) / 10);
   timerSetCallback(timer, onTimerOverflow, NULL);
   timerEnable(timer);
 
   /* Initialize Work Queue */
   WQ_DEFAULT = init(EventQueue, NULL);
-  assert(WQ_DEFAULT);
+  assert(WQ_DEFAULT != NULL);
   wqStart(WQ_DEFAULT);
 
   uv_run(loop, UV_RUN_DEFAULT);

@@ -8,7 +8,7 @@ set(PLATFORM "M48X")
 
 # Available memory regions
 math(EXPR ADDRESS_FLASH "0x00000000")
-math(EXPR ADDRESS_SDRAM "0x60000000")
+math(EXPR ADDRESS_EBI   "0x60000000")
 math(EXPR ADDRESS_SPIM  "0x08000000")
 
 # Linker script settings
@@ -22,10 +22,9 @@ if(TARGET_NOR)
     math(EXPR ROM_LENGTH "4 * 1024 * 1024 - ${DFU_LENGTH}")
     math(EXPR ROM_ORIGIN "${ADDRESS_SPIM} + ${DFU_LENGTH}")
     set(DISABLE_LITERAL_POOL ON)
-elseif(TARGET_SDRAM)
-    math(EXPR ROM_LENGTH "4 * 1024 * 1024")
-    math(EXPR ROM_ORIGIN "${ADDRESS_SDRAM}")
-    set(DISABLE_LITERAL_POOL ON)
+elseif(TARGET_SRAM)
+    math(EXPR ROM_LENGTH "3 * 1024 * 1024")
+    math(EXPR ROM_ORIGIN "${ADDRESS_EBI}")
 else()
     if(USE_DFU)
         set(DFU_LENGTH 32768)

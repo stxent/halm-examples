@@ -28,14 +28,6 @@ const PinNumber adcPinArray[] = {
     0
 };
 
-static const struct BusClockConfig ahbClockConfig = {
-    .divisor = 1
-};
-
-static const struct BusClockConfig apbClockConfig = {
-    .divisor = 1
-};
-
 static const struct ExternalOscConfig extOscConfig = {
     .frequency = 8000000
 };
@@ -55,10 +47,10 @@ void boardSetupClockExt(void)
   clockEnable(ExternalOsc, &extOscConfig);
   while (!clockReady(ExternalOsc));
 
-  clockEnable(ApbClock, &apbClockConfig);
+  clockEnable(ApbClock, &(struct BusClockConfig){1});
   clockEnable(SystemClock, &(struct GenericClockConfig){CLOCK_EXTERNAL});
 
-  clockEnable(MainClock, &ahbClockConfig);
+  clockEnable(MainClock, &(struct BusClockConfig){1});
 }
 /*----------------------------------------------------------------------------*/
 void boardSetupClockPll(void)
@@ -75,10 +67,10 @@ void boardSetupClockPll(void)
   clockEnable(SystemPll, &systemPllConfig);
   while (!clockReady(SystemPll));
 
-  clockEnable(ApbClock, &apbClockConfig);
+  clockEnable(ApbClock, &(struct BusClockConfig){1});
   clockEnable(SystemClock, &(struct GenericClockConfig){CLOCK_PLL});
 
-  clockEnable(MainClock, &ahbClockConfig);
+  clockEnable(MainClock, &(struct BusClockConfig){1});
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupAdcDma(void)
