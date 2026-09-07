@@ -30,7 +30,7 @@ static void periodicTaskC(void *);
 /*----------------------------------------------------------------------------*/
 static void onSignalReceived(void *argument)
 {
-  uv_walk(argument, onUvWalk, NULL);
+  uv_walk(argument, onUvWalk, nullptr);
 }
 /*----------------------------------------------------------------------------*/
 static void onUvWalk(uv_handle_t *handle, void *)
@@ -81,32 +81,32 @@ int main(int, char *[])
       .signum = SIGINT
   };
   struct SignalHandler * const listener = init(SignalHandler, &listenerConfig);
-  assert(listener != NULL);
+  assert(listener != nullptr);
   interruptSetCallback(listener, onSignalReceived, loop);
   interruptEnable(listener);
 
   /* Chrono timer */
-  struct Timer * const chrono = init(Timer, NULL);
-  assert(chrono != NULL);
+  struct Timer * const chrono = init(Timer, nullptr);
+  assert(chrono != nullptr);
   timerEnable(chrono);
 
   /* Timer factory */
   const struct TimerFactoryConfig factoryConfig = {
-      .timer = init(Timer, NULL)
+      .timer = init(Timer, nullptr)
   };
-  assert(factoryConfig.timer != NULL);
+  assert(factoryConfig.timer != nullptr);
   struct TimerFactory * const timerFactory = init(TimerFactory, &factoryConfig);
-  assert(timerFactory != NULL);
+  assert(timerFactory != nullptr);
   timerSetOverflow(timerFactory, timerGetFrequency(timerFactory) / 1000);
 
   struct Timer * const timerB = timerFactoryCreate(timerFactory);
-  assert(timerB != NULL);
+  assert(timerB != nullptr);
   timerSetCallback(timerB, periodicTaskB, timerFactory);
   timerSetOverflow(timerB, PERIOD_B);
   timerEnable(timerB);
 
   struct Timer * const timerA = timerFactoryCreate(timerFactory);
-  assert(timerA != NULL);
+  assert(timerA != nullptr);
 
   struct Context context = {(struct Timer *)timerFactory, timerB};
   timerSetCallback(timerA, periodicTaskA, &context);
@@ -114,7 +114,7 @@ int main(int, char *[])
   timerEnable(timerA);
 
   struct Timer * const timerC = timerFactoryCreate(timerFactory);
-  assert(timerC != NULL);
+  assert(timerC != nullptr);
   timerSetCallback(timerC, periodicTaskC, timerFactory);
   timerSetOverflow(timerC, PERIOD_C);
   timerEnable(timerC);

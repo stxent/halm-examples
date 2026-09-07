@@ -124,7 +124,7 @@ int main(void)
 
   for (size_t i = 0; i < BUFFER_COUNT; ++i)
   {
-    if (audio.rx != NULL)
+    if (audio.rx != nullptr)
     {
       rxRequests[i] = (struct StreamRequest){
           BUFFER_LENGTH * CHANNEL_COUNT * sizeof(int16_t),
@@ -146,7 +146,7 @@ int main(void)
   /* Enqueue buffers */
   for (size_t i = 0; i < BUFFER_COUNT; ++i)
   {
-    if (audio.rx != NULL)
+    if (audio.rx != nullptr)
     {
       rxRequests[i].length = 0;
       streamEnqueue(audio.rx, &rxRequests[i]);

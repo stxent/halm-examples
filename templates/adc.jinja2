@@ -33,17 +33,17 @@ int main(void)
 {%- if config.ADC_CALIBRATE is defined and config.ADC_CALIBRATE %}
 
   /* Calibrate ADC */
-  if (ifSetParam(adc, IF_ADC_CALIBRATE, NULL) == E_BUSY)
+  if (ifSetParam(adc, IF_ADC_CALIBRATE, nullptr) == E_BUSY)
   {
     while (!event)
       barrier();
     event = false;
   }
-  assert(ifGetParam(adc, IF_STATUS, NULL) == E_OK);
+  assert(ifGetParam(adc, IF_STATUS, nullptr) == E_OK);
 {%- endif %}
 
   /* Enable converter */
-  ifSetParam(adc, IF_ENABLE, NULL);
+  ifSetParam(adc, IF_ENABLE, nullptr);
 
   struct Interface * const serial = boardSetupSerial();
 

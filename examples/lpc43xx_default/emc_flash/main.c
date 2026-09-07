@@ -121,14 +121,14 @@ int main(void)
   pinOutput(led, BOARD_LED_INV);
 
   struct EmcSram * const memory = init(EmcSram, &emcFlashConfig);
-  assert(memory != NULL);
+  assert(memory != nullptr);
 
   const struct FlashCFIConfig config = {
       .address = emcSramAddress(memory),
       .size = MEMORY_CAPACITY
   };
   struct Interface * const flash = init(FlashCFI, &config);
-  assert(flash != NULL);
+  assert(flash != nullptr);
 
   /* Test sector erase */
   if (!memoryTestSequence(flash, IF_FLASH_SECTOR_SIZE, IF_FLASH_ERASE_SECTOR))

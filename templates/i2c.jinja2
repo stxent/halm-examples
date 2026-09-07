@@ -41,7 +41,7 @@ static void deviceConfigIO(struct Interface *interface, bool zerocopy)
   assert(res == E_OK);
   res = ifSetParam(interface, IF_RATE, &(uint32_t){DEVICE_RATE});
   assert(res == E_OK);
-  res = ifSetParam(interface, zerocopy ? IF_ZEROCOPY : IF_BLOCKING, NULL);
+  res = ifSetParam(interface, zerocopy ? IF_ZEROCOPY : IF_BLOCKING, nullptr);
   assert(res == E_OK);
 }
 /*----------------------------------------------------------------------------*/
@@ -58,7 +58,7 @@ static void deviceRead(struct Interface *interface, uint32_t position,
 
   if (repeated)
   {
-    res = ifSetParam(interface, IF_I2C_REPEATED_START, NULL);
+    res = ifSetParam(interface, IF_I2C_REPEATED_START, nullptr);
     assert(res == E_OK);
   }
 
@@ -72,20 +72,20 @@ static void deviceRead(struct Interface *interface, uint32_t position,
     ifWrite(interface, packet, sizeof(packet));
     udelay(2 * 9 * 1000 * (sizeof(packet) + 1) / (DEVICE_RATE / 1000));
 
-    if (ifGetParam(interface, IF_STATUS, NULL) == E_OK)
+    if (ifGetParam(interface, IF_STATUS, nullptr) == E_OK)
     {
       ifRead(interface, buffer, length);
       udelay(2 * 9 * 1000 * (length + 1) / (DEVICE_RATE / 1000));
 
-      if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+      if (ifGetParam(interface, IF_STATUS, nullptr) != E_OK)
       {
-        res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+        res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, nullptr);
         assert(res == E_OK);
       }
     }
     else
     {
-      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, nullptr);
       assert(res == E_OK);
     }
   }
@@ -108,9 +108,9 @@ static void deviceWrite(struct Interface *interface, uint32_t position,
   {
     udelay(2 * 9 * 1000 * (sizeof(packet) + 1) / (DEVICE_RATE / 1000));
 
-    if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+    if (ifGetParam(interface, IF_STATUS, nullptr) != E_OK)
     {
-      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, nullptr);
       assert(res == E_OK);
     }
   }

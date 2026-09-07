@@ -81,7 +81,7 @@ int main(void)
   ifSetCallback(can, onEvent, &canEvent);
   res = ifSetParam(can, IF_RATE, &testCanRate);
   assert(res == E_OK);
-  res = ifSetParam(can, IF_CAN_ACTIVE, NULL);
+  res = ifSetParam(can, IF_CAN_ACTIVE, nullptr);
   assert(res == E_OK);
 
   while (1)

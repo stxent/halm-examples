@@ -59,7 +59,7 @@ struct Interface *boardSetupSerial(void)
     enablePeriphClock(Usart3Clock);
 
   struct Interface * const interface = init(Serial, &serialConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -72,7 +72,7 @@ struct Timer *boardSetupTimer(void)
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
@@ -107,6 +107,6 @@ struct Usb *boardSetupUsb(void)
   while (!clockReady(Usb1Clock));
 
   struct Usb * const usb = init(UsbDevice, &usb1Config);
-  assert(usb != NULL);
+  assert(usb != nullptr);
   return usb;
 }

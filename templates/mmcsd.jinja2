@@ -70,11 +70,11 @@ static bool dataRead(struct Interface *card, uint8_t *buffer, size_t length,
       barrier();
     event = false;
 
-    if (ifGetParam(card, IF_STATUS, NULL) == E_OK)
+    if (ifGetParam(card, IF_STATUS, nullptr) == E_OK)
       completed = true;
   }
 
-  ifSetCallback(card, NULL, NULL);
+  ifSetCallback(card, nullptr, nullptr);
   return completed;
 }
 /*----------------------------------------------------------------------------*/
@@ -96,11 +96,11 @@ static bool dataWrite(struct Interface *card, uint8_t *buffer, size_t length,
       barrier();
     event = false;
 
-    if (ifGetParam(card, IF_STATUS, NULL) == E_OK)
+    if (ifGetParam(card, IF_STATUS, nullptr) == E_OK)
       completed = true;
   }
 
-  ifSetCallback(card, NULL, NULL);
+  ifSetCallback(card, nullptr, nullptr);
   return completed;
 }
 /*----------------------------------------------------------------------------*/
@@ -130,7 +130,7 @@ int main(void)
 
   /* Configure the timer for timeout calculations */
   struct Timer * const busyTimer = testBusyTimer ?
-      boardSetupTimerAux() : NULL;
+      boardSetupTimerAux() : nullptr;
 
   /* Initialize SDMMC layer */
   struct Interface * const sdio = boardSetupSdio(testWideBus, busyTimer);
@@ -143,7 +143,7 @@ int main(void)
   timerSetCallback(eventTimer, onTimerOverflow, &event);
   timerEnable(eventTimer);
 
-  struct Interface *card = NULL;
+  struct Interface *card = nullptr;
   uint64_t capacity = 0;
   uint64_t position = 0;
 
@@ -155,7 +155,7 @@ int main(void)
 
     bool unmount = false;
 
-    if (card == NULL)
+    if (card == nullptr)
     {
       /* Initialize SD Card layer */
       const struct MMCSDConfig cardConfig = {
@@ -169,14 +169,14 @@ int main(void)
       pinWrite(txLed, BOARD_LED_INV);
       card = init(MMCSD, &cardConfig);
 
-      if (card != NULL)
+      if (card != nullptr)
       {
         bool ok = true;
 
         capacity = 0;
         position = 0;
 
-        if (ifSetParam(card, IF_ZEROCOPY, NULL) != E_OK)
+        if (ifSetParam(card, IF_ZEROCOPY, nullptr) != E_OK)
           ok = false;
         if (ifGetParam(card, IF_SIZE_64, &capacity) != E_OK || !capacity)
           ok = false;
@@ -184,16 +184,16 @@ int main(void)
         if (!ok)
         {
           deinit(card);
-          card = NULL;
+          card = nullptr;
         }
       }
 
-      if (pinValid(cdLed) && card == NULL)
+      if (pinValid(cdLed) && card == nullptr)
         pinWrite(cdLed, !BOARD_LED_INV);
     }
 
     /* Write test */
-    if (testWriteMode && card != NULL)
+    if (testWriteMode && card != nullptr)
     {
       bool ok = true;
 
@@ -214,7 +214,7 @@ int main(void)
     }
 
     /* Read test */
-    if (card != NULL)
+    if (card != nullptr)
     {
       bool ok = true;
 
@@ -237,11 +237,11 @@ int main(void)
     if (unmount)
     {
       deinit(card);
-      card = NULL;
+      card = nullptr;
     }
 
     /* Increment position */
-    if (card != NULL)
+    if (card != nullptr)
     {
       position += ARENA_SIZE;
       if (position >= capacity)

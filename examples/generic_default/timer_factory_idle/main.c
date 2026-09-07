@@ -47,7 +47,7 @@ static void onBurstRequest(void *argument)
 /*----------------------------------------------------------------------------*/
 static void onSignalReceived(void *argument)
 {
-  uv_walk(argument, onUvWalk, NULL);
+  uv_walk(argument, onUvWalk, nullptr);
 }
 /*----------------------------------------------------------------------------*/
 static void onUvWalk(uv_handle_t *handle, void *)
@@ -82,30 +82,30 @@ int main(int, char *[])
       .signum = SIGINT
   };
   struct SignalHandler * const listener = init(SignalHandler, &listenerConfig);
-  assert(listener != NULL);
+  assert(listener != nullptr);
   interruptSetCallback(listener, onSignalReceived, loop);
   interruptEnable(listener);
 
   /* Periodic timer */
-  struct Timer * const periodicTimer = init(Timer, NULL);
-  assert(periodicTimer != NULL);
+  struct Timer * const periodicTimer = init(Timer, nullptr);
+  assert(periodicTimer != nullptr);
   timerSetOverflow(periodicTimer, 100);
   timerSetCallback(periodicTimer, onBurstRequest, context);
 
   /* Timer factory */
   const struct TimerFactoryConfig factoryConfig = {
-      .timer = init(Timer, NULL)
+      .timer = init(Timer, nullptr)
   };
-  assert(factoryConfig.timer != NULL);
+  assert(factoryConfig.timer != nullptr);
   struct TimerFactory * const timerFactory = init(TimerFactory, &factoryConfig);
-  assert(timerFactory != NULL);
+  assert(timerFactory != nullptr);
   timerSetOverflow(timerFactory, timerGetFrequency(timerFactory) / 1000);
 
   for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
   {
     context[i].period = 7 + 10 * i * i;
     context[i].timer = timerFactoryCreate(timerFactory);
-    assert(context[i].timer != NULL);
+    assert(context[i].timer != nullptr);
     timerSetAutostop(context[i].timer, true);
     timerSetCallback(context[i].timer, periodicTask, context + i);
     timerSetOverflow(context[i].timer, context[i].period);

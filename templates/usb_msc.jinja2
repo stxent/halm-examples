@@ -48,7 +48,7 @@ const struct InterfaceClass * const InterfaceWrapper =
     &(const struct InterfaceClass){
     .size = sizeof(struct InterfaceWrapper),
     .init = interfaceInit,
-    .deinit = NULL, /* Default destructor */
+    .deinit = nullptr, /* Default destructor */
 
     .setCallback = interfaceSetCallback,
     .getParam = interfaceGetParam,
@@ -60,8 +60,8 @@ const struct InterfaceClass * const InterfaceWrapper =
 static enum Result interfaceInit(void *object, const void *configBase)
 {
   const struct InterfaceWrapperConfig * const config = configBase;
-  assert(config != NULL);
-  assert(config->pipe != NULL);
+  assert(config != nullptr);
+  assert(config->pipe != nullptr);
 
   struct InterfaceWrapper * const interface = object;
 
@@ -140,7 +140,7 @@ int main(void)
   static const bool testBusyTimer = true;
   static const bool testWideBus = true;
 
-  struct Interface *card = NULL;
+  struct Interface *card = nullptr;
   [[maybe_unused]] enum Result res;
   bool event = true;
 
@@ -155,7 +155,7 @@ int main(void)
 
   /* Configure the timer for timeout calculations */
   struct Timer * const busyTimer = testBusyTimer ?
-      boardSetupTimerAux() : NULL;
+      boardSetupTimerAux() : nullptr;
 
   /* Initialize SDMMC layer */
   struct Interface * const sdio = boardSetupSdio(testWideBus, busyTimer);
@@ -169,7 +169,7 @@ int main(void)
       .tx = BOARD_LED_0
   };
   struct Interface * const wrapper = init(InterfaceWrapper, &wrapperConfig);
-  assert(wrapper != NULL);
+  assert(wrapper != nullptr);
 
   /* Configure the timer for mount events */
   struct Timer * const eventTimer = boardSetupTimer();
@@ -193,7 +193,7 @@ int main(void)
       }
   };
   struct Msc * const msc = init(Msc, &config);
-  assert(msc != NULL);
+  assert(msc != nullptr);
   mscSetCallback(msc, onMassStorageEvent, &event);
 
   usbDevSetConnected(usb, true);
@@ -204,7 +204,7 @@ int main(void)
       barrier();
     event = false;
 
-    if (card == NULL)
+    if (card == nullptr)
     {
       /* Initialize SD Card layer */
       const struct MMCSDConfig cardConfig = {
@@ -216,15 +216,15 @@ int main(void)
         pinWrite(cdLed, BOARD_LED_INV);
       card = init(MMCSD, &cardConfig);
 
-      if (card != NULL)
+      if (card != nullptr)
       {
-        res = ifSetParam(card, IF_ZEROCOPY, NULL);
+        res = ifSetParam(card, IF_ZEROCOPY, nullptr);
         assert(res == E_OK);
 
         mscAttachUnit(msc, 0, card);
       }
 
-      if (pinValid(cdLed) && card == NULL)
+      if (pinValid(cdLed) && card == nullptr)
         pinWrite(cdLed, !BOARD_LED_INV);
     }
     else
@@ -234,7 +234,7 @@ int main(void)
         mscDetachUnit(msc, 0);
 
         deinit(card);
-        card = NULL;
+        card = nullptr;
 
         if (pinValid(cdLed))
           pinWrite(cdLed, !BOARD_LED_INV);

@@ -29,12 +29,12 @@ const struct TimerClass * const SctSof = &(const struct TimerClass){
 
     .enable = tmrEnable,
     .disable = tmrDisable,
-    .setAutostop = NULL,
-    .setCallback = NULL,
+    .setAutostop = nullptr,
+    .setCallback = nullptr,
     .getFrequency = tmrGetFrequency,
     .setFrequency = tmrSetFrequency,
-    .getOverflow = NULL,
-    .setOverflow = NULL,
+    .getOverflow = nullptr,
+    .setOverflow = nullptr,
     .getValue = tmrGetValue,
     .setValue = tmrSetValue
 };
@@ -111,7 +111,7 @@ static void routeGimaInput(enum SctSofInput input)
 static enum Result tmrInit(void *object, const void *configBase)
 {
   const struct SctSofConfig * const config = configBase;
-  assert(config != NULL);
+  assert(config != nullptr);
   assert(config->i2s < SCTSOF_END);
   assert(config->usb < SCTSOF_END);
   assert(config->part != SCT_UNIFIED);

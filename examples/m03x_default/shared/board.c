@@ -114,7 +114,7 @@ struct Interface *boardSetupAdc(void)
   clockEnable(AdcClock, &adcClockConfig);
 
   struct Interface * const interface = init(Adc, &adcConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -130,7 +130,7 @@ struct Interface *boardSetupAdcDma(void)
   clockEnable(AdcClock, &adcClockConfig);
 
   struct Interface * const interface = init(AdcDma, &adcDmaConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -145,7 +145,7 @@ struct Timer *boardSetupAdcTimer(void)
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
@@ -159,7 +159,7 @@ struct Interrupt *boardSetupBod(void)
   };
 
   struct Interrupt * const interrupt = init(Bod, &bodConfig);
-  assert(interrupt != NULL);
+  assert(interrupt != nullptr);
   return interrupt;
 }
 /*----------------------------------------------------------------------------*/
@@ -172,7 +172,7 @@ struct Interrupt *boardSetupButton(void)
   };
 
   struct Interrupt * const interrupt = init(PinInt, &buttonIntConfig);
-  assert(interrupt != NULL);
+  assert(interrupt != nullptr);
   return interrupt;
 }
 /*----------------------------------------------------------------------------*/
@@ -183,7 +183,7 @@ struct Interface *boardSetupFlash(void)
   };
 
   struct Interface * const interface = init(Flash, &flashConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -194,7 +194,7 @@ struct Interface *boardSetupFlashLDROM(void)
   };
 
   struct Interface * const interface = init(Flash, &flashConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -205,7 +205,7 @@ struct Interface *boardSetupFlashSPROM(void)
   };
 
   struct Interface * const interface = init(Flash, &flashConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -219,7 +219,7 @@ struct Interface *boardSetupI2C(void)
   };
 
   struct Interface * const interface = init(I2C, &i2cConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -237,17 +237,17 @@ struct PwmPackage boardSetupPwmBPWM(bool centered)
       &bpwmClockConfig);
 
   struct BpwmUnit * const timer = init(BpwmUnit, &bpwmTimerConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
 
   struct Pwm * const pwm0 = bpwmCreate(timer, BOARD_BPWM_0, inversion);
-  assert(pwm0 != NULL);
+  assert(pwm0 != nullptr);
   struct Pwm * const pwm1 = bpwmCreate(timer, BOARD_BPWM_1, inversion);
-  assert(pwm1 != NULL);
+  assert(pwm1 != nullptr);
 
   return (struct PwmPackage){
       (struct Timer *)timer,
       pwm0,
-      {pwm0, pwm1, NULL}
+      {pwm0, pwm1, nullptr}
   };
 }
 /*----------------------------------------------------------------------------*/
@@ -269,7 +269,7 @@ struct Interface *boardSetupSerial(void)
   clockEnable(UART_CLOCKS[serialConfig.channel], &uartClockConfig);
 
   struct Interface * const interface = init(Serial, &serialConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -293,7 +293,7 @@ struct Interface *boardSetupSerialDma(void)
   clockEnable(UART_CLOCKS[serialDmaConfig.channel], &uartClockConfig);
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -318,7 +318,7 @@ struct Interface *boardSetupSerialDmaTOC(void)
   clockEnable(UART_CLOCKS[serialDmaTOCConfig.channel], &uartClockConfig);
 
   struct Interface * const interface = init(SerialDmaTOC, &serialDmaTOCConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -336,7 +336,7 @@ struct Interface *boardSetupSpi(void)
   clockEnable(Spi0Clock, &spiClockConfig);
 
   struct Interface * const interface = init(Spi, &spiConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -355,7 +355,7 @@ struct Interface *boardSetupSpiDma(void)
   clockEnable(Spi0Clock, &spiClockConfig);
 
   struct Interface * const interface = init(SpiDma, &spiDmaConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -367,7 +367,7 @@ struct Timer *boardSetupTimer(void)
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
@@ -393,7 +393,7 @@ struct Usb *boardSetupUsb(void)
   clockEnable(UsbClock, &usbClockConfig);
 
   struct Usb * const usb = init(UsbDevice, &usbConfig);
-  assert(usb != NULL);
+  assert(usb != nullptr);
   return usb;
 }
 /*----------------------------------------------------------------------------*/
@@ -413,6 +413,6 @@ struct Watchdog *boardSetupWdt(bool disarmed)
   clockEnable(WdtClock, &wdtClockConfig);
 
   struct Watchdog * const timer = init(Wdt, &wdtConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }

@@ -27,9 +27,9 @@ const struct InterfaceClass * const FlashCFI =
     &(const struct InterfaceClass){
     .size = sizeof(struct FlashCFI),
     .init = interfaceInit,
-    .deinit = NULL,
+    .deinit = nullptr,
 
-    .setCallback = NULL,
+    .setCallback = nullptr,
     .getParam = interfaceGetParam,
     .setParam = interfaceSetParam,
     .read = interfaceRead,

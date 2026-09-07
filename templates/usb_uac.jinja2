@@ -130,7 +130,7 @@ static void onUacEvent(void *argument)
   res = ifGetParam(context->uac, IF_UAC_STATUS, &status);
   assert(res == E_OK);
 
-  if (context->audio.tx != NULL)
+  if (context->audio.tx != nullptr)
   {
     size_t available;
     res = ifGetParam(context->uac, IF_RX_AVAILABLE, &available);
@@ -200,12 +200,12 @@ static void changeRate(struct Context *context, uint32_t rate)
   context->chunk = ((rate + 999) / 1000) * CHANNEL_COUNT * sizeof(int16_t);
   [[maybe_unused]] enum Result res = E_OK;
 
-  if (context->audio.rx != NULL)
+  if (context->audio.rx != nullptr)
   {
     pointerQueueClear(&context->micQueue);
     streamClear(context->audio.rx);
   }
-  if (context->audio.tx != NULL)
+  if (context->audio.tx != nullptr)
   {
     streamClear(context->audio.tx);
     pointerQueueClear(&context->spkQueue);
@@ -214,7 +214,7 @@ static void changeRate(struct Context *context, uint32_t rate)
   /* Initialize and enqueue buffers */
   for (size_t i = 0; i < BUFFER_COUNT; ++i)
   {
-    if (context->audio.tx != NULL)
+    if (context->audio.tx != nullptr)
     {
       spkRequests[i].capacity = context->chunk;
       spkRequests[i].length = 0;
@@ -225,7 +225,7 @@ static void changeRate(struct Context *context, uint32_t rate)
       pointerQueuePushBack(&context->spkQueue, &spkRequests[i]);
     }
 
-    if (context->audio.rx != NULL)
+    if (context->audio.rx != nullptr)
     {
       micRequests[i].capacity = context->chunk;
       micRequests[i].length = 0;
@@ -274,9 +274,9 @@ int main(void)
   struct StreamPackage audio = boardSetupI2S();
   [[maybe_unused]] enum Result res;
 
-  if (audio.rx == NULL)
+  if (audio.rx == nullptr)
     testUacRecord = false;
-  if (audio.tx == NULL)
+  if (audio.tx == nullptr)
     testUacPlayback = false;
   assert(testUacPlayback || testUacRecord);
 
@@ -284,7 +284,7 @@ int main(void)
 
   const struct UacConfig uacConfig = {
       .device = usb,
-      .arena = NULL,
+      .arena = nullptr,
       .rxBuffers = BUFFER_COUNT,
       .txBuffers = BUFFER_COUNT,
       .endpoints = {
@@ -299,7 +299,7 @@ int main(void)
       .rates = audioSampleRates
   };
   struct Uac * const uac = init(Uac, &uacConfig);
-  assert(uac != NULL);
+  assert(uac != nullptr);
 {%- if config.UAC_FEEDBACK is defined and config.UAC_FEEDBACK %}
 
   /* Initialize rate feedback calculator */
@@ -372,7 +372,7 @@ int main(void)
         context.event.rateFeedback = false;
       }
 {%- endif %}
-      if (context.audio.rx != NULL && !pointerQueueEmpty(&context.micQueue))
+      if (context.audio.rx != nullptr && !pointerQueueEmpty(&context.micQueue))
       {
         const IrqState state = irqSave();
         struct StreamRequest * const request =

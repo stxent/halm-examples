@@ -74,7 +74,7 @@ int main(void)
       .channel = 0
   };
   struct Timer * const timer = init(SctAdc, &sctAdcConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
 
   struct StreamPackage adc = boardSetupAdcStream();
   struct EventTuple context = {

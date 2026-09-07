@@ -51,7 +51,7 @@ int main(void)
 
   if (testZerocopyMode)
   {
-    ifSetParam(spi, IF_ZEROCOPY, NULL);
+    ifSetParam(spi, IF_ZEROCOPY, nullptr);
     ifSetCallback(spi, onTransferCompleted, &value);
   }
 

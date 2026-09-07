@@ -26,8 +26,8 @@ const struct TimerClass * const SctAdc = &(const struct TimerClass){
 
     .enable = tmrEnable,
     .disable = tmrDisable,
-    .setAutostop = NULL,
-    .setCallback = NULL,
+    .setAutostop = nullptr,
+    .setCallback = nullptr,
     .getFrequency = tmrGetFrequency,
     .setFrequency = tmrSetFrequency,
     .getOverflow = tmrGetOverflow,
@@ -39,7 +39,7 @@ const struct TimerClass * const SctAdc = &(const struct TimerClass){
 static enum Result tmrInit(void *object, const void *configBase)
 {
   const struct SctAdcConfig * const config = configBase;
-  assert(config != NULL);
+  assert(config != nullptr);
   assert(config->adc < SCTADC_ADC_END);
   assert(config->dma < SCTADC_DMA_END);
   assert(config->part != SCT_UNIFIED);

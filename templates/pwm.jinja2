@@ -24,10 +24,10 @@ static void onTimerOverflow(void *argument)
   leading = pwmLevelMap[leading] * resolution / 16;
   trailing = pwmLevelMap[trailing] * resolution / 16;
 
-  if (pwm->outputs[1] != NULL)
+  if (pwm->outputs[1] != nullptr)
     pwmSetEdges(pwm->outputs[1], 0, leading);
 
-  if (pwm->outputs[2] != NULL)
+  if (pwm->outputs[2] != nullptr)
     pwmSetEdges(pwm->outputs[2], leading, trailing);
 
   ++iteration;
@@ -63,14 +63,14 @@ int main(void)
   pwmSetEdges(pwm.outputs[0], 0, timerGetOverflow(pwm.timer) / 2);
   pwmEnable(pwm.outputs[0]);
 
-  if (pwm.outputs[1] != NULL)
+  if (pwm.outputs[1] != nullptr)
   {
     /* Single-edge PWM output */
     pwmSetEdges(pwm.outputs[1], 0, 0);
     pwmEnable(pwm.outputs[1]);
   }
 
-  if (pwm.outputs[2] != NULL)
+  if (pwm.outputs[2] != nullptr)
   {
     /* Double-edge PWM output */
     pwmSetEdges(pwm.outputs[2], 0, 0);

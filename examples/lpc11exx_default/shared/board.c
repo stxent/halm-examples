@@ -49,15 +49,15 @@ void boardSetupClockPll(void)
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupEeprom(void)
 {
-  struct Interface * const interface = init(Eeprom, NULL);
-  assert(interface != NULL);
+  struct Interface * const interface = init(Eeprom, nullptr);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupFlash(void)
 {
-  struct Interface * const interface = init(Flash, NULL);
-  assert(interface != NULL);
+  struct Interface * const interface = init(Flash, nullptr);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -70,6 +70,6 @@ struct Timer *boardSetupTimer(void)
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }

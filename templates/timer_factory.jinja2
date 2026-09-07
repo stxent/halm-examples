@@ -56,7 +56,7 @@ int main(void)
       .timer = boardSetupTimer()
   };
   struct TimerFactory * const timerFactory = init(TimerFactory, &factoryConfig);
-  assert(timerFactory != NULL);
+  assert(timerFactory != nullptr);
   timerSetOverflow(timerFactory, timerGetFrequency(timerFactory) / 1000);
 
   for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
@@ -68,7 +68,7 @@ int main(void)
     context[i].previous = 0;
 
     context[i].timer = timerFactoryCreate(timerFactory);
-    assert(context[i].timer != NULL);
+    assert(context[i].timer != nullptr);
     timerSetCallback(context[i].timer, onTimerOverflow, &context[i]);
     timerSetOverflow(context[i].timer, context[i].period);
     timerEnable(context[i].timer);

@@ -28,7 +28,7 @@ int main(void)
 
   struct Timer64 * const chrono = boardSetupTimer64();
 {%- endif %}
-  assert(chrono != NULL);
+  assert(chrono != nullptr);
   timerEnable(chrono);
 
   while (1)

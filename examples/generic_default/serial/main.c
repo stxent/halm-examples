@@ -64,7 +64,7 @@ static void onSerialEvent(void *argument)
 /*----------------------------------------------------------------------------*/
 static void onSignalReceived(void *argument)
 {
-  uv_walk(argument, onUvWalk, NULL);
+  uv_walk(argument, onUvWalk, nullptr);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
   };
   struct Interface * const serial = init(Serial, &serialConfig);
 
-  if (serial != NULL)
+  if (serial != nullptr)
   {
     context.serial = serial;
     ifSetCallback(serial, onSerialEvent, &context);
@@ -124,13 +124,13 @@ int main(int argc, char *argv[])
     };
     struct SignalHandler * const listener = init(SignalHandler,
         &listenerConfig);
-    assert(listener != NULL);
+    assert(listener != nullptr);
     interruptSetCallback(listener, onSignalReceived, loop);
     interruptEnable(listener);
 
     /* Periodic timer */
-    struct Timer * const timer = init(Timer, NULL);
-    assert(timer != NULL);
+    struct Timer * const timer = init(Timer, nullptr);
+    assert(timer != nullptr);
     timerSetOverflow(timer, 100);
     timerSetCallback(timer, onTimerOverflow, serial);
     timerEnable(timer);

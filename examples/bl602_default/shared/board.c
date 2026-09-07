@@ -93,7 +93,7 @@ struct Interface *boardSetupSerial(void)
   while (!clockReady(UartClock));
 
   struct Interface * const interface = init(Serial, &serialConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -118,7 +118,7 @@ struct Interface *boardSetupSerialDma(void)
   while (!clockReady(UartClock));
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -140,7 +140,7 @@ struct Interface *boardSetupSpi(void)
   while (!clockReady(SpiClock));
 
   struct Interface * const interface = init(Spi, &spiConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -163,7 +163,7 @@ struct Interface *boardSetupSpiDma(void)
   while (!clockReady(SpiClock));
 
   struct Interface * const interface = init(SpiDma, &spiConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -175,13 +175,13 @@ struct Timer *boardSetupTimer(void)
   };
 
   struct Timer * const timer = init(GpTimer, &timerConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct Timer64 *boardSetupTimer64(void)
 {
-  struct Timer64 * const timer = init(MachineTimer64, NULL);
-  assert(timer != NULL);
+  struct Timer64 * const timer = init(MachineTimer64, nullptr);
+  assert(timer != nullptr);
   return timer;
 }

@@ -22,7 +22,7 @@ static void deviceConfigIO(struct Interface *interface, bool zerocopy)
   assert(res == E_OK);
   res = ifSetParam(interface, IF_RATE, &(uint32_t){DEVICE_RATE});
   assert(res == E_OK);
-  res = ifSetParam(interface, zerocopy ? IF_ZEROCOPY : IF_BLOCKING, NULL);
+  res = ifSetParam(interface, zerocopy ? IF_ZEROCOPY : IF_BLOCKING, nullptr);
   assert(res == E_OK);
 }
 /*----------------------------------------------------------------------------*/
@@ -43,9 +43,9 @@ static bool deviceWrite(struct Interface *interface, uint8_t buffer,
   {
     udelay(2 * 9 * 1000 * (sizeof(packet) + 1) / (DEVICE_RATE / 1000));
 
-    if (ifGetParam(interface, IF_STATUS, NULL) != E_OK)
+    if (ifGetParam(interface, IF_STATUS, nullptr) != E_OK)
     {
-      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, NULL);
+      res = ifSetParam(interface, IF_I2C_BUS_RECOVERY, nullptr);
       assert(res == E_OK);
 
       return false;

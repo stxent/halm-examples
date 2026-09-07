@@ -39,7 +39,7 @@ void boardSetupClockExt(void)
   clockEnable(TimerClock, &timerClockConfig);
   while (!clockReady(TimerClock));
 
-  clockEnable(ExternalOsc, NULL);
+  clockEnable(ExternalOsc, nullptr);
   while (!clockReady(ExternalOsc));
   clockDisable(InternalOsc);
 
@@ -67,7 +67,7 @@ void boardSetupClockInt(void)
   clockEnable(TimerClock, &timerClockConfig);
   while (!clockReady(TimerClock));
 
-  clockEnable(InternalOsc, NULL);
+  clockEnable(InternalOsc, nullptr);
   while (!clockReady(InternalOsc));
   clockDisable(ExternalOsc);
 
@@ -196,7 +196,7 @@ struct Interface *boardSetupSerial(void)
   while (!clockReady(UartClock));
 
   struct Interface * const interface = init(Serial, &serialConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -221,7 +221,7 @@ struct Interface *boardSetupSerialDma(void)
   while (!clockReady(UartClock));
 
   struct Interface * const interface = init(SerialDma, &serialDmaConfig);
-  assert(interface != NULL);
+  assert(interface != nullptr);
   return interface;
 }
 /*----------------------------------------------------------------------------*/
@@ -234,7 +234,7 @@ struct Timer *boardSetupTimerPIT0(void)
   };
 
   struct Timer * const timer = init(Pit, &pitConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
@@ -245,7 +245,7 @@ struct Timer *boardSetupTimerPIT2(void)
   };
 
   struct Timer * const timer = init(Pit, &pitConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
@@ -256,14 +256,14 @@ struct Timer *boardSetupTimerPIT3(void)
   };
 
   struct Timer * const timer = init(Pit, &pitConfig);
-  assert(timer != NULL);
+  assert(timer != nullptr);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
 struct Timer64 *boardSetupTimer64(void)
 {
-  struct Timer64 * const timer = init(Pit64, NULL);
-  assert(timer != NULL);
+  struct Timer64 * const timer = init(Pit64, nullptr);
+  assert(timer != nullptr);
   return timer;
 }
 /*----------------------------------------------------------------------------*/
@@ -282,7 +282,7 @@ struct Usb *boardSetupUsb1(void)
   assert(clockReady(Usb1Pll));
 
   struct Usb * const usb = init(UsbDevice, &usb1Config);
-  assert(usb != NULL);
+  assert(usb != nullptr);
   return usb;
 }
 /*----------------------------------------------------------------------------*/
@@ -303,6 +303,6 @@ struct Usb *boardSetupUsb2(void)
   while (!clockReady(Usb2Pll));
 
   struct Usb * const usb = init(UsbDevice, &usb2Config);
-  assert(usb != NULL);
+  assert(usb != nullptr);
   return usb;
 }

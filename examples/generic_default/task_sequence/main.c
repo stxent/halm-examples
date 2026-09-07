@@ -47,7 +47,7 @@ static void taskPrintWorld(void *)
 /*----------------------------------------------------------------------------*/
 static void onSignalReceived(void *argument)
 {
-  uv_walk(argument, onUvWalk, NULL);
+  uv_walk(argument, onUvWalk, nullptr);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *argument)
@@ -55,7 +55,7 @@ static void onTimerOverflow(void *argument)
   static unsigned long iteration = 0;
 
   if (iteration == MAX_ITERATIONS)
-    tsAdd(argument, taskPrintExit, NULL, 0);
+    tsAdd(argument, taskPrintExit, nullptr, 0);
 
   [[maybe_unused]] const enum Result res = tsStart(argument);
   assert(res == E_OK);
@@ -77,17 +77,17 @@ int main(int, char *[])
       .signum = SIGINT
   };
   struct SignalHandler * const listener = init(SignalHandler, &listenerConfig);
-  assert(listener != NULL);
+  assert(listener != nullptr);
   interruptSetCallback(listener, onSignalReceived, loop);
   interruptEnable(listener);
 
   /* Initialize Work Queue */
-  WQ_DEFAULT = init(EventQueue, NULL);
+  WQ_DEFAULT = init(EventQueue, nullptr);
   assert(WQ_DEFAULT);
 
   /* Task timer */
-  struct Timer * const taskTimer = init(Timer, NULL);
-  assert(taskTimer != NULL);
+  struct Timer * const taskTimer = init(Timer, nullptr);
+  assert(taskTimer != nullptr);
 
   /* Task sequence */
   const struct TaskSequenceConfig sequenceConfig = {
@@ -96,15 +96,15 @@ int main(int, char *[])
       .size = 10
   };
   struct TaskSequence * const sequence = init(TaskSequence, &sequenceConfig);
-  assert(sequence != NULL);
+  assert(sequence != nullptr);
 
-  tsAdd(sequence, taskPrintHello, NULL, 200);
-  tsAdd(sequence, taskPrintWorld, NULL, 400);
-  tsAdd(sequence, taskPrintNewline, NULL, 200);
+  tsAdd(sequence, taskPrintHello, nullptr, 200);
+  tsAdd(sequence, taskPrintWorld, nullptr, 400);
+  tsAdd(sequence, taskPrintNewline, nullptr, 200);
 
   /* Periodic timer */
-  struct Timer * const eventTimer = init(Timer, NULL);
-  assert(eventTimer != NULL);
+  struct Timer * const eventTimer = init(Timer, nullptr);
+  assert(eventTimer != nullptr);
   timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
   timerSetCallback(eventTimer, onTimerOverflow, sequence);
   timerEnable(eventTimer);

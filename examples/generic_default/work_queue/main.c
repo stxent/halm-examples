@@ -20,13 +20,13 @@ static void periodicTask(void *);
 /*----------------------------------------------------------------------------*/
 static void onSignalReceived(void *argument)
 {
-  uv_walk(argument, onUvWalk, NULL);
+  uv_walk(argument, onUvWalk, nullptr);
 }
 /*----------------------------------------------------------------------------*/
 static void onTimerOverflow(void *)
 {
   [[maybe_unused]] const enum Result res =
-      wqAdd(WQ_DEFAULT, periodicTask, NULL);
+      wqAdd(WQ_DEFAULT, periodicTask, nullptr);
   assert(res == E_OK);
 }
 /*----------------------------------------------------------------------------*/
@@ -57,20 +57,20 @@ int main(int, char *[])
       .signum = SIGINT
   };
   struct SignalHandler * const listener = init(SignalHandler, &listenerConfig);
-  assert(listener != NULL);
+  assert(listener != nullptr);
   interruptSetCallback(listener, onSignalReceived, loop);
   interruptEnable(listener);
 
   /* Periodic timer */
-  struct Timer * const timer = init(Timer, NULL);
-  assert(timer != NULL);
+  struct Timer * const timer = init(Timer, nullptr);
+  assert(timer != nullptr);
   timerSetOverflow(timer, timerGetFrequency(timer) / 10);
-  timerSetCallback(timer, onTimerOverflow, NULL);
+  timerSetCallback(timer, onTimerOverflow, nullptr);
   timerEnable(timer);
 
   /* Initialize Work Queue */
-  WQ_DEFAULT = init(EventQueue, NULL);
-  assert(WQ_DEFAULT != NULL);
+  WQ_DEFAULT = init(EventQueue, nullptr);
+  assert(WQ_DEFAULT != nullptr);
   wqStart(WQ_DEFAULT);
 
   uv_run(loop, UV_RUN_DEFAULT);

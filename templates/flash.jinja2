@@ -35,7 +35,7 @@ static uint32_t findNearestRegion(const struct Interface *interface)
 
   const struct FlashGeometry * const region = flashFindRegion(geometry,
       count, address);
-  assert(region != NULL);
+  assert(region != nullptr);
 
   return (address & ~(region->size - 1)) + region->size;
 }
@@ -52,7 +52,7 @@ static uint32_t findRegionSize(const struct Interface *interface,
 
   const struct FlashGeometry * const region = flashFindRegion(geometry,
       count, address);
-  assert(region != NULL);
+  assert(region != nullptr);
 
   return region->size;
 }

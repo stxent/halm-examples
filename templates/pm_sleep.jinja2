@@ -23,7 +23,7 @@ int main(void)
 
   struct Timer * const timer = boardSetupTimer();
   timerSetOverflow(timer, timerGetFrequency(timer) * WAKEUP_PERIOD);
-  timerSetCallback(timer, onTimerOverflow, NULL);
+  timerSetCallback(timer, onTimerOverflow, nullptr);
   timerEnable(timer);
 
   while (1)

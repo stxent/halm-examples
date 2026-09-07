@@ -100,13 +100,13 @@ static bool readDeviceId(struct Interface *interface)
   struct DeviceId info;
 
   ifSetParam(interface, IF_SPIM_COMMAND, &((uint8_t){CMD_READ_DEVICE_ID}));
-  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, nullptr);
   ifSetParam(interface, IF_SPIM_ADDRESS_24, &((uint32_t){0}));
-  ifSetParam(interface, IF_SPIM_ADDRESS_SERIAL, NULL);
-  ifSetParam(interface, IF_SPIM_POST_ADDRESS_NONE, NULL);
-  ifSetParam(interface, IF_SPIM_DELAY_NONE, NULL);
+  ifSetParam(interface, IF_SPIM_ADDRESS_SERIAL, nullptr);
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_NONE, nullptr);
+  ifSetParam(interface, IF_SPIM_DELAY_NONE, nullptr);
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
-  ifSetParam(interface, IF_SPIM_DATA_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_DATA_SERIAL, nullptr);
 
   memset(&info, 0, sizeof(info));
   ifRead(interface, &info, sizeof(info));
@@ -118,17 +118,17 @@ static bool readDeviceIdDual(struct Interface *interface)
 {
   struct DeviceId info;
 
-  ifSetParam(interface, IF_SPIM_DUAL, NULL);
+  ifSetParam(interface, IF_SPIM_DUAL, nullptr);
   ifSetParam(interface, IF_SPIM_COMMAND,
       &((uint8_t){CMD_READ_DEVICE_ID_DUAL_IO}));
-  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, nullptr);
   ifSetParam(interface, IF_SPIM_ADDRESS_24, &((uint32_t){0}));
-  ifSetParam(interface, IF_SPIM_ADDRESS_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_ADDRESS_PARALLEL, nullptr);
   ifSetParam(interface, IF_SPIM_POST_ADDRESS_8, &((uint8_t){0xFF}));
-  ifSetParam(interface, IF_SPIM_POST_ADDRESS_PARALLEL, NULL);
-  ifSetParam(interface, IF_SPIM_DELAY_NONE, NULL);
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_PARALLEL, nullptr);
+  ifSetParam(interface, IF_SPIM_DELAY_NONE, nullptr);
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
-  ifSetParam(interface, IF_SPIM_DATA_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_DATA_PARALLEL, nullptr);
 
   memset(&info, 0, sizeof(info));
   ifRead(interface, &info, sizeof(info));
@@ -140,18 +140,18 @@ static bool readDeviceIdQuad(struct Interface *interface)
 {
   struct DeviceId info;
 
-  ifSetParam(interface, IF_SPIM_QUAD, NULL);
+  ifSetParam(interface, IF_SPIM_QUAD, nullptr);
   ifSetParam(interface, IF_SPIM_COMMAND,
       &((uint8_t){CMD_READ_DEVICE_ID_QUAD_IO}));
-  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, nullptr);
   ifSetParam(interface, IF_SPIM_ADDRESS_24, &((uint32_t){0}));
-  ifSetParam(interface, IF_SPIM_ADDRESS_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_ADDRESS_PARALLEL, nullptr);
   ifSetParam(interface, IF_SPIM_POST_ADDRESS_8, &((uint8_t){0xFF}));
-  ifSetParam(interface, IF_SPIM_POST_ADDRESS_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_PARALLEL, nullptr);
   ifSetParam(interface, IF_SPIM_DELAY_LENGTH, &((uint8_t){2}));
-  ifSetParam(interface, IF_SPIM_DELAY_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_DELAY_PARALLEL, nullptr);
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
-  ifSetParam(interface, IF_SPIM_DATA_PARALLEL, NULL);
+  ifSetParam(interface, IF_SPIM_DATA_PARALLEL, nullptr);
 
   memset(&info, 0, sizeof(info));
   ifRead(interface, &info, sizeof(info));
@@ -164,12 +164,12 @@ static bool readJedecId(struct Interface *interface, bool *extended)
   struct JedecId info;
 
   ifSetParam(interface, IF_SPIM_COMMAND, &((uint8_t){CMD_READ_JEDEC_ID}));
-  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, NULL);
-  ifSetParam(interface, IF_SPIM_ADDRESS_NONE, NULL);
-  ifSetParam(interface, IF_SPIM_POST_ADDRESS_NONE, NULL);
-  ifSetParam(interface, IF_SPIM_DELAY_NONE, NULL);
+  ifSetParam(interface, IF_SPIM_COMMAND_SERIAL, nullptr);
+  ifSetParam(interface, IF_SPIM_ADDRESS_NONE, nullptr);
+  ifSetParam(interface, IF_SPIM_POST_ADDRESS_NONE, nullptr);
+  ifSetParam(interface, IF_SPIM_DELAY_NONE, nullptr);
   ifSetParam(interface, IF_SPIM_DATA_LENGTH, &((uint32_t){sizeof(info)}));
-  ifSetParam(interface, IF_SPIM_DATA_SERIAL, NULL);
+  ifSetParam(interface, IF_SPIM_DATA_SERIAL, nullptr);
 
   memset(&info, 0, sizeof(info));
   ifRead(interface, &info, sizeof(info));
@@ -222,7 +222,7 @@ int main(void)
   struct Timer * const pollTimer = boardSetupAdcTimer();
 {%- else %}
 
-  struct Timer * const pollTimer = NULL;
+  struct Timer * const pollTimer = nullptr;
 {%- endif %}
   struct Interface * const spim = boardSetupSpim(pollTimer);
   res = ifSetParam(spim, IF_RATE, &testSpimRate);
