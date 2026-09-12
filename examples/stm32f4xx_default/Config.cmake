@@ -45,6 +45,7 @@ set(TEMPLATES_LIST
         serial_dma
         spi
         systick
+        tickless_factory
         timer
         usb_cdc
         usb_msc

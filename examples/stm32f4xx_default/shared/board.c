@@ -216,6 +216,20 @@ struct Interface *boardSetupFlash(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
+struct Timer *boardSetupFreerunningTimer(void)
+{
+  static const struct GpTimerConfig timerConfig = {
+      .frequency = 1000,
+      .event = TIM_EVENT_CC1,
+      .channel = TIM2,
+      .freerun = true
+  };
+
+  struct Timer * const timer = init(GpTimer, &timerConfig);
+  assert(timer != nullptr);
+  return timer;
+}
+/*----------------------------------------------------------------------------*/
 struct Interface *boardSetupI2C1(void)
 {
   static const struct I2CConfig i2cConfig = {
@@ -224,7 +238,7 @@ struct Interface *boardSetupI2C1(void)
       .sda = PIN(PORT_B, 7),
       .channel = I2C1,
       .rxDma = DMA1_STREAM0,
-      .txDma = DMA1_STREAM6
+      .txDma = DMA1_STREAM7
   };
 
   struct Interface * const interface = init(I2C, &i2cConfig);
