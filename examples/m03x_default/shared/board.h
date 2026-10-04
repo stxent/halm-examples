@@ -37,6 +37,7 @@ struct Watchdog;
 struct PwmPackage
 {
   struct Timer *timer;
+  struct Timer *timers[3];
   struct Pwm *output;
   struct Pwm *outputs[3];
 };

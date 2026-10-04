@@ -10,19 +10,30 @@
 #include <halm/pin.h>
 /*----------------------------------------------------------------------------*/
 #define BOARD_LED_0       PIN(0, 3)
-#define BOARD_LED_1       PIN(0, 1)
-#define BOARD_LED_2       PIN(0, 5)
 #define BOARD_LED         BOARD_LED_0
 #define BOARD_LED_INV     false
+#define BOARD_PWM_0       PIN(0, 4) /* Channel 4 */
+#define BOARD_PWM_1       PIN(0, 3) /* Channel 3 */
+#define BOARD_PWM_2       PIN(0, 16) /* Channel 1 */
 #define BOARD_SPI_CS      PIN(0, 16)
 #define BOARD_UART_BUFFER 128
 /*----------------------------------------------------------------------------*/
 struct Interface;
 struct Timer;
 struct Timer64;
+
+struct PwmPackage
+{
+  struct Timer *timer;
+  struct Timer *timers[3];
+  struct Pwm *output;
+  struct Pwm *outputs[3];
+};
 /*----------------------------------------------------------------------------*/
 void boardSetupClockExt(void);
 void boardSetupClockPll(void);
+struct Interface *boardSetupI2C(void);
+struct PwmPackage boardSetupPwm(bool);
 struct Interface *boardSetupSerial(void);
 struct Interface *boardSetupSerialDma(void);
 struct Interface *boardSetupSpi(void);

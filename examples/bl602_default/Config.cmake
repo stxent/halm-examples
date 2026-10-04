@@ -36,8 +36,10 @@ endif()
 
 # Define template list
 set(TEMPLATES_LIST
+        i2c
         lifetime
         machine_timer
+        pwm
         serial
         serial_dma
         spi

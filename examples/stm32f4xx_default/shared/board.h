@@ -15,14 +15,28 @@
 /* #define BOARD_TYPE_BLACKPILL */
 
 #ifdef BOARD_TYPE_BLACKBOARD
-#  define BOARD_LED_0     PIN(PORT_F, 9)
-#  define BOARD_LED_1     PIN(PORT_F, 10)
-#  define BOARD_SPI_CS_0  PIN(PORT_B, 14)
+#  define BOARD_LED_0       PIN(PORT_F, 9)
+#  define BOARD_LED_1       PIN(PORT_F, 10)
+#  define BOARD_SPI_CS_0    PIN(PORT_B, 14)
+
+#  define BOARD_I2C2_SCL    PIN(PORT_B, 10)
+#  define BOARD_I2C2_SDA    PIN(PORT_B, 11)
+
+#  define BOARD_SPI1_MISO   PIN(PORT_B, 4)
+#  define BOARD_SPI1_MOSI   PIN(PORT_B, 5)
+#  define BOARD_SPI1_SCK    PIN(PORT_B, 3)
 #else
-#  define BOARD_LED_0     PIN(PORT_C, 13)
-#  define BOARD_LED_1     PIN(PORT_B, 2)
-#  define BOARD_LED_2     PIN(PORT_A, 15)
-#  define BOARD_SPI_CS_0  PIN(PORT_A, 4)
+#  define BOARD_LED_0       PIN(PORT_C, 13)
+#  define BOARD_LED_1       PIN(PORT_B, 2)
+#  define BOARD_LED_2       PIN(PORT_A, 15)
+#  define BOARD_SPI_CS_0    PIN(PORT_A, 4)
+
+#  define BOARD_I2C2_SCL    PIN(PORT_B, 10)
+#  define BOARD_I2C2_SDA    PIN(PORT_B, 3)
+
+#  define BOARD_SPI1_MISO   PIN(PORT_B, 4)
+#  define BOARD_SPI1_MOSI   PIN(PORT_A, 7)
+#  define BOARD_SPI1_SCK    PIN(PORT_A, 5)
 #endif
 
 #define BOARD_BUTTON      PIN(PORT_A, 0)
@@ -62,6 +76,7 @@ struct Watchdog;
 struct PwmPackage
 {
   struct Timer *timer;
+  struct Timer *timers[3];
   struct Pwm *output;
   struct Pwm *outputs[3];
 };

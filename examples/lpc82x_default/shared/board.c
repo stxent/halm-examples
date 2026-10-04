@@ -261,6 +261,7 @@ struct PwmPackage boardSetupPwm(bool centered)
 
   return (struct PwmPackage){
       (struct Timer *)timer,
+      {(struct Timer *)timer, (struct Timer *)timer, (struct Timer *)timer},
       pwm0,
       {pwm0, pwm1, pwm2}
   };

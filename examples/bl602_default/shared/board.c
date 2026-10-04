@@ -8,6 +8,8 @@
 #include <halm/core/riscv/machine_timer.h>
 #include <halm/platform/bouffalo/clocking.h>
 #include <halm/platform/bouffalo/gptimer.h>
+#include <halm/platform/bouffalo/i2c.h>
+#include <halm/platform/bouffalo/pwm.h>
 #include <halm/platform/bouffalo/serial.h>
 #include <halm/platform/bouffalo/serial_dma.h>
 #include <halm/platform/bouffalo/spi.h>
@@ -72,6 +74,80 @@ void boardSetupClockPll(void)
   clockEnable(MainClock, &mainClockConfigPll);
   clockEnable(FlashClock, &flashClockConfigPll);
   clockEnable(SocClock, &socClockConfig);
+}
+/*----------------------------------------------------------------------------*/
+struct Interface *boardSetupI2C(void)
+{
+  static const struct I2CConfig i2cConfig = {
+      .rate = 400000,
+      .scl = PIN(0, 4),
+      .sda = PIN(0, 3),
+      .channel = 0
+  };
+  /* Use recommended 16 MHz intermediate frequency, I2C rate will be 250 kHz */
+  static const struct GenericClockConfig i2cClockConfig = {
+      .divisor = 10,
+      .source = CLOCK_SYSTEM
+  };
+
+  clockEnable(I2CClock, &i2cClockConfig);
+  while (!clockReady(UartClock));
+
+  struct Interface * const interface = init(I2C, &i2cConfig);
+  assert(interface != nullptr);
+  return interface;
+}
+/*----------------------------------------------------------------------------*/
+struct PwmPackage boardSetupPwm(bool)
+{
+  static const struct PwmUnitConfig pwmTimerConfigs[3] = {
+      {
+          .frequency = 1000000,
+          .resolution = 20000,
+          .channel = 4
+      }, {
+          .frequency = 1000000,
+          .resolution = 20000,
+          .channel = 3
+      }, {
+          .frequency = 1000000,
+          .resolution = 20000,
+          .channel = 1
+      }
+  };
+  static const PinNumber pwmOutputConfigs[3] = {
+      BOARD_PWM_0,
+      BOARD_PWM_1,
+      BOARD_PWM_2
+  };
+  const bool inversion = false;
+  struct PwmPackage package;
+
+  static_assert(ARRAY_SIZE(pwmTimerConfigs) == ARRAY_SIZE(pwmOutputConfigs));
+  static_assert(ARRAY_SIZE(pwmTimerConfigs) == ARRAY_SIZE(package.timers));
+  static_assert(ARRAY_SIZE(pwmOutputConfigs) == ARRAY_SIZE(package.outputs));
+
+  for (size_t i = 0; i < ARRAY_SIZE(pwmTimerConfigs); ++i)
+  {
+    package.timers[i] = init(PwmUnit, &pwmTimerConfigs[i]);
+    assert(package.timers[i] != nullptr);
+
+    if (i >= 2)
+    {
+      package.outputs[i] = pwmCreateDoubleEdge(package.timers[i],
+          pwmOutputConfigs[i], inversion);
+    }
+    else
+    {
+      package.outputs[i] = pwmCreate(package.timers[i],
+          pwmOutputConfigs[i], inversion);
+    }
+    assert(package.outputs[i] != nullptr);
+  }
+
+  package.timer = package.timers[0];
+  package.output = package.outputs[0];
+  return package;
 }
 /*----------------------------------------------------------------------------*/
 struct Interface *boardSetupSerial(void)

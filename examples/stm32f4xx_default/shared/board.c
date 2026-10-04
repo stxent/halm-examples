@@ -250,8 +250,8 @@ struct Interface *boardSetupI2C2(void)
 {
   static const struct I2CConfig i2cConfig = {
       .rate = 100000,
-      .scl = PIN(PORT_B, 10),
-      .sda = PIN(PORT_B, 3),
+      .scl = BOARD_I2C2_SCL,
+      .sda = BOARD_I2C2_SDA,
       .channel = I2C2,
       .rxDma = DMA1_STREAM2,
       .txDma = DMA1_STREAM7
@@ -361,6 +361,7 @@ struct PwmPackage boardSetupPwm(bool)
 
   return (struct PwmPackage){
       (struct Timer *)timer,
+      {(struct Timer *)timer, (struct Timer *)timer, nullptr},
       pwm0,
       {pwm0, pwm1, nullptr}
   };
@@ -441,9 +442,9 @@ struct Interface *boardSetupSpi1(void)
 {
   static const struct SpiConfig spiConfig = {
       .rate = 2000000,
-      .miso = PIN(PORT_B, 4),
-      .mosi = PIN(PORT_A, 7),
-      .sck = PIN(PORT_A, 5),
+      .miso = BOARD_SPI1_MISO,
+      .mosi = BOARD_SPI1_MOSI,
+      .sck = BOARD_SPI1_SCK,
       .channel = SPI1,
       .mode = 0,
       .rxDma = DMA2_STREAM2,

@@ -55,9 +55,15 @@ int main(void)
   struct PwmPackage pwm = boardSetupPwm(testPwmCentered);
 {%- endif %}
   timerSetCallback(pwm.timer, onUnitOverflow, &led);
-  timerSetFrequency(pwm.timer, 100000);
-  timerSetOverflow(pwm.timer, 100);
-  timerEnable(pwm.timer);
+  for (size_t i = 0; i < ARRAY_SIZE(pwm.timers); ++i)
+  {
+    if (pwm.timers[i] != nullptr)
+    {
+      timerSetFrequency(pwm.timers[i], 100000);
+      timerSetOverflow(pwm.timers[i], 100);
+      timerEnable(pwm.timers[i]);
+    }
+  }
 
   /* Reference PWM output */
   pwmSetEdges(pwm.outputs[0], 0, timerGetOverflow(pwm.timer) / 2);
