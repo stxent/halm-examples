@@ -111,5 +111,6 @@ foreach(BUNDLE_NAME ${BUNDLE_LIST})
     add_custom_target(${BUNDLE_NAME}_bundle ALL DEPENDS ${BUNDLE_NAME})
     add_custom_command(TARGET size
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${BUNDLE_NAME} --target size)
+            COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${BUNDLE_NAME} --target size
+    )
 endforeach()

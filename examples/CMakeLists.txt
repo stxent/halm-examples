@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.21)
 project(examples C)
 
 # Project configuration
+option(BUILD_TESTING "Enable testing support." OFF)
 option(USE_BIN "Convert executables to binary format." OFF)
 option(USE_HEX "Convert executables to Intel HEX format." OFF)
 option(USE_DFU "Enable memory layout compatible with a bootloader." OFF)
@@ -28,6 +29,14 @@ if(USE_LTO)
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
         set(CMAKE_C_COMPILE_OPTIONS_IPO -flto=auto -ffat-lto-objects)
     endif()
+endif()
+
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
+    include(FindPkgConfig)
+    pkg_check_modules(CHECK REQUIRED check)
+    enable_testing()
+else()
+    set(BUILD_TESTING OFF)
 endif()
 
 # Include platform-specific configuration
@@ -171,6 +180,16 @@ foreach(EXAMPLE_NAME ${EXAMPLES_LIST})
                     POST_BUILD
                     COMMAND "${CMAKE_OBJCOPY}" "${EXAMPLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}" -Oihex "${EXAMPLE_NAME}.hex"
             )
+        endif()
+    endif()
+
+    if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
+        add_test(NAME ${EXAMPLE_NAME} COMMAND ${EXAMPLE_NAME})
+        set_tests_properties(${EXAMPLE_NAME} PROPERTIES TIMEOUT 10)
+        target_link_libraries(${EXAMPLE_NAME} PRIVATE check)
+        if(BUILD_TESTING)
+            target_compile_options(${EXAMPLE_NAME} PRIVATE --coverage)
+            target_link_libraries(${EXAMPLE_NAME} PRIVATE gcov)
         endif()
     endif()
 

@@ -84,14 +84,14 @@ struct Interface *boardSetupI2C(void)
       .sda = PIN(0, 3),
       .channel = 0
   };
-  /* Use recommended 16 MHz intermediate frequency, I2C rate will be 250 kHz */
+  /* Use the recommended 16 MHz peripheral block frequency */
   static const struct GenericClockConfig i2cClockConfig = {
       .divisor = 10,
       .source = CLOCK_SYSTEM
   };
 
   clockEnable(I2CClock, &i2cClockConfig);
-  while (!clockReady(UartClock));
+  while (!clockReady(I2CClock));
 
   struct Interface * const interface = init(I2C, &i2cConfig);
   assert(interface != nullptr);

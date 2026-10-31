@@ -638,7 +638,8 @@ struct EthernetPackage boardSetupEthernet(uint64_t address, size_t rxSize,
       },
       .txen = PIN(PORT_0, 1),
       .mdc = PIN(PORT_2, 0),
-      .mdio = PIN(PORT_1, 17)
+      .mdio = PIN(PORT_1, 17),
+      .speed = PIN_SLEW_FAST
   };
 
   clockEnable(PhyRxClock, &(struct GenericClockConfig){CLOCK_ENET_TX});
@@ -1177,16 +1178,18 @@ struct Interface *boardSetupSpiDma1(void)
   return interface;
 }
 /*----------------------------------------------------------------------------*/
-struct Interface *boardSetupSpim(struct Timer *)
+struct Interface *boardSetupSpim(struct Timer *timer)
 {
   /* Objects */
-  static const struct SpifiConfig spifiConfig = {
+  const struct SpifiConfig spifiConfig = {
+      .timer = timer,
       .cs = PIN(PORT_3, 8),
       .io0 = PIN(PORT_3, 7),
       .io1 = PIN(PORT_3, 6),
       .io2 = PIN(PORT_3, 5),
       .io3 = PIN(PORT_3, 4),
       .sck = PIN(PORT_3, 3),
+      .speed = PIN_SLEW_FAST,
       .channel = 0,
       .mode = 0,
       .dma = 0
