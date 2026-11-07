@@ -7,6 +7,7 @@ include(CheckLanguage)
 include(ExternalProject)
 
 # Build options
+option(BUILD_TESTING "Enable testing support." OFF)
 option(USE_BIN "Convert executables to Binary format." ON)
 option(USE_HEX "Convert executables to Intel HEX format." OFF)
 option(USE_DFU "Enable memory layout compatible with a bootloader." OFF)
@@ -79,6 +80,8 @@ foreach(BUNDLE_NAME ${BUNDLE_LIST})
             message(STATUS "Default toolchain not found")
             continue()
         endif()
+
+        list(APPEND FLAGS_BUNDLE -DBUILD_TESTING=${BUILD_TESTING})
     endif()
 
     list(APPEND FLAGS_BUNDLE -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})

@@ -4,114 +4,227 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include <halm/delay.h>
 #include <halm/generic/task_sequence.h>
 #include <halm/platform/generic/event_queue.h>
-#include <halm/platform/generic/signal_handler.h>
 #include <halm/platform/generic/timer.h>
+#include <check.h>
 #include <uv.h>
-#include <assert.h>
 #include <stdlib.h>
 /*----------------------------------------------------------------------------*/
-#define MAX_ITERATIONS 3
+#define SEQUENCE_ITERATIONS  3
+#define TASK_COUNT           3
+#define DELAY_1_MS           20
+#define DELAY_2_MS           40
+#define WAIT_TIMEOUT_MS      5000
 /*----------------------------------------------------------------------------*/
-static void taskPrintExit(void *);
-static void taskPrintHello(void *);
-static void taskPrintNewline(void *);
-static void taskPrintWorld(void *);
-static void onSignalReceived(void *);
-static void onTimerOverflow(void *);
-static void onUvWalk(uv_handle_t *, void *);
-/*----------------------------------------------------------------------------*/
-static void taskPrintExit(void *)
+struct Context
 {
-  printf("Exit\r\n");
-  raise(SIGINT);
+  struct TaskSequence *sequence;
+  struct Timer *chrono;
+  uint32_t timestamps[SEQUENCE_ITERATIONS * TASK_COUNT];
+  uint32_t count;
+  uint32_t overflows;
+  uint32_t started;
+  uint32_t busy;
+};
+/*----------------------------------------------------------------------------*/
+static void taskEmpty(void *);
+static void taskRecord(void *);
+static void onEventOverflow(void *);
+static bool sequenceFinished(void *);
+static bool sequenceCompleted(void *);
+static bool waitForCompletion(bool (*)(void *), void *, uint64_t);
+static void drainLoop(void);
+/*----------------------------------------------------------------------------*/
+static void taskEmpty(void *)
+{
 }
 /*----------------------------------------------------------------------------*/
-static void taskPrintHello(void *)
+static void taskRecord(void *argument)
 {
-  printf("Hello ");
-  fflush(stdout);
-}
-/*----------------------------------------------------------------------------*/
-static void taskPrintNewline(void *)
-{
-  printf("\r\n");
-}
-/*----------------------------------------------------------------------------*/
-static void taskPrintWorld(void *)
-{
-  printf("world");
-  fflush(stdout);
-}
-/*----------------------------------------------------------------------------*/
-static void onSignalReceived(void *argument)
-{
-  uv_walk(argument, onUvWalk, nullptr);
-}
-/*----------------------------------------------------------------------------*/
-static void onTimerOverflow(void *argument)
-{
-  static unsigned long iteration = 0;
+  struct Context * const context = argument;
 
-  if (iteration == MAX_ITERATIONS)
-    tsAdd(argument, taskPrintExit, nullptr, 0);
-
-  [[maybe_unused]] const enum Result res = tsStart(argument);
-  assert(res == E_OK);
-
-  ++iteration;
+  context->timestamps[context->count] = timerGetValue(context->chrono);
+  ++context->count;
 }
 /*----------------------------------------------------------------------------*/
-static void onUvWalk(uv_handle_t *handle, void *)
+static void onEventOverflow(void *argument)
 {
-  deinit(uv_handle_get_data(handle));
+  struct Context * const context = argument;
+  const enum Result res = tsStart(context->sequence);
+
+  if (res == E_OK)
+    ++context->started;
+  else if (res == E_BUSY)
+    ++context->busy;
+
+  ++context->overflows;
 }
 /*----------------------------------------------------------------------------*/
-int main(int, char *[])
+static bool sequenceFinished(void *argument)
+{
+  struct Context * const context = argument;
+
+  return context->overflows >= SEQUENCE_ITERATIONS
+      && tsIsCompleted(context->sequence);
+}
+/*----------------------------------------------------------------------------*/
+static bool sequenceCompleted(void *argument)
+{
+  return tsIsCompleted(argument);
+}
+/*----------------------------------------------------------------------------*/
+static bool waitForCompletion(bool (*condition)(void *), void *argument,
+    uint64_t ms)
 {
   uv_loop_t * const loop = uv_default_loop();
+  const uint64_t deadline = uv_now(loop) + ms;
 
-  /* SIGINT listener */
-  const struct SignalHandlerConfig listenerConfig = {
-      .signum = SIGINT
-  };
-  struct SignalHandler * const listener = init(SignalHandler, &listenerConfig);
-  assert(listener != nullptr);
-  interruptSetCallback(listener, onSignalReceived, loop);
-  interruptEnable(listener);
+  do
+  {
+    uv_run(loop, UV_RUN_NOWAIT);
 
-  /* Initialize Work Queue */
+    if (condition(argument))
+      return true;
+
+    udelay(100);
+  }
+  while (uv_now(loop) < deadline);
+
+  uv_run(loop, UV_RUN_NOWAIT);
+
+  return condition(argument);
+}
+/*----------------------------------------------------------------------------*/
+static void drainLoop(void)
+{
+  uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+}
+/*----------------------------------------------------------------------------*/
+START_TEST(testSequenceExecution)
+{
+  struct Context context = {};
+
   WQ_DEFAULT = init(EventQueue, nullptr);
-  assert(WQ_DEFAULT);
+  ck_assert_ptr_nonnull(WQ_DEFAULT);
+  ck_assert_uint_eq(wqStart(WQ_DEFAULT), E_OK);
 
-  /* Task timer */
+  struct Timer * const chrono = init(Timer, nullptr);
+  ck_assert_ptr_nonnull(chrono);
+  context.chrono = chrono;
+
   struct Timer * const taskTimer = init(Timer, nullptr);
-  assert(taskTimer != nullptr);
+  ck_assert_ptr_nonnull(taskTimer);
 
-  /* Task sequence */
-  const struct TaskSequenceConfig sequenceConfig = {
+  const struct TaskSequenceConfig config = {
       .timer = taskTimer,
       .wq = WQ_DEFAULT,
       .size = 10
   };
-  struct TaskSequence * const sequence = init(TaskSequence, &sequenceConfig);
-  assert(sequence != nullptr);
+  struct TaskSequence * const sequence = init(TaskSequence, &config);
+  ck_assert_ptr_nonnull(sequence);
+  context.sequence = sequence;
 
-  tsAdd(sequence, taskPrintHello, nullptr, 200);
-  tsAdd(sequence, taskPrintWorld, nullptr, 400);
-  tsAdd(sequence, taskPrintNewline, nullptr, 200);
+  ck_assert_uint_eq(tsAdd(sequence, taskRecord, &context, DELAY_1_MS), E_OK);
+  ck_assert_uint_eq(tsAdd(sequence, taskRecord, &context, DELAY_2_MS), E_OK);
+  ck_assert_uint_eq(tsAdd(sequence, taskRecord, &context, DELAY_1_MS), E_OK);
 
-  /* Periodic timer */
   struct Timer * const eventTimer = init(Timer, nullptr);
-  assert(eventTimer != nullptr);
-  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer));
-  timerSetCallback(eventTimer, onTimerOverflow, sequence);
+  ck_assert_ptr_nonnull(eventTimer);
+  timerSetOverflow(eventTimer, timerGetFrequency(eventTimer) / 10);
+  timerSetCallback(eventTimer, onEventOverflow, &context);
+  timerEnable(chrono);
   timerEnable(eventTimer);
 
-  wqStart(WQ_DEFAULT);
-  uv_run(loop, UV_RUN_DEFAULT);
-  uv_loop_close(loop);
+  const bool finished = waitForCompletion(sequenceFinished, &context,
+      WAIT_TIMEOUT_MS);
+  const bool completed = tsIsCompleted(sequence);
 
-  return EXIT_SUCCESS;
+  deinit(eventTimer);
+  deinit(sequence);
+  deinit(chrono);
+  deinit(taskTimer);
+  drainLoop();
+
+  ck_assert(finished == true);
+  ck_assert(completed == true);
+  ck_assert_uint_eq(context.started, SEQUENCE_ITERATIONS);
+  ck_assert_uint_eq(context.busy, 0);
+  ck_assert_uint_eq(context.count, SEQUENCE_ITERATIONS * TASK_COUNT);
+
+  /* Tasks run in order with the configured delays between them */
+  for (uint32_t cycle = 0; cycle < SEQUENCE_ITERATIONS; ++cycle)
+  {
+    const uint32_t first = context.timestamps[3 * cycle];
+    const uint32_t second = context.timestamps[3 * cycle + 1];
+    const uint32_t third = context.timestamps[3 * cycle + 2];
+
+    ck_assert_uint_ge(second - first, DELAY_1_MS - 1);
+    ck_assert_uint_le(second - first, DELAY_1_MS + 1);
+    ck_assert_uint_ge(third - second, DELAY_2_MS - 1);
+    ck_assert_uint_le(third - second, DELAY_2_MS + 1);
+  }
+}
+END_TEST
+/*----------------------------------------------------------------------------*/
+START_TEST(testTaskQueueEdges)
+{
+  WQ_DEFAULT = init(EventQueue, nullptr);
+  ck_assert_ptr_nonnull(WQ_DEFAULT);
+  ck_assert_uint_eq(wqStart(WQ_DEFAULT), E_OK);
+
+  struct Timer * const timer = init(Timer, nullptr);
+  ck_assert_ptr_nonnull(timer);
+
+  const struct TaskSequenceConfig config = {
+      .timer = timer,
+      .wq = WQ_DEFAULT,
+      .size = 2
+  };
+  struct TaskSequence * const sequence = init(TaskSequence, &config);
+  ck_assert_ptr_nonnull(sequence);
+
+  /* An empty sequence cannot be started */
+  ck_assert_uint_eq(tsStart(sequence), E_EMPTY);
+
+  ck_assert_uint_eq(tsAdd(sequence, taskEmpty, nullptr, 0), E_OK);
+  ck_assert_uint_eq(tsAdd(sequence, taskEmpty, nullptr, 0), E_OK);
+  ck_assert_uint_eq(tsAdd(sequence, taskEmpty, nullptr, 0), E_FULL);
+
+  ck_assert_uint_eq(tsStart(sequence), E_OK);
+  ck_assert_uint_eq(tsStart(sequence), E_BUSY);
+
+  /* Zero delay tasks complete the sequence without timer events */
+  const bool finished = waitForCompletion(sequenceCompleted, sequence,
+      WAIT_TIMEOUT_MS);
+
+  tsStop(sequence);
+  tsClear(sequence);
+  drainLoop();
+
+  ck_assert(finished == true);
+  ck_assert_uint_eq(tsTaskArraySize(&sequence->tasks), 0);
+
+  deinit(sequence);
+  deinit(timer);
+}
+END_TEST
+/*----------------------------------------------------------------------------*/
+int main(int, char *[])
+{
+  Suite * const suite = suite_create("TaskSequence");
+  TCase * const testcase = tcase_create("Core");
+
+  tcase_add_test(testcase, testTaskQueueEdges);
+  tcase_add_test(testcase, testSequenceExecution);
+  suite_add_tcase(suite, testcase);
+
+  SRunner * const runner = srunner_create(suite);
+
+  srunner_run_all(runner, CK_NORMAL);
+  const int failed = srunner_ntests_failed(runner);
+  srunner_free(runner);
+
+  return failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

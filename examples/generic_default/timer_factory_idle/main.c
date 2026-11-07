@@ -4,123 +4,191 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include <halm/delay.h>
 #include <halm/generic/timer_factory.h>
-#include <halm/platform/generic/signal_handler.h>
 #include <halm/platform/generic/timer.h>
+#include <check.h>
 #include <uv.h>
-#include <assert.h>
 #include <stdlib.h>
 /*----------------------------------------------------------------------------*/
-#define MAX_ITERATIONS 10
-#define MAX_TIMERS     3
-
+#define MAX_ITERATIONS   11
+#define MAX_TIMERS       3
+#define TICKS_PER_LOOP   100
+#define TICKS_PER_QUANTA 11
+#define WAIT_TIMEOUT_MS  5000
+/*----------------------------------------------------------------------------*/
 struct Context
 {
-  struct Timer *chrono;
+  struct Timer *factory;
   struct Timer *timer;
-  unsigned int iteration;
-  unsigned int limit;
-  unsigned long period;
-  char key;
+  uint32_t count;
+  uint32_t limit;
+  uint32_t period;
+  uint32_t timestamps[2 * WAIT_TIMEOUT_MS / TICKS_PER_QUANTA];
 };
 /*----------------------------------------------------------------------------*/
+static void checkPeriods(struct Context *);
+static void drainLoop(void);
+static bool isTestFinished(void *);
 static void onBurstRequest(void *);
-static void onSignalReceived(void *);
-static void onUvWalk(uv_handle_t *, void *);
 static void periodicTask(void *);
+static bool waitForCompletion(bool (*)(void *), void *, uint64_t);
+/*----------------------------------------------------------------------------*/
+static void checkPeriods(struct Context *context)
+{
+  for (uint32_t i = 1; i < context->count; ++i)
+  {
+    const uint32_t delta = context->timestamps[i * 2 + 1]
+        - context->timestamps[i * 2];
+
+    ck_assert_uint_eq(delta, context->period);
+  }
+}
+/*----------------------------------------------------------------------------*/
+static void drainLoop(void)
+{
+  uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+}
+/*----------------------------------------------------------------------------*/
+static bool isTestFinished(void *argument)
+{
+  struct Context * const context = argument;
+  return context->count >= MAX_ITERATIONS;
+}
 /*----------------------------------------------------------------------------*/
 static void onBurstRequest(void *argument)
 {
   static size_t iteration = 0;
   struct Context * const contexts = argument;
+  struct Timer * const factory = contexts[0].factory;
 
   /* Enable timers in a pseudo-random order */
   for (size_t i = 0; i < MAX_TIMERS; ++i)
-  {
-    struct Timer * const timer = contexts[(iteration + i) % MAX_TIMERS].timer;
+  {\
+    const size_t reindexed = (iteration + i) % MAX_TIMERS;
+    struct Timer * const timer = contexts[reindexed].timer;
+
+    contexts[reindexed].timestamps[contexts[reindexed].count * 2] =
+        timerGetValue(factory);
 
     timerDisable(timer);
     timerEnable(timer);
   }
+
   ++iteration;
-}
-/*----------------------------------------------------------------------------*/
-static void onSignalReceived(void *argument)
-{
-  uv_walk(argument, onUvWalk, nullptr);
-}
-/*----------------------------------------------------------------------------*/
-static void onUvWalk(uv_handle_t *handle, void *)
-{
-  deinit(uv_handle_get_data(handle));
 }
 /*----------------------------------------------------------------------------*/
 static void periodicTask(void *argument)
 {
   struct Context * const context = argument;
 
-  if (!context->limit || context->iteration < context->limit)
+  if (!context->limit || context->count < context->limit)
   {
-    const unsigned long timestamp = timerGetValue(context->chrono);
+    ck_assert_uint_lt(context->count, ARRAY_SIZE(context->timestamps));
 
-    printf("%09lu Task %c %3u\r\n", timestamp, context->key,
-        context->iteration);
-
-    ++context->iteration;
+    context->timestamps[context->count * 2 + 1] =
+        timerGetValue(context->factory);
+    ++context->count;
   }
-  else
-    raise(SIGINT);
 }
 /*----------------------------------------------------------------------------*/
-int main(int, char *[])
+static bool waitForCompletion(bool (*condition)(void *), void *argument,
+    uint64_t ms)
 {
-  struct Context context[MAX_TIMERS];
   uv_loop_t * const loop = uv_default_loop();
+  const uint64_t deadline = uv_now(loop) + ms;
 
-  /* SIGINT listener */
-  const struct SignalHandlerConfig listenerConfig = {
-      .signum = SIGINT
-  };
-  struct SignalHandler * const listener = init(SignalHandler, &listenerConfig);
-  assert(listener != nullptr);
-  interruptSetCallback(listener, onSignalReceived, loop);
-  interruptEnable(listener);
+  do
+  {
+    uv_run(loop, UV_RUN_NOWAIT);
 
-  /* Periodic timer */
-  struct Timer * const periodicTimer = init(Timer, nullptr);
-  assert(periodicTimer != nullptr);
-  timerSetOverflow(periodicTimer, 100);
-  timerSetCallback(periodicTimer, onBurstRequest, context);
+    if (condition(argument))
+      return true;
 
-  /* Timer factory */
+    udelay(1000);
+  }
+  while (uv_now(loop) < deadline);
+
+  uv_run(loop, UV_RUN_NOWAIT);
+
+  return condition(argument);
+}
+/*----------------------------------------------------------------------------*/
+START_TEST(testIdleRestart)
+{
+  struct Context context[MAX_TIMERS] = {};
+  struct Timer *timers[MAX_TIMERS] = {};
+
+  /* Burst timer re-enables the factory timers periodically */
+  struct Timer * const burstTimer = init(Timer, nullptr);
+  ck_assert_ptr_nonnull(burstTimer);
+  timerSetOverflow(burstTimer, TICKS_PER_LOOP);
+  timerSetCallback(burstTimer, onBurstRequest, context);
+
+  struct Timer * const base = init(Timer, nullptr);
+  ck_assert_ptr_nonnull(base);
+
   const struct TimerFactoryConfig factoryConfig = {
-      .timer = init(Timer, nullptr)
+      .timer = base
   };
-  assert(factoryConfig.timer != nullptr);
-  struct TimerFactory * const timerFactory = init(TimerFactory, &factoryConfig);
-  assert(timerFactory != nullptr);
-  timerSetOverflow(timerFactory, timerGetFrequency(timerFactory) / 1000);
+  struct TimerFactory * const factory = init(TimerFactory, &factoryConfig);
+  ck_assert_ptr_nonnull(factory);
+  timerSetOverflow(factory, timerGetFrequency(factory) / 1000);
 
   for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
   {
-    context[i].period = 7 + 10 * i * i;
-    context[i].timer = timerFactoryCreate(timerFactory);
-    assert(context[i].timer != nullptr);
-    timerSetAutostop(context[i].timer, true);
-    timerSetCallback(context[i].timer, periodicTask, context + i);
-    timerSetOverflow(context[i].timer, context[i].period);
+    timers[i] = timerFactoryCreate(factory);
+    ck_assert_ptr_nonnull(timers[i]);
 
-    context[i].chrono = (struct Timer *)timerFactory;
-    context[i].iteration = 0;
-    context[i].limit = 0;
-    context[i].key = 'A' + i;
+    context[i].factory = (struct Timer *)factory;
+    context[i].timer = timers[i];
+    context[i].limit = (i == 0) ? MAX_ITERATIONS : 0;
+    context[i].period = TICKS_PER_QUANTA + 10 * i * i;
+
+    timerSetAutostop(timers[i], true);
+    timerSetCallback(timers[i], periodicTask, context + i);
+    timerSetOverflow(timers[i], context[i].period);
   }
-  context[0].limit = MAX_ITERATIONS;
+  timerEnable(factory);
+  timerEnable(burstTimer);
 
-  timerEnable(timerFactory);
-  timerEnable(periodicTimer);
-  uv_run(loop, UV_RUN_DEFAULT);
-  uv_loop_close(loop);
+  const bool finished = waitForCompletion(isTestFinished, &context[0],
+      WAIT_TIMEOUT_MS);
 
-  return EXIT_SUCCESS;
+  timerDisable(burstTimer);
+  deinit(burstTimer);
+
+  /* Factory entries must be removed before the factory deinit */
+  for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
+    deinit(timers[i]);
+  deinit(factory);
+  deinit(base);
+  drainLoop();
+
+  ck_assert(finished == true);
+  ck_assert_uint_eq(context[0].count, MAX_ITERATIONS);
+
+  for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
+  {
+    ck_assert_uint_ge(context[i].count, MAX_ITERATIONS - 1);
+    checkPeriods(&context[i]);
+  }
+}
+END_TEST
+/*----------------------------------------------------------------------------*/
+int main(int, char *[])
+{
+  Suite * const suite = suite_create("TimerFactoryIdle");
+  TCase * const testcase = tcase_create("Core");
+
+  tcase_add_test(testcase, testIdleRestart);
+  suite_add_tcase(suite, testcase);
+
+  SRunner * const runner = srunner_create(suite);
+
+  srunner_run_all(runner, CK_NORMAL);
+  const int failed = srunner_ntests_failed(runner);
+  srunner_free(runner);
+
+  return failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

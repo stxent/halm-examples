@@ -35,8 +35,6 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Generic")
     include(FindPkgConfig)
     pkg_check_modules(CHECK REQUIRED check)
     enable_testing()
-else()
-    set(BUILD_TESTING OFF)
 endif()
 
 # Include platform-specific configuration

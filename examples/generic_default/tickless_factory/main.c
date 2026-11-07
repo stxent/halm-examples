@@ -4,126 +4,171 @@
  * Project is distributed under the terms of the GNU General Public License v3.0
  */
 
+#include <halm/delay.h>
 #include <halm/generic/timer_factory.h>
-#include <halm/platform/generic/signal_handler.h>
 #include <halm/platform/generic/timer.h>
+#include <check.h>
 #include <uv.h>
-#include <assert.h>
 #include <stdlib.h>
 /*----------------------------------------------------------------------------*/
-#define MAX_ITERATIONS 2
-#define MAX_TIMERS     4
-
+#define MAX_ITERATIONS   100
+#define MAX_TIMERS       4
+#define TICKS_PER_QUANTA 11
+#define TICKS_PER_WRAP   1000
+#define WAIT_TIMEOUT_MS  5000
+/*----------------------------------------------------------------------------*/
 struct Context
 {
-  struct Timer *chrono;
-  struct Timer *timer;
-  unsigned int failures;
-  unsigned int iteration;
-  unsigned int limit;
-  unsigned long period;
-  unsigned long previous;
-  char key;
+  struct Timer *factory;
+  uint32_t count;
+  uint32_t period;
+  uint32_t timestamps[WAIT_TIMEOUT_MS / TICKS_PER_QUANTA];
 };
 /*----------------------------------------------------------------------------*/
-static void onSignalReceived(void *);
-static void onUvWalk(uv_handle_t *, void *);
+static void checkPeriods(struct Context *);
+static void drainLoop(void);
+static bool isTestFinished(void *);
 static void periodicTask(void *);
+static bool waitForCompletion(bool (*)(void *), void *, uint64_t);
 /*----------------------------------------------------------------------------*/
-static void onSignalReceived(void *argument)
+static void checkPeriods(struct Context *context)
 {
-  uv_walk(argument, onUvWalk, nullptr);
+  for (uint32_t i = 1; i < context->count; ++i)
+  {
+    int32_t delta = (int32_t)context->timestamps[i]
+        - (int32_t)context->timestamps[i - 1];
+
+    if (delta < 0)
+      delta += TICKS_PER_WRAP;
+
+    ck_assert_int_eq(delta, (int32_t)context->period);
+  }
 }
 /*----------------------------------------------------------------------------*/
-static void onUvWalk(uv_handle_t *handle, void *)
+static void drainLoop(void)
 {
-  deinit(uv_handle_get_data(handle));
+  uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+}
+/*----------------------------------------------------------------------------*/
+static bool isTestFinished(void *argument)
+{
+  struct Context * const context = argument;
+  return context->count >= MAX_ITERATIONS;
 }
 /*----------------------------------------------------------------------------*/
 static void periodicTask(void *argument)
 {
   struct Context * const context = argument;
 
-  if (!context->limit || context->iteration < context->limit)
-  {
-    const unsigned long overflow = timerGetOverflow(context->chrono);
-    const unsigned long timestamp = timerGetValue(context->chrono);
-    long delta = (long)(timestamp - context->previous);
-
-    if (delta < 0)
-      delta += overflow;
-
-    const bool failure = delta != (long)context->period;
-
-    printf("%09lu Task %c %3u delta %lu%s\r\n", timestamp, context->key,
-        context->iteration, delta, failure ? " UNSYNC" : "");
-
-    context->previous = timestamp;
-    if (failure)
-      ++context->failures;
-    ++context->iteration;
-  }
-  else
-    raise(SIGINT);
+  context->timestamps[context->count] = timerGetValue(context->factory);
+  ++context->count;
 }
 /*----------------------------------------------------------------------------*/
-int main(int, char *[])
+static bool waitForCompletion(bool (*condition)(void *), void *argument,
+    uint64_t ms)
 {
-  struct Context context[MAX_TIMERS];
   uv_loop_t * const loop = uv_default_loop();
+  const uint64_t deadline = uv_now(loop) + ms;
 
-  /* SIGINT listener */
-  const struct SignalHandlerConfig listenerConfig = {
-      .signum = SIGINT
-  };
-  struct SignalHandler * const listener = init(SignalHandler, &listenerConfig);
-  assert(listener != nullptr);
-  interruptSetCallback(listener, onSignalReceived, loop);
-  interruptEnable(listener);
+  do
+  {
+    uv_run(loop, UV_RUN_NOWAIT);
 
-  /* Timer factory */
+    if (condition(argument))
+      return true;
+
+    udelay(1000);
+  }
+  while (uv_now(loop) < deadline);
+
+  uv_run(loop, UV_RUN_NOWAIT);
+
+  return condition(argument);
+}
+/*----------------------------------------------------------------------------*/
+START_TEST(testTicklessFactory)
+{
+  struct Context context[MAX_TIMERS] = {};
+  struct Timer *timers[MAX_TIMERS] = {};
+
+  /* Free running base timer with a 1000 tick timebase */
   const struct TimerConfig timerConfig = {
       .frequency = 0,
-      .resolution = 1000,
+      .resolution = TICKS_PER_WRAP,
       .freerun = true
   };
+  struct Timer * const base = init(Timer, &timerConfig);
+  ck_assert_ptr_nonnull(base);
+
   const struct TimerFactoryConfig factoryConfig = {
-      .timer = init(Timer, &timerConfig)
+      .timer = base
   };
-  assert(factoryConfig.timer != nullptr);
-  struct TimerFactory * const timerFactory =
-      init(TicklessFactory, &factoryConfig);
-  assert(timerFactory != nullptr);
+  struct TimerFactory * const factory = init(TicklessFactory, &factoryConfig);
+  ck_assert_ptr_nonnull(factory);
+  timerSetFrequency(factory, 1000);
+  ck_assert_uint_eq(timerGetFrequency(factory), 1000);
+  ck_assert_uint_eq(timerGetOverflow(factory), TICKS_PER_WRAP);
 
   for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
   {
-    context[i].period = (i == ARRAY_SIZE(context) - 1) ? 500 : 7 + 10 * i * i;
+    timers[i] = timerFactoryCreate(factory);
+    ck_assert_ptr_nonnull(timers[i]);
 
-    context[i].timer = timerFactoryCreate(timerFactory);
-    assert(context[i].timer != nullptr);
-    timerSetCallback(context[i].timer, periodicTask, context + i);
-    timerSetOverflow(context[i].timer, context[i].period);
-    timerEnable(context[i].timer);
+    context[i].factory = (struct Timer *)factory;
+    context[i].period = TICKS_PER_QUANTA + 10 * i * i;
 
-    context[i].chrono = (struct Timer *)timerFactory;
-    context[i].failures = 0;
-    context[i].iteration = 0;
-    context[i].limit = 0;
-    context[i].previous = 0;
-    context[i].key = 'A' + i;
+    timerSetCallback(timers[i], periodicTask, context + i);
+    timerSetOverflow(timers[i], context[i].period);
+    ck_assert_uint_eq(timerGetFrequency(timers[i]), 1000);
+    ck_assert_uint_eq(timerGetOverflow(timers[i]), context[i].period);
+    ck_assert_uint_eq(timerGetValue(timers[i]), 0);
+
+    timerEnable(timers[i]);
   }
-  context[ARRAY_SIZE(context) - 1].limit = MAX_ITERATIONS;
 
-  printf("Factory overflow  %lu\r\n",
-      (unsigned long)timerGetOverflow(timerFactory));
-  printf("Factory frequency %lu\r\n",
-      (unsigned long)timerGetFrequency(timerFactory));
-  printf("Timer frequency   %lu\r\n",
-      (unsigned long)timerGetFrequency(context[0].timer));
+  /* The shortest period timer terminates the test run */
+  timerEnable(factory);
+  const bool finished = waitForCompletion(isTestFinished, &context[0],
+      WAIT_TIMEOUT_MS);
+  timerDisable(factory);
 
-  timerEnable(timerFactory);
-  uv_run(loop, UV_RUN_DEFAULT);
-  uv_loop_close(loop);
+  /* Factory entries must be removed before the factory deinit */
+  for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
+    deinit(timers[i]);
+  deinit(factory);
+  deinit(base);
+  drainLoop();
 
-  return EXIT_SUCCESS;
+  ck_assert(finished == true);
+  ck_assert_uint_eq(context[0].count, MAX_ITERATIONS);
+  for (size_t i = 0; i < ARRAY_SIZE(context); ++i)
+    checkPeriods(&context[i]);
+
+  /* Other timers fire proportionally to their periods */
+  for (size_t i = 1; i < ARRAY_SIZE(context); ++i)
+  {
+    const uint32_t maxIterationsScaled =
+        MAX_ITERATIONS * TICKS_PER_QUANTA / (TICKS_PER_QUANTA + 10 * i * i);
+
+    ck_assert_uint_ge(context[i].count, maxIterationsScaled - 1);
+    ck_assert_uint_le(context[i].count, maxIterationsScaled + 1);
+  }
+}
+END_TEST
+/*----------------------------------------------------------------------------*/
+int main(int, char *[])
+{
+  Suite * const suite = suite_create("TicklessFactory");
+  TCase * const testcase = tcase_create("Core");
+
+  tcase_add_test(testcase, testTicklessFactory);
+  suite_add_tcase(suite, testcase);
+
+  SRunner * const runner = srunner_create(suite);
+
+  srunner_run_all(runner, CK_NORMAL);
+  const int failed = srunner_ntests_failed(runner);
+  srunner_free(runner);
+
+  return failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

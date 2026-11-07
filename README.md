@@ -80,6 +80,8 @@ To build the project, the following tools and packages are required:
 * **Python 3.6+** with the following packages:
   * `jinja2` — for rendering code templates
   * `kconfiglib` — for generating Kconfig configuration files
+* **libcheck** — required for building and running unit tests on the x86 target
+  (optional if tests are disabled).
 * **libuv-devel** — required for building the x86 target
 
 ## Build Examples
