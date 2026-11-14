@@ -12,6 +12,7 @@
 #include <stdlib.h>
 /*----------------------------------------------------------------------------*/
 #define MAX_ITERATIONS  10
+#define ORDER_TASKS     16
 #define WAIT_TIMEOUT_MS 5000
 /*----------------------------------------------------------------------------*/
 struct Context
@@ -19,10 +20,23 @@ struct Context
   unsigned int executions;
   unsigned int failures;
 };
+
+struct OrderContext
+{
+  unsigned int executions;
+  unsigned int order[ORDER_TASKS];
+};
+
+struct OrderEntry
+{
+  struct OrderContext *context;
+  unsigned int index;
+};
 /*----------------------------------------------------------------------------*/
 static void drainLoop(void);
 static bool isTestFinished(void *);
 static void onTimerOverflow(void *);
+static void orderedTask(void *);
 static void periodicTask(void *);
 static bool waitForCompletion(bool (*)(void *), void *, uint64_t);
 /*----------------------------------------------------------------------------*/
@@ -46,6 +60,15 @@ static void onTimerOverflow(void *argument)
   {
     ++context->failures;
   }
+}
+/*----------------------------------------------------------------------------*/
+static void orderedTask(void *argument)
+{
+  const struct OrderEntry * const entry = argument;
+  struct OrderContext * const context = entry->context;
+
+  context->order[context->executions] = entry->index;
+  ++context->executions;
 }
 /*----------------------------------------------------------------------------*/
 static void periodicTask(void *argument)
@@ -76,16 +99,62 @@ static bool waitForCompletion(bool (*condition)(void *), void *argument,
   return condition(argument);
 }
 /*----------------------------------------------------------------------------*/
+START_TEST(testCallbackOrdering)
+{
+  WQ_DEFAULT = init(EventQueue, nullptr);
+  ck_assert_ptr_nonnull(WQ_DEFAULT);
+  ck_assert_uint_eq(wqStart(WQ_DEFAULT), E_OK);
+
+  struct OrderContext context = {0};
+  struct OrderEntry entries[ORDER_TASKS];
+
+  for (unsigned int i = 0; i < ORDER_TASKS; ++i)
+  {
+    entries[i].context = &context;
+    entries[i].index = i;
+
+    ck_assert_uint_eq(wqAdd(WQ_DEFAULT, orderedTask, &entries[i]), E_OK);
+  }
+
+  drainLoop();
+  wqStop(WQ_DEFAULT);
+
+  ck_assert_uint_eq(context.executions, ORDER_TASKS);
+
+  for (unsigned int i = 0; i < ORDER_TASKS; ++i)
+    ck_assert_uint_eq(context.order[i], i);
+}
+END_TEST
+/*----------------------------------------------------------------------------*/
 START_TEST(testDirectAdd)
 {
   WQ_DEFAULT = init(EventQueue, nullptr);
   ck_assert_ptr_nonnull(WQ_DEFAULT);
+  ck_assert_uint_eq(wqStart(WQ_DEFAULT), E_OK);
 
   struct Context context = {0};
   ck_assert_uint_eq(wqAdd(WQ_DEFAULT, periodicTask, &context), E_OK);
   drainLoop();
 
   ck_assert_uint_eq(context.executions, 1);
+}
+END_TEST
+/*----------------------------------------------------------------------------*/
+START_TEST(testNullCallback)
+{
+  WQ_DEFAULT = init(EventQueue, nullptr);
+  ck_assert_ptr_nonnull(WQ_DEFAULT);
+  ck_assert_uint_eq(wqStart(WQ_DEFAULT), E_OK);
+
+  struct Context context = {0};
+
+  ck_assert_uint_eq(wqAdd(WQ_DEFAULT, nullptr, nullptr), E_VALUE);
+  ck_assert_uint_eq(wqAdd(WQ_DEFAULT, nullptr, &context), E_VALUE);
+
+  drainLoop();
+  wqStop(WQ_DEFAULT);
+
+  ck_assert_uint_eq(context.executions, 0);
 }
 END_TEST
 /*----------------------------------------------------------------------------*/
@@ -107,11 +176,35 @@ START_TEST(testPeriodicWorkQueue)
 
   timerDisable(timer);
   deinit(timer);
+
   drainLoop();
+  wqStop(WQ_DEFAULT);
 
   ck_assert(finished == true);
   ck_assert_uint_eq(context.failures, 0);
   ck_assert_uint_eq(context.executions, MAX_ITERATIONS);
+}
+END_TEST
+/*----------------------------------------------------------------------------*/
+START_TEST(testRepeatedTaskScheduling)
+{
+  WQ_DEFAULT = init(EventQueue, nullptr);
+  ck_assert_ptr_nonnull(WQ_DEFAULT);
+  ck_assert_uint_eq(wqStart(WQ_DEFAULT), E_OK);
+
+  struct Context context = {0};
+
+  for (unsigned int round = 0; round < 3; ++round)
+  {
+    ck_assert_uint_eq(wqAdd(WQ_DEFAULT, periodicTask, &context), E_OK);
+    ck_assert_uint_eq(context.executions, round);
+
+    drainLoop();
+
+    ck_assert_uint_eq(context.executions, round + 1);
+  }
+
+  wqStop(WQ_DEFAULT);
 }
 END_TEST
 /*----------------------------------------------------------------------------*/
@@ -120,8 +213,11 @@ int main(int, char *[])
   Suite * const suite = suite_create("WorkQueue");
   TCase * const testcase = tcase_create("Core");
 
+  tcase_add_test(testcase, testCallbackOrdering);
   tcase_add_test(testcase, testDirectAdd);
+  tcase_add_test(testcase, testNullCallback);
   tcase_add_test(testcase, testPeriodicWorkQueue);
+  tcase_add_test(testcase, testRepeatedTaskScheduling);
   suite_add_tcase(suite, testcase);
 
   SRunner * const runner = srunner_create(suite);

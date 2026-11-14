@@ -499,6 +499,63 @@ START_TEST(testReadCaching)
 }
 END_TEST
 /*----------------------------------------------------------------------------*/
+START_TEST(testTimestampOverflow)
+{
+  uint8_t * const volume = makeVolume(LARGE_CAPACITY);
+  struct RamProxy * const ram = openRamVolume(volume, LARGE_CAPACITY);
+  struct CachingProxy * const cache = openCachingProxy(ram, CACHE_BLOCKS);
+  uint8_t sector20[SECTOR_SIZE];
+  uint8_t sector23[SECTOR_SIZE];
+  uint8_t buffer[SECTOR_SIZE];
+  uint8_t zero[SECTOR_SIZE];
+  uint32_t matches;
+  uint32_t misses;
+
+  /* Place the counter three increments before the wrap point */
+  cache->timestamp = UINT32_MAX - 3;
+
+  /* Four dirty blocks are cached, the counter wraps on the last write */
+  fillSector(sector20, 0x11);
+  ck_assert_uint_eq(writeSector(cache, 20, sector20), SECTOR_SIZE);
+  fillSector(buffer, 0x22);
+  ck_assert_uint_eq(writeSector(cache, 21, buffer), SECTOR_SIZE);
+  fillSector(buffer, 0x33);
+  ck_assert_uint_eq(writeSector(cache, 22, buffer), SECTOR_SIZE);
+  fillSector(sector23, 0x44);
+  ck_assert_uint_eq(writeSector(cache, 23, sector23), SECTOR_SIZE);
+
+  /*
+   * The fifth write evicts the oldest block. Sector 20 holds the pre-wrap
+   * timestamp, sector 23 holds the post-wrap timestamp and is the most recent
+   * block despite its small value.
+   */
+  fillSector(buffer, 0x55);
+  ck_assert_uint_eq(writeSector(cache, 24, buffer), SECTOR_SIZE);
+
+  /* The pre-wrap block is flushed, the post-wrap block stays cached */
+  ck_assert_mem_eq(volume + SECTOR_SIZE * 20, sector20, SECTOR_SIZE);
+
+  memset(zero, 0, SECTOR_SIZE);
+  ck_assert_mem_eq(volume + SECTOR_SIZE * 23, zero, SECTOR_SIZE);
+
+  /* The cached block is served from the cache, the flushed one is a miss */
+  matches = getCounter(cache, IF_CACHE_READ_MATCH);
+  misses = getCounter(cache, IF_CACHE_READ_MISS);
+
+  ck_assert_uint_eq(readSector(cache, 23, buffer), SECTOR_SIZE);
+  ck_assert_mem_eq(buffer, sector23, SECTOR_SIZE);
+  ck_assert_uint_eq(getCounter(cache, IF_CACHE_READ_MATCH), matches + 1);
+
+  ck_assert_uint_eq(readSector(cache, 20, buffer), SECTOR_SIZE);
+  ck_assert_mem_eq(buffer, sector20, SECTOR_SIZE);
+  ck_assert_uint_eq(getCounter(cache, IF_CACHE_READ_MISS), misses + 1);
+
+  deinit(cache);
+  deinit(ram);
+  free(volume);
+}
+END_TEST
+/*----------------------------------------------------------------------------*/
 START_TEST(testWriteCaching)
 {
   uint8_t * const volume = makeVolume(LARGE_CAPACITY);
@@ -542,6 +599,7 @@ int main(int, char *[])
   tcase_add_test(testcase, testPosition64);
   tcase_add_test(testcase, testPositionErrors);
   tcase_add_test(testcase, testReadCaching);
+  tcase_add_test(testcase, testTimestampOverflow);
   tcase_add_test(testcase, testWriteCaching);
   suite_add_tcase(suite, testcase);
 
